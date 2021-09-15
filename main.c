@@ -2,11 +2,21 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
-#include "image_processing/image_manager.h"
+#include "image_processing/image_processing.h"
+
+void print_help(const char *exec_name)
+{
+    printf("Usage: %s [options] file ...\n", exec_name);
+    printf("Options:\n");
+    printf("\t-o <file>     Place the output into <file>.\n");
+    printf("\n");
+    printf("For more information, see: "
+           "https://github.com/augustinbegue/sudoku-ocr\n");
+}
 
 int main(int argc, char const *argv[])
 {
-    if (argc < 4)
+    if (argc < 2)
     {
         errx(1, "missing operand.\nTry --help for more information.");
     }
@@ -14,12 +24,11 @@ int main(int argc, char const *argv[])
     if (strcmp(argv[1], "--help") == 0)
     {
         // --help argument -> print help message
-
-        // TODO: Write the help message
-        printf("Help message.\n");
+        print_help(argv[0]);
+        return 0;
     }
 
-    char *input_path = "", *output_path = "";
+    char *input_path = "", *output_path = "./output.bmp";
 
     for (int i = 1; i < argc; i++)
     {
