@@ -3,8 +3,9 @@
 #include <string.h>
 #include <unistd.h>
 #include "image_processing/image_processing.h"
+#include "utils/image.h"
 
-void print_help(const char *exec_name)
+static void print_help(const char *exec_name)
 {
     printf("Usage: %s [options] file ...\n", exec_name);
     printf("Options:\n");
@@ -50,8 +51,12 @@ int main(int argc, char const *argv[])
     {
         SDL_Surface *image_surface = load_image(input_path);
 
+        Image image = SDL_Surface_to_Image(image_surface);
+
         // save the image in the output_path file
         save_image(image_surface, output_path);
+
+        free_Image(&image);
     }
     else
     {
