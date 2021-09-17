@@ -1,0 +1,1 @@
+double clamp(double d, double min, double max);

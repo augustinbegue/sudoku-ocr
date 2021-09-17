@@ -5,6 +5,31 @@
 #include "SDL2/SDL.h"
 #include "SDL2/SDL_image.h"
 
+SDL_Surface *load_image(char *path)
+{
+    printf("-->📁 Opening %s\n", path);
+
+    SDL_Surface *img;
+
+    // Load an image using SDL_image with format detection.
+    // If it fails, die with an error message.
+    img = IMG_Load(path);
+    if (!img)
+        errx(3, "can't load %s: %s", path, IMG_GetError());
+
+    return img;
+}
+
+void save_image(SDL_Surface *image_surface, char *path)
+{
+    printf("<--📁 Saving to %s\n", path);
+    int success = SDL_SaveBMP(image_surface, path);
+
+    if (success != 0)
+        errx(1, "could not save the image to '%s': %s.\n", path,
+            SDL_GetError());
+}
+
 Image SDL_Surface_to_Image(SDL_Surface *image_surface)
 {
     Image image;
@@ -13,6 +38,9 @@ Image SDL_Surface_to_Image(SDL_Surface *image_surface)
     image.width = image_surface->w;
     image.surface = image_surface;
     image.pixels = malloc((image.width + 1) * sizeof(Pixel *));
+    image.average_color = 0;
+
+    double pnum = image.width * image.heigth;
 
     if (image.pixels == NULL)
     {
@@ -39,9 +67,15 @@ Image SDL_Surface_to_Image(SDL_Surface *image_surface)
 
             Pixel pixel = {values.r, values.g, values.b};
 
+            double c_avg = (values.r + values.g + values.b) / 3;
+
+            image.average_color += c_avg / pnum;
+
             image.pixels[x][y] = pixel;
         }
     }
+
+    printf("[!]🎨 Average color: %f\n", image.average_color);
 
     return image;
 }
@@ -72,4 +106,15 @@ void free_Image(Image *image)
     free(image->pixels);
 
     SDL_FreeSurface(image->surface);
+}
+
+void image_filter(Image *image, void (*filter)(Pixel *, int), double value)
+{
+    for (int x = 0; x < image->width; x++)
+    {
+        for (int y = 0; y < image->heigth; y++)
+        {
+            filter(&image->pixels[x][y], value);
+        }
+    }
 }

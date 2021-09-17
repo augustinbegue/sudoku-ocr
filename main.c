@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
-#include "image_processing/image_processing.h"
+#include "image_processing/image_filters.h"
 #include "utils/image.h"
 
 static void print_help(const char *exec_name)
@@ -49,14 +49,19 @@ int main(int argc, char const *argv[])
     // input_path contains the file path -> load it
     if (access(input_path, F_OK) == 0)
     {
-        SDL_Surface *image_surface = load_image(input_path);
+        Image image = SDL_Surface_to_Image(load_image(input_path));
+        Image *pt_image = &image;
 
-        Image image = SDL_Surface_to_Image(image_surface);
+        filter_grayscale(pt_image, 0);
+
+        filter_bw(pt_image, image.average_color);
+
+        filter_contrast(pt_image, 128);
 
         // save the image in the output_path file
-        save_image(image_surface, output_path);
+        save_image(Image_to_SDL_Surface(pt_image), output_path);
 
-        free_Image(&image);
+        free_Image(pt_image);
     }
     else
     {
