@@ -13,7 +13,7 @@ typedef struct Pixel Pixel;
 
 struct Image
 {
-    int heigth;
+    int height;
     int width;
     SDL_Surface *surface;
     Pixel **pixels;
@@ -32,5 +32,7 @@ SDL_Surface *Image_to_SDL_Surface(Image *image);
 void free_Image(Image *image);
 
 void image_filter(Image *image, void (*filter)(Pixel *, int), double value);
+
+Uint8 *image_grayscale_histogram(Image *image);
 
 #endif

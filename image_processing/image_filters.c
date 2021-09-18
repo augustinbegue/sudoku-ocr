@@ -26,7 +26,7 @@ static void _contrast(Pixel *pixel, int value)
 
 static void _bw(Pixel *pixel, int threshold)
 {
-    pixel->r = pixel->g = pixel->b = pixel->r > threshold ? 255 : 0;
+    pixel->r = pixel->g = pixel->b = pixel->r > threshold ? 0 : 255;
 }
 
 void filter_grayscale(Image *image, double brightness)

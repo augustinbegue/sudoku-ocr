@@ -22,7 +22,7 @@ SDL_Surface *load_image(char *path)
 
 void save_image(SDL_Surface *image_surface, char *path)
 {
-    printf("<--📁 Saving to %s\n", path);
+    printf("<--💾 Saving output to %s\n", path);
     int success = SDL_SaveBMP(image_surface, path);
 
     if (success != 0)
@@ -34,13 +34,13 @@ Image SDL_Surface_to_Image(SDL_Surface *image_surface)
 {
     Image image;
 
-    image.heigth = image_surface->h;
+    image.height = image_surface->h;
     image.width = image_surface->w;
     image.surface = image_surface;
     image.pixels = malloc((image.width + 1) * sizeof(Pixel *));
     image.average_color = 0;
 
-    double pnum = image.width * image.heigth;
+    double pnum = image.width * image.height;
 
     if (image.pixels == NULL)
     {
@@ -49,7 +49,7 @@ Image SDL_Surface_to_Image(SDL_Surface *image_surface)
 
     for (int x = 0; x < image.width; x++)
     {
-        image.pixels[x] = malloc((image.heigth + 1) * sizeof(Pixel));
+        image.pixels[x] = malloc((image.height + 1) * sizeof(Pixel));
 
         if (image.pixels[x] == NULL)
         {
@@ -58,7 +58,7 @@ Image SDL_Surface_to_Image(SDL_Surface *image_surface)
 
         SDL_Color values;
 
-        for (int y = 0; y < image.heigth; y++)
+        for (int y = 0; y < image.height; y++)
         {
             Uint32 tpixel = get_pixel(image.surface, x, y);
 
@@ -75,8 +75,6 @@ Image SDL_Surface_to_Image(SDL_Surface *image_surface)
         }
     }
 
-    printf("[!]🎨 Average color: %f\n", image.average_color);
-
     return image;
 }
 
@@ -84,7 +82,7 @@ SDL_Surface *Image_to_SDL_Surface(Image *image)
 {
     for (int x = 0; x < image->width; x++)
     {
-        for (int y = 0; y < image->heigth; y++)
+        for (int y = 0; y < image->height; y++)
         {
             Pixel p = image->pixels[x][y];
 
@@ -112,9 +110,25 @@ void image_filter(Image *image, void (*filter)(Pixel *, int), double value)
 {
     for (int x = 0; x < image->width; x++)
     {
-        for (int y = 0; y < image->heigth; y++)
+        for (int y = 0; y < image->height; y++)
         {
             filter(&image->pixels[x][y], value);
         }
     }
+}
+
+// Array is size 256
+Uint8 *image_grayscale_histogram(Image *image)
+{
+    Uint8 *hist = calloc(sizeof(Uint8), 256);
+
+    for (int x = 0; x < image->width; x++)
+    {
+        for (int y = 0; y < image->height; y++)
+        {
+            hist[image->pixels[x][y].r]++;
+        }
+    }
+
+    return hist;
 }
