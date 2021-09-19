@@ -3,8 +3,10 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
-#include "image_processing/image_filters.h"
-#include "image_processing/otsu_threshold.h"
+#include "image_processing/blur.h"
+#include "image_processing/filters.h"
+#include "image_processing/mask.h"
+#include "image_processing/morph.h"
 #include "utils/image.h"
 
 static void print_help(const char *exec_name)
@@ -12,35 +14,10 @@ static void print_help(const char *exec_name)
     printf("Usage: %s [options] file ...\n", exec_name);
     printf("Options:\n");
     printf("\t-o <file>     Save the output into <file>.\n");
-    printf("\t-h <file>     Save the grayscale repartition histogram into "
-           "<file>.\n");
+    printf("\t-m            Save the mask image into <file>.\n");
     printf("\n");
     printf("For more information, see: "
            "https://github.com/augustinbegue/sudoku-ocr\n");
-}
-
-static void save_image_histogram(
-    char *histogram_output_path, Uint8 *image_histogram)
-{
-    FILE *fpt;
-    fpt = fopen(histogram_output_path, "w+");
-
-    char num[7];
-    int i = 0;
-    for (; i < 255; i++)
-    {
-
-        sprintf(num, "%d;\n", image_histogram[i]);
-        fputs(num, fpt);
-    }
-
-    sprintf(num, "%d\n", image_histogram[i]);
-    fputs(num, fpt);
-
-    printf("<--💾 Saving image grayscale histogram to: %s\n",
-        histogram_output_path);
-
-    fclose(fpt);
 }
 
 int main(int argc, char const *argv[])
@@ -57,10 +34,11 @@ int main(int argc, char const *argv[])
         return 0;
     }
 
-    bool save_histogram = false;
+    bool save_mask = false;
     char *input_path = "", *output_path = "./output.bmp",
-         *histogram_output_path = "";
+         *mask_output_path = "./output.grayscale.bmp";
 
+    // Argument handling
     for (int i = 1; i < argc; i++)
     {
         if (strcmp(argv[i], "-o") == 0)
@@ -70,44 +48,97 @@ int main(int argc, char const *argv[])
             output_path = (char *)argv[i];
             continue;
         }
-        else if (strcmp(argv[i], "-h") == 0)
+        else if (strcmp(argv[i], "-m") == 0)
         {
-            save_histogram = true;
+            save_mask = true;
             // next argument is the output_path
             i++;
-            histogram_output_path = (char *)argv[i];
+            mask_output_path = (char *)argv[i];
             continue;
         }
+        else
         {
             input_path = (char *)argv[i];
         }
     }
 
-    // input_path contains the file path -> load it
+    // File loading and processing
     if (access(input_path, F_OK) == 0)
     {
+        /*
+         * PASS 1 - Create a mask with the pixels to keep
+         */
+        Image mask = SDL_Surface_to_Image(load_image(input_path));
+        Image *maskpt = &mask;
+
+        // Grayscale and contrast adjustement
+        filter_grayscale(maskpt, 0);
+
+        filter_gamma(maskpt, 255);
+
+        // Gaussian blur for noise removal
+        gaussian_blur_image(maskpt, 5, 1, 1);
+
+        printf("...🎨 Average Color: %i\n", (int)maskpt->average_color);
+
+        if (maskpt->average_color >= 170)
+        {
+            filter_contrast(maskpt, 128);
+
+            // Erosion and Dilation for further noise removal and character
+            // enlargement
+            morph(maskpt, Erosion, 3);
+
+            morph(maskpt, Dilation, 5);
+        }
+        else
+        {
+            // Erosion and Dilation for further noise removal and character
+            // enlargement
+            morph(maskpt, Erosion, 9);
+
+            morph(maskpt, Dilation, 9);
+        }
+
+        // Mask creation from a dynamic threshold
+        filter_dynamic_threshold(maskpt, 1);
+
+        if (save_mask)
+            save_image(Image_to_SDL_Surface(maskpt), mask_output_path);
+
+        /*
+         * PASS 2 - Apply the mask to a clean version of the image and reapply
+         * processing
+         */
         Image image = SDL_Surface_to_Image(load_image(input_path));
         Image *imagept = &image;
 
-        printf("[!]🎨 Average color: %f\n", image.average_color);
+        // Apply the mask onto the clean image
+        apply_mask(imagept, maskpt);
 
-        filter_contrast(imagept, 128);
+        // Mask is no longer needed and therefore freed
+        free_Image(maskpt);
 
         filter_grayscale(imagept, 0);
 
-        Uint8 *image_histogram = image_grayscale_histogram(imagept);
-        if (save_histogram)
-            save_image_histogram(histogram_output_path, image_histogram);
+        filter_gamma(imagept, 255);
 
-        double treshold = otsu_treshold(imagept, image_histogram);
-        printf("[!]🔭 Otsu Treshold: %f\n", treshold);
+        printf("...🎨 Average Color: %i\n", (int)maskpt->average_color);
 
-        filter_bw(imagept, image.average_color);
+        if (maskpt->average_color > 200)
+        {
+            gaussian_blur_image(imagept, 5, 2, 1);
+
+            filter_contrast(imagept, 128);
+
+            filter_gamma(imagept, 384);
+        }
+
+        filter_threshold(imagept);
 
         // save the image in the output_path file
         save_image(Image_to_SDL_Surface(imagept), output_path);
 
-        free(image_histogram);
         free_Image(imagept);
     }
     else

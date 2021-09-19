@@ -108,23 +108,55 @@ void free_Image(Image *image)
 
 void image_filter(Image *image, void (*filter)(Pixel *, int), double value)
 {
+    double pnum = image->width * image->height;
+    image->average_color = 0;
+
     for (int x = 0; x < image->width; x++)
     {
         for (int y = 0; y < image->height; y++)
+        {
+            filter(&image->pixels[x][y], value);
+
+            double c_avg = (image->pixels[x][y].r + image->pixels[x][y].g
+                               + image->pixels[x][y].b)
+                           / 3;
+
+            image->average_color += c_avg / pnum;
+        }
+    }
+}
+
+void image_partial_filter(Image *image, void (*filter)(Pixel *, int),
+    double value, int startx, int endx, int starty, int endy)
+{
+    for (int x = startx; x < endx && x < image->width; x++)
+    {
+        for (int y = starty; y < endy && y < image->height; y++)
         {
             filter(&image->pixels[x][y], value);
         }
     }
 }
 
-// Array is size 256
-Uint8 *image_grayscale_histogram(Image *image)
+/**
+ * @brief Generates a grayscale repartition histogram from the image in the
+ * specified positions
+ *
+ * @param image image to generate the histogram from
+ * @param startx x start position
+ * @param endx x end position
+ * @param starty y start position
+ * @param endy y end position
+ * @return int*
+ */
+int *image_grayscale_histogram(
+    Image *image, int startx, int endx, int starty, int endy)
 {
-    Uint8 *hist = calloc(sizeof(Uint8), 256);
+    int *hist = calloc(sizeof(int), 256);
 
-    for (int x = 0; x < image->width; x++)
+    for (int x = startx; x < endx && x < image->width; x++)
     {
-        for (int y = 0; y < image->height; y++)
+        for (int y = starty; y < endy && y < image->height; y++)
         {
             hist[image->pixels[x][y].r]++;
         }

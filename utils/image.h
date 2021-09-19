@@ -33,6 +33,10 @@ void free_Image(Image *image);
 
 void image_filter(Image *image, void (*filter)(Pixel *, int), double value);
 
-Uint8 *image_grayscale_histogram(Image *image);
+void image_partial_filter(Image *image, void (*filter)(Pixel *, int),
+                          double value, int startx, int endx, int starty, int endy);
+
+int *image_grayscale_histogram(
+    Image *image, int startx, int endx, int starty, int endy);
 
 #endif

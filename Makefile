@@ -15,8 +15,11 @@ all: main
 
 main: $(OBJ)
 
-cleanbmp:
+clean-output:
 	${RM} *.bmp
+	${RM} *.csv
+	${RM} ./**/*.bmp
+	${RM} ./**/*.csv
 
 clean:
 	${RM} main.[do]
