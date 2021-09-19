@@ -5,7 +5,8 @@
 ```
 ./main [options] file ...
 Options:
-        -o <file>     Place the output into <file>.
+        -o <file>     Save the output into <file>.
+        -m            Save the mask image into <file>.
 ```
 
 ## Build
