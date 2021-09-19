@@ -1,5 +1,5 @@
 if make ; then
-    for i in {1..6}
+    for ((i = 1 ; i <= 6 ; i++));
     do
         echo ""
         echo "Processing image n.$i"
