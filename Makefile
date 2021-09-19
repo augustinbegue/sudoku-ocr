@@ -15,6 +15,9 @@ all: main
 
 main: $(OBJ)
 
+check:
+	./testall.sh
+
 clean-output:
 	${RM} *.bmp
 	${RM} *.csv
