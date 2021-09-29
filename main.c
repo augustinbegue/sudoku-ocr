@@ -1,6 +1,7 @@
 #include <err.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include "image_processing/blur.h"
@@ -15,6 +16,8 @@ static void print_help(const char *exec_name)
     printf("Options:\n");
     printf("\t-o <file>     Save the output into <file>.\n");
     printf("\t-m            Save the mask image into <file>.\n");
+    printf("\t-r <angle>    Rotate the image according to the specified "
+           "<angle>.\n");
     printf("\n");
     printf("For more information, see: "
            "https://github.com/augustinbegue/sudoku-ocr\n");
@@ -34,9 +37,11 @@ int main(int argc, char const *argv[])
         return 0;
     }
 
-    bool save_mask = false;
+    bool save_mask = false, rotate_image = false;
     char *input_path = "", *output_path = "./output.bmp",
          *mask_output_path = "./output.grayscale.bmp";
+
+    double rotation_amount = 0.0;
 
     // Argument handling
     for (int i = 1; i < argc; i++)
@@ -51,10 +56,17 @@ int main(int argc, char const *argv[])
         else if (strcmp(argv[i], "-m") == 0)
         {
             save_mask = true;
-            // next argument is the output_path
+            // next argument is the mask_output_path
             i++;
             mask_output_path = (char *)argv[i];
             continue;
+        }
+        else if (strcmp(argv[i], "-r") == 0)
+        {
+            rotate_image = true;
+            // next argument is the rotation amount
+            i++;
+            rotation_amount = strtod(argv[i], 0);
         }
         else
         {
@@ -66,10 +78,27 @@ int main(int argc, char const *argv[])
     if (access(input_path, F_OK) == 0)
     {
         /*
-         * PASS 1 - Create a mask with the pixels to keep
+         * Loading Image
          */
+
         Image mask = SDL_Surface_to_Image(load_image(input_path));
         Image *maskpt = &mask;
+
+        /*
+         * PREPROCESSING
+         */
+
+        /*
+         * Image Rotation
+         */
+        if (rotate_image)
+        {
+            printf("...🔃 Rotating image by %.2f°\n", rotation_amount);
+        }
+
+        /*
+         * PASS 1 - Create a mask with the pixels to keep
+         */
 
         // Grayscale and contrast adjustement
         filter_grayscale(maskpt, 0);
