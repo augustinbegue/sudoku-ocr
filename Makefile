@@ -2,6 +2,7 @@
 
 CC=gcc
 
+# do not change
 CPPFLAGS=`pkg-config --cflags sdl2` -MMD
 CFLAGS= -Wall -Wextra -Werror -std=c99 -O3 -g -fsanitize=address 
 LDFLAGS= -fsanitize=address 
@@ -15,9 +16,11 @@ all: main
 
 main: $(OBJ)
 
+# unecessary for other projects
 check:
 	./testall.sh
 
+# unecessary for other projects
 clean-output:
 	${RM} *.bmp
 	${RM} *.csv
@@ -25,9 +28,6 @@ clean-output:
 	${RM} ./**/*.csv
 
 clean:
-	${RM} main.[do]
-	${RM} ./**/*.o
-	${RM} ./**/*.d
-	${RM} main
+	${RM} $(OBJ) $(DEP) main
 
 # END
