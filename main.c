@@ -35,7 +35,7 @@ int main(int argc, char const *argv[])
         return 0;
     }
 
-    bool save_mask = false, rotate_image = false;
+    bool save_mask = false, image_rotation = false;
     char *input_path = "", *output_path = "./output.bmp",
          *mask_output_path = "./output.grayscale.bmp";
 
@@ -61,7 +61,7 @@ int main(int argc, char const *argv[])
         }
         else if (strcmp(argv[i], "-r") == 0)
         {
-            rotate_image = true;
+            image_rotation = true;
             // next argument is the rotation amount
             i++;
             rotation_amount = strtod(argv[i], 0);
@@ -85,18 +85,18 @@ int main(int argc, char const *argv[])
         Image *imagept = &image;
 
         /*
-         * PREPROCESSING
+         * Processing
          */
-
-        /*
-         * Image Rotation
-         */
-        if (rotate_image)
-        {
-            printf("...🔃 Rotating image by %.2f°\n", rotation_amount);
-        }
 
         process_image(maskpt, imagept, save_mask, mask_output_path);
+
+        /*
+         * Rotation
+         */
+        if (image_rotation)
+        {
+            rotate_image(imagept, rotation_amount);
+        }
 
         // save the image in the output_path file
         save_image(Image_to_SDL_Surface(imagept), output_path);

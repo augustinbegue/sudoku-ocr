@@ -5,6 +5,15 @@
 #include "mask.h"
 #include "morph.h"
 
+/**
+ * @brief Processes the images contained in imagept and maskpt to create and
+ * b&w image exploitable by an ocr algorithm.
+ *
+ * @param maskpt image mask to extract pixel from
+ * @param imagept image to process
+ * @param save_mask save the mask to a separate file
+ * @param mask_output_path path where the mask is to be saved
+ */
 void process_image(
     Image *maskpt, Image *imagept, bool save_mask, char *mask_output_path)
 {

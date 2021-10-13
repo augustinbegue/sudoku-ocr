@@ -25,6 +25,8 @@ SDL_Surface *load_image(char *path);
 
 void save_image(SDL_Surface *image_surface, char *path);
 
+Image clone_image(Image *source);
+
 Image SDL_Surface_to_Image(SDL_Surface *image_surface);
 
 SDL_Surface *Image_to_SDL_Surface(Image *image);

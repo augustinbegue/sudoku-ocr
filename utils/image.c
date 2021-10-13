@@ -30,6 +30,36 @@ void save_image(SDL_Surface *image_surface, char *path)
             SDL_GetError());
 }
 
+Image clone_image(Image *source)
+{
+    Image image;
+
+    image.height = source->height;
+    image.width = source->width;
+    image.pixels = malloc((image.width + 1) * sizeof(Pixel *));
+
+    if (image.pixels == NULL)
+    {
+        errx(1, "Error when allocating memory in clone_image.");
+    }
+
+    for (int x = 0; x < image.width; x++)
+    {
+        image.pixels[x] = malloc((image.height + 1) * sizeof(Pixel));
+
+        for (int y = 0; y < image.height; y++)
+        {
+            Pixel pSource = source->pixels[x][y];
+
+            Pixel pDest = {pSource.r, pSource.g, pSource.b};
+
+            image.pixels[x][y] = pDest;
+        }
+    }
+
+    return image;
+}
+
 Image SDL_Surface_to_Image(SDL_Surface *image_surface)
 {
     Image image;
