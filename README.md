@@ -3,10 +3,12 @@
 ## Usage
 
 ```
-./main [options] file ...
+$ ./main --help
+Usage: ./main [options] file ...
 Options:
         -o <file>     Save the output into <file>.
         -m            Save the mask image into <file>.
+        -r <angle>    Rotate the image according to the specified <angle>.
 ```
 
 ## Build

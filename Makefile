@@ -8,10 +8,7 @@ CFLAGS= -Wall -Wextra -Werror -std=c99 -O3 -g -fsanitize=address
 LDFLAGS= -fsanitize=address 
 LDLIBS= `pkg-config --libs sdl2` -lSDL2_image -lm
 
-# Files to use during the compilation
-SRC=main.c $(wildcard image_processing/*.c) $(wildcard utils/*.c)
-
-# do not change
+SRC=main.c $(wildcard image_processing/*.c) $(wildcard image_rotation/*.c) $(wildcard utils/*.c)
 OBJ=$(SRC:.c=.o)
 DEP=$(SRC:.c=.d)
 
