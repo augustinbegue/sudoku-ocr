@@ -79,10 +79,10 @@ int main(int argc, char const *argv[])
          * Loading Image
          */
 
-        Image mask = SDL_Surface_to_Image(load_image(input_path));
-        Image *maskpt = &mask;
         Image image = SDL_Surface_to_Image(load_image(input_path));
         Image *imagept = &image;
+        Image mask = clone_image(imagept);
+        Image *maskpt = &mask;
 
         /*
          * Processing
@@ -114,8 +114,10 @@ int main(int argc, char const *argv[])
         // save the image in the output_path file
         save_image(Image_to_SDL_Surface(rotated_imagept), output_path);
 
-        free_Image(imagept);
-        free_Image(rotated_imagept);
+        free_Image(imagept); // Also frees rotated_imagept if there has been no
+                             // rotation (they are the same)
+        if (image_rotation)
+            free_Image(rotated_imagept);
     }
     else
     {
