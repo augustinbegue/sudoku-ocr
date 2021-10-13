@@ -26,13 +26,13 @@ void process_image(Image *maskpt, Image *imagept)
     filter_gamma(maskpt, 255);
 
     // Gaussian blur for noise removal
-    gaussian_blur_image(maskpt, 5, 1, 1);
+    gaussian_blur_image(maskpt, 11, 1, 1);
 
     printf("...🎨 Average Color: %i\n", (int)maskpt->average_color);
 
-    if (maskpt->average_color >= 170)
+    if (maskpt->average_color >= 160)
     {
-        filter_contrast(maskpt, 128);
+        filter_gamma(maskpt, 512);
 
         // Erosion and Dilation for further noise removal and character
         // enlargement
@@ -50,7 +50,7 @@ void process_image(Image *maskpt, Image *imagept)
     }
 
     // Mask creation from a dynamic threshold
-    filter_dynamic_threshold(maskpt, 1);
+    filter_threshold(maskpt);
 
     /*
      * PASS 2 - Apply the mask to a clean version of the image and reapply
@@ -62,18 +62,17 @@ void process_image(Image *maskpt, Image *imagept)
 
     filter_grayscale(imagept, 0);
 
-    filter_gamma(imagept, 255);
+    filter_contrast(imagept, 128);
 
-    printf("...🎨 Average Color: %i\n", (int)maskpt->average_color);
+    filter_gamma(imagept, 512);
 
-    if (maskpt->average_color > 200)
-    {
-        gaussian_blur_image(imagept, 5, 2, 1);
+    filter_dynamic_threshold(imagept, 4);
 
-        filter_contrast(imagept, 128);
+    morph(maskpt, Erosion, 5);
 
-        filter_gamma(imagept, 384);
-    }
+    morph(maskpt, Dilation, 5);
 
-    filter_threshold(imagept);
+    gaussian_blur_image(imagept, 5, 2, 1);
+
+    filter_invert(imagept, 0);
 }
