@@ -36,6 +36,9 @@ Image clone_image(Image *source)
 
     image.height = source->height;
     image.width = source->width;
+    image.average_color = source->average_color;
+    image.surface = SDL_ConvertSurface(
+        source->surface, source->surface->format, SDL_SWSURFACE);
     image.pixels = malloc((image.width + 1) * sizeof(Pixel *));
 
     if (image.pixels == NULL)

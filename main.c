@@ -88,20 +88,34 @@ int main(int argc, char const *argv[])
          * Processing
          */
 
-        process_image(maskpt, imagept, save_mask, mask_output_path);
+        process_image(maskpt, imagept);
+
+        if (save_mask)
+            save_image(Image_to_SDL_Surface(maskpt), mask_output_path);
+
+        free_Image(maskpt);
 
         /*
          * Rotation
          */
+        Image rotated_image;
+        Image *rotated_imagept;
+
         if (image_rotation)
         {
-            rotate_image(imagept, rotation_amount);
+            rotated_image = rotate_image(imagept, rotation_amount);
+            rotated_imagept = &rotated_image;
+        }
+        else
+        {
+            rotated_imagept = imagept;
         }
 
         // save the image in the output_path file
-        save_image(Image_to_SDL_Surface(imagept), output_path);
+        save_image(Image_to_SDL_Surface(rotated_imagept), output_path);
 
         free_Image(imagept);
+        free_Image(rotated_imagept);
     }
     else
     {

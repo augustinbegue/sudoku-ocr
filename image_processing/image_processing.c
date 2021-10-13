@@ -14,8 +14,7 @@
  * @param save_mask save the mask to a separate file
  * @param mask_output_path path where the mask is to be saved
  */
-void process_image(
-    Image *maskpt, Image *imagept, bool save_mask, char *mask_output_path)
+void process_image(Image *maskpt, Image *imagept)
 {
     /*
      * PASS 1 - Create a mask with the pixels to keep
@@ -53,9 +52,6 @@ void process_image(
     // Mask creation from a dynamic threshold
     filter_dynamic_threshold(maskpt, 1);
 
-    if (save_mask)
-        save_image(Image_to_SDL_Surface(maskpt), mask_output_path);
-
     /*
      * PASS 2 - Apply the mask to a clean version of the image and reapply
      * processing
@@ -63,9 +59,6 @@ void process_image(
 
     // Apply the mask onto the clean image
     apply_mask(imagept, maskpt);
-
-    // Mask is no longer needed and therefore freed
-    free_Image(maskpt);
 
     filter_grayscale(imagept, 0);
 

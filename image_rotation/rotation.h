@@ -4,6 +4,6 @@
 
 #include "../utils/image.h"
 
-void rotate_image(Image *image, double angle);
+Image rotate_image(Image *image, double angle);
 
 #endif
