@@ -31,9 +31,6 @@ clean-output:
 	${RM} ./**/*.csv
 
 clean:
-	${RM} main.[do]
-	${RM} ./**/*.o
-	${RM} ./**/*.d
-	${RM} main
+	${RM} $(OBJ) $(DEP) main
 
 # END
