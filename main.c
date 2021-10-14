@@ -6,6 +6,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include "./grid_processing/edge_detection.h"
 #include "./image_processing/image_processing.h"
 #include "./image_rotation/rotation.h"
 #include "./utils/helpers.h"
@@ -88,7 +89,7 @@ int main(int argc, char const *argv[])
     // File loading and processing
     if (access(input_path, F_OK) == 0)
     {
-        // Verbose mode
+        // Verbose mode folder creation
         if (verbose_mode)
         {
             struct stat st = {0};
@@ -96,13 +97,6 @@ int main(int argc, char const *argv[])
             if (stat(verbose_path, &st) == -1)
             {
                 mkdir(verbose_path, 0700);
-            }
-            else
-            {
-                errx(1,
-                    "verbose mode: a file/directory in path '%s' already "
-                    "exists.",
-                    verbose_path);
             }
         }
 
@@ -146,9 +140,15 @@ int main(int argc, char const *argv[])
             rotated_imagept = imagept;
         }
 
-        // save the image in the output_path file
+        /*
+         * Edge detection
+         */
+        find_edge_image(rotated_imagept, verbose_mode, verbose_path);
+
+        // Saves the final image in the output_path file
         save_image(Image_to_SDL_Surface(rotated_imagept), output_path);
 
+        // Freeing
         free_Image(imagept); // Also frees rotated_imagept if there has been no
                              // rotation (they are the same)
         if (image_rotation)

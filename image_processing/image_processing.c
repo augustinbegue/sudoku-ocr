@@ -18,6 +18,9 @@
 void process_image(
     Image *maskpt, Image *imagept, bool verbose_mode, char *verbose_path)
 {
+    if (verbose_mode)
+        printf("[1]♻️ Processing the image.\n");
+
     verbose_save(verbose_mode, verbose_path, "0-processing-step.png", imagept);
 
     /*
@@ -112,6 +115,9 @@ void process_image(
         verbose_save(
             verbose_mode, verbose_path, "4.2-processing-step.png", imagept);
     }
+
+    if (verbose_mode)
+        printf("   🔳 Inverting the image.\n");
 
     // Invert the binarization
     filter_invert(imagept, 0);

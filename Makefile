@@ -8,7 +8,7 @@ CFLAGS= -Wall -Wextra -Werror -std=c99 -O3 -g -fsanitize=address
 LDFLAGS= -fsanitize=address 
 LDLIBS= `pkg-config --libs sdl2` -lSDL2_image -lm
 
-SRC=main.c $(wildcard image_processing/*.c) $(wildcard image_rotation/*.c) $(wildcard utils/*.c)
+SRC=main.c $(wildcard image_processing/*.c) $(wildcard image_rotation/*.c) $(wildcard utils/*.c) $(wildcard grid_processing/*.c)
 OBJ=$(SRC:.c=.o)
 DEP=$(SRC:.c=.d)
 
@@ -26,8 +26,9 @@ clean-output:
 	${RM} *.csv
 	${RM} ./**/*.bmp
 	${RM} ./**/*.csv
+	${RM} ./assets/output/*.png
 
-clean:
+clean: clean-output
 	${RM} $(OBJ) $(DEP) main
 
 # END
