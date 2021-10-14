@@ -11,7 +11,6 @@ if make ; then
         
     done
 
-    rm -rf ./assets/output/output_5_rotated
     echo "=== 2. TESTING ROTATION ==="
     if ./main ./assets/grids/image_05.jpeg -o ./assets/output/output_5_rotated.png -v ./assets/output/output_5_rotated -r 35; then echo ""
     else exit 2

@@ -143,7 +143,7 @@ int main(int argc, char const *argv[])
         /*
          * Edge detection
          */
-        find_edge_image(rotated_imagept, verbose_mode, verbose_path);
+        find_edges_image(rotated_imagept, verbose_mode, verbose_path);
 
         // Saves the final image in the output_path file
         save_image(Image_to_SDL_Surface(rotated_imagept), output_path);

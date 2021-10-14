@@ -1,4 +1,3 @@
-#include <float.h>
 #include <math.h>
 #include <stdbool.h>
 #include "../image_processing/blur.h"
@@ -8,9 +7,9 @@
 
 // clang-format off
 int sobel_kernel_x[9] = {
-    -1, 0, 1, 
-    -2, 0, 2, 
-    -1, 0, 1
+    1, 0, -1, 
+    2, 0, -2, 
+    1, 0, -1
     };
 
 int sobel_kernel_y[9] = {
@@ -18,7 +17,11 @@ int sobel_kernel_y[9] = {
      0,  0,  0,
     -1, -2, -1
     };
-// clang-format oon
+// clang-format on
+
+#define WEAK_EDGE_VAL 128
+#define STRONG_EDGE_VAL 255
+
 /**
  * @brief convolution operator
  *
@@ -35,7 +38,6 @@ static void convolution(int kernel[9], Image *image, Image *out)
 {
     const int ksize = 3;
     const int khalf = ksize / 2;
-    float min = FLT_MAX, max = -FLT_MAX;
 
     int w = image->height;
     int h = image->width;
@@ -46,60 +48,20 @@ static void convolution(int kernel[9], Image *image, Image *out)
         {
             float pixel = 0.0;
             size_t c = 0;
-            for (int j = -khalf; j <= khalf; j++) {
+            for (int j = -khalf; j <= khalf; j++)
+            {
                 for (int i = -khalf; i <= khalf; i++)
                 {
-                    pixel += image->pixels[n - j][m - i].r * kernel[c];
+                    pixel += clamp(
+                        image->pixels[n - j][m - i].r * kernel[c], 0, 255);
                     c++;
                 }
             }
 
-            if (pixel < min)
-                min = pixel;
-
-            if (pixel > max)
-                max = pixel;
+            Pixel pix = {pixel, pixel, pixel};
+            out->pixels[n][m] = pix;
         }
     }
-
-    for (int m = khalf; m < w - khalf; m++)
-    {
-        for (int n = khalf; n < h - khalf; n++)
-        {
-            float pixel = 0.0;
-            size_t c = 0;
-            for (int j = -khalf; j <= khalf; j++) {
-                for (int i = -khalf; i <= khalf; i++)
-                {
-                    pixel += image->pixels[n - j][m - i].r * kernel[c];
-                    c++;
-                }
-            }
-            pixel = 255 * (pixel - min) / (max - min);
-            out->pixels[n][m].r = out->pixels[n][m].g = out->pixels[n][m].b = pixel;
-        }
-    }
-
-    // int accumulator = 0;
-    // int w = image->width;
-    // int h = image->height;
-
-    // for (int xk = 0; xk < 3; xk++)
-    // {
-    //     for (int yk = 0; yk < 3; yk++)
-    //     {
-    //         int element = kernel[xk][yk];
-
-    //         int xs = xk + x;
-    //         int ys = yk + y;
-
-    //         if (0 <= xs && xs < w && 0 <= ys && ys < h)
-    //             accumulator += image->pixels[xs][ys].r * element;
-    //     }
-    // }
-
-    // Pixel pix = {accumulator, accumulator, accumulator};
-    // return pix;
 }
 
 static void generate_gradient_image(
@@ -127,22 +89,22 @@ static void generate_gradient_image(
     }
 }
 
-void find_edge_image(Image *source, bool verbose_mode, char *verbose_path)
+void find_edges_image(Image *source, bool verbose_mode, char *verbose_path)
 {
     if (verbose_mode)
-        printf("\n[2]📐 Detecting Edges.\n");
+        printf("\n[2]📐 Detecting Edges...\n");
 
     Image image = clone_image(source);
 
     if (verbose_mode)
         printf("   🔎 Blurring the image.\n");
 
-    gaussian_blur_image(&image, 9, 10, 1.5);
+    gaussian_blur_image(&image, 11, 100, 4);
 
     verbose_save(verbose_mode, verbose_path, "6-edges-blur.png", &image);
 
     if (verbose_mode)
-        printf("   📈 Generating the intensity gradient.\n");
+        printf("   📈 Generating the intensity gradient...\n");
 
     Image xgradient = clone_image(&image);
     Image ygradient = clone_image(&image);
@@ -160,6 +122,9 @@ void find_edge_image(Image *source, bool verbose_mode, char *verbose_path)
     int h = gradient.height;
 
     // Non-maximum suppression
+    if (verbose_mode)
+        printf("   🧨 Non-Maximum suppression...\n");
+
     for (int x = 1; x < w - 1; x++)
     {
         for (int y = 1; y < h - 1; y++)
@@ -174,7 +139,7 @@ void find_edge_image(Image *source, bool verbose_mode, char *verbose_path)
             Pixel *sw = &gradient.pixels[x + 1][y + 1];
             Pixel *se = &gradient.pixels[x - 1][y + 1];
 
-            int dir
+            double dir
                 = atan2(xgradient.pixels[x][y].r, ygradient.pixels[x][y].r);
 
             if (!(((dir <= 1 || dir > 7) && c->r > ee->r && c->r > ww->r)
@@ -194,6 +159,104 @@ void find_edge_image(Image *source, bool verbose_mode, char *verbose_path)
 
     verbose_save(
         verbose_mode, verbose_path, "6.3-edges-gradient.png", &gradient);
+
+    // Double Threshold
+    if (verbose_mode)
+        printf("   🧺 Double-Threshold filtering...\n");
+
+    double nbpixels = w * h;
+    int *hist = image_grayscale_histogram(&gradient, 0, w, 0, h);
+    double nbblackpixels = hist[0];
+
+    double low_threshold_amount = (nbpixels - nbblackpixels) * (40.0 / 100.0);
+    double high_threshold_amount = (nbpixels - nbblackpixels) * (70.0 / 100.0);
+
+    int pixel_encountered = 0;
+    int i = 1;
+
+    // Threshold determination
+    while (pixel_encountered < low_threshold_amount)
+    {
+        pixel_encountered += hist[i];
+        i++;
+    }
+
+    int low_threshold = i;
+    if (verbose_mode)
+        printf("   👇 Low threshold: %i\n", low_threshold);
+
+    while (pixel_encountered < high_threshold_amount)
+    {
+        pixel_encountered += hist[i];
+        i++;
+    }
+
+    int high_threshold = i;
+    if (verbose_mode)
+        printf("   👆 High threshold: %i\n", high_threshold);
+
+    free(hist);
+
+    // Threshold application
+    for (int x = 0; x < w; x++)
+    {
+        for (int y = 0; y < h; y++)
+        {
+            int val = gradient.pixels[x][y].r;
+
+            if (val == 0)
+                continue;
+
+            if (val <= low_threshold)
+                val = 0;
+            else if (low_threshold <= val && val <= high_threshold)
+                val = WEAK_EDGE_VAL;
+            else
+                val = STRONG_EDGE_VAL;
+
+            Pixel pix = {val, val, val};
+            gradient.pixels[x][y] = pix;
+        }
+    }
+
+    verbose_save(
+        verbose_mode, verbose_path, "6.4-edges-filtered.png", &gradient);
+
+    // Hysterisis Analysis
+    if (verbose_mode)
+        printf("   🕳️ Hysterisis Analysis...\n");
+
+    for (int x = 1; x < w - 1; x++)
+    {
+        for (int y = 1; y < h - 1; y++)
+        {
+            int val = gradient.pixels[x][y].r;
+
+            if (val != WEAK_EDGE_VAL)
+                continue;
+
+            for (int i = x - 1; i <= x + 1; i++)
+            {
+                for (int j = y - 1; j < y + 1; j++)
+                {
+                    if (x == i && y == j)
+                        continue;
+
+                    if (gradient.pixels[i][j].r == STRONG_EDGE_VAL)
+                    {
+                        gradient.pixels[x][y].r = gradient.pixels[x][y].g
+                            = gradient.pixels[x][y].b = STRONG_EDGE_VAL;
+                        break;
+                    }
+                }
+            }
+
+            gradient.pixels[x][y].r = gradient.pixels[x][y].g
+                = gradient.pixels[x][y].b = 0;
+        }
+    }
+
+    verbose_save(verbose_mode, verbose_path, "6.5-edges-final.png", &gradient);
 
     free_Image(&gradient);
 }
