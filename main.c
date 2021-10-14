@@ -3,19 +3,24 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #include <unistd.h>
 #include "./image_processing/image_processing.h"
 #include "./image_rotation/rotation.h"
-#include "utils/image.h"
+#include "./utils/helpers.h"
+#include "./utils/image.h"
 
 static void print_help(const char *exec_name)
 {
     printf("Usage: %s [options] file ...\n", exec_name);
     printf("Options:\n");
-    printf("\t-o <file>     Save the output into <file>.\n");
-    printf("\t-m            Save the mask image into <file>.\n");
+    printf("\t-o <file>     Save the output into <file>. (PNG format)\n");
     printf("\t-r <angle>    Rotate the image according to the specified "
            "<angle>.\n");
+    printf("\t-m <file>     Save the mask image into <file>.  (PNG format)\n");
+    printf("\t-v <path>     Verbose mode: save every step of the process in "
+           "the folder <path>.\n");
     printf("\n");
     printf("For more information, see: "
            "https://github.com/augustinbegue/sudoku-ocr\n");
@@ -35,9 +40,10 @@ int main(int argc, char const *argv[])
         return 0;
     }
 
-    bool save_mask = false, image_rotation = false;
+    bool save_mask = false, image_rotation = false, verbose_mode = true;
     char *input_path = "", *output_path = "./output.bmp",
-         *mask_output_path = "./output.grayscale.bmp";
+         *mask_output_path = "./output.grayscale.bmp",
+         *verbose_path = "./output";
 
     double rotation_amount = 0.0;
 
@@ -66,6 +72,13 @@ int main(int argc, char const *argv[])
             i++;
             rotation_amount = strtod(argv[i], 0);
         }
+        else if (strcmp(argv[i], "-v") == 0)
+        {
+            verbose_mode = true;
+            // next argument is the rotation amount
+            i++;
+            verbose_path = (char *)argv[i];
+        }
         else
         {
             input_path = (char *)argv[i];
@@ -75,6 +88,24 @@ int main(int argc, char const *argv[])
     // File loading and processing
     if (access(input_path, F_OK) == 0)
     {
+        // Verbose mode
+        if (verbose_mode)
+        {
+            struct stat st = {0};
+
+            if (stat(verbose_path, &st) == -1)
+            {
+                mkdir(verbose_path, 0700);
+            }
+            else
+            {
+                errx(1,
+                    "verbose mode: a file/directory in path '%s' already "
+                    "exists.",
+                    verbose_path);
+            }
+        }
+
         /*
          * Loading Image
          */
@@ -88,7 +119,7 @@ int main(int argc, char const *argv[])
          * Processing
          */
 
-        process_image(maskpt, imagept);
+        process_image(maskpt, imagept, verbose_mode, verbose_path);
 
         if (save_mask)
             save_image(Image_to_SDL_Surface(maskpt), mask_output_path);
@@ -105,6 +136,10 @@ int main(int argc, char const *argv[])
         {
             rotated_image = rotate_image(imagept, rotation_amount);
             rotated_imagept = &rotated_image;
+
+            if (verbose_mode)
+                verbose_save(verbose_mode, verbose_path, "5-rotated.png",
+                    rotated_imagept);
         }
         else
         {

@@ -3,6 +3,7 @@
 
 #include "../utils/image.h"
 
-void process_image(Image *maskpt, Image *imagept);
+void process_image(
+    Image *maskpt, Image *imagept, bool verbose, char *verbose_path);
 
 #endif

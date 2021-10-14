@@ -23,7 +23,7 @@ SDL_Surface *load_image(char *path)
 void save_image(SDL_Surface *image_surface, char *path)
 {
     printf("<--💾 Saving output to %s\n", path);
-    int success = SDL_SaveBMP(image_surface, path);
+    int success = IMG_SavePNG(image_surface, path);
 
     if (success != 0)
         errx(1, "could not save the image to '%s': %s.\n", path,
