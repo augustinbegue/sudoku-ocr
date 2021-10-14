@@ -2,17 +2,18 @@
 #include <stdbool.h>
 #include "../image_processing/blur.h"
 #include "../image_processing/filters.h"
+#include "../image_processing/threshold.h"
 #include "../utils/helpers.h"
 #include "../utils/image.h"
 
 // clang-format off
-int sobel_kernel_x[9] = {
+double sobel_kernel_x[9] = {
     1, 0, -1, 
     2, 0, -2, 
     1, 0, -1
     };
 
-int sobel_kernel_y[9] = {
+double sobel_kernel_y[9] = {
      1,  2,  1,
      0,  0,  0,
     -1, -2, -1
@@ -34,9 +35,8 @@ int sobel_kernel_y[9] = {
  * @param image image to take samples from
  * @return Pixel pixel to return
  */
-static void convolution(int kernel[9], Image *image, Image *out)
+static void convolution(double *kernel, int ksize, Image *image, Image *out)
 {
-    const int ksize = 3;
     const int khalf = ksize / 2;
 
     int w = image->height;
@@ -70,9 +70,9 @@ static void generate_gradient_image(
     int w = image->width;
     int h = image->height;
 
-    convolution(sobel_kernel_x, image, xgradient);
+    convolution(sobel_kernel_x, 3, image, xgradient);
 
-    convolution(sobel_kernel_y, image, ygradient);
+    convolution(sobel_kernel_y, 3, image, ygradient);
 
     for (int x = 0; x < w; x++)
     {
@@ -99,7 +99,10 @@ void find_edges_image(Image *source, bool verbose_mode, char *verbose_path)
     if (verbose_mode)
         printf("   🔎 Blurring the image.\n");
 
-    gaussian_blur_image(&image, 11, 100, 4);
+    int gkernel_size = 25;
+    double *gaussian_kernel = get_gaussian_smoothing_kernel(gkernel_size, 100);
+    convolution(gaussian_kernel, gkernel_size, source, &image);
+    free(gaussian_kernel);
 
     verbose_save(verbose_mode, verbose_path, "6-edges-blur.png", &image);
 
@@ -164,38 +167,17 @@ void find_edges_image(Image *source, bool verbose_mode, char *verbose_path)
     if (verbose_mode)
         printf("   🧺 Double-Threshold filtering...\n");
 
-    double nbpixels = w * h;
-    int *hist = image_grayscale_histogram(&gradient, 0, w, 0, h);
-    double nbblackpixels = hist[0];
-
-    double low_threshold_amount = (nbpixels - nbblackpixels) * (40.0 / 100.0);
-    double high_threshold_amount = (nbpixels - nbblackpixels) * (70.0 / 100.0);
-
-    int pixel_encountered = 0;
-    int i = 1;
-
     // Threshold determination
-    while (pixel_encountered < low_threshold_amount)
-    {
-        pixel_encountered += hist[i];
-        i++;
-    }
-
-    int low_threshold = i;
-    if (verbose_mode)
-        printf("   👇 Low threshold: %i\n", low_threshold);
-
-    while (pixel_encountered < high_threshold_amount)
-    {
-        pixel_encountered += hist[i];
-        i++;
-    }
-
-    int high_threshold = i;
-    if (verbose_mode)
-        printf("   👆 High threshold: %i\n", high_threshold);
-
+    int *hist = image_grayscale_histogram(&gradient, 0, w, 0, h);
+    int high_threshold = get_histogram_threshold(hist);
+    int low_threshold = high_threshold / 2;
     free(hist);
+
+    if (verbose_mode)
+    {
+        printf("   👇 Low threshold: %i\n", low_threshold);
+        printf("   👆 High threshold: %i\n", high_threshold);
+    }
 
     // Threshold application
     for (int x = 0; x < w; x++)
@@ -226,18 +208,18 @@ void find_edges_image(Image *source, bool verbose_mode, char *verbose_path)
     if (verbose_mode)
         printf("   🕳️ Hysterisis Analysis...\n");
 
-    for (int x = 1; x < w - 1; x++)
+    for (int x = 2; x < w - 2; x++)
     {
-        for (int y = 1; y < h - 1; y++)
+        for (int y = 2; y < h - 2; y++)
         {
             int val = gradient.pixels[x][y].r;
 
             if (val != WEAK_EDGE_VAL)
                 continue;
 
-            for (int i = x - 1; i <= x + 1; i++)
+            for (int i = x - 2; i <= x + 2; i++)
             {
-                for (int j = y - 1; j < y + 1; j++)
+                for (int j = y - 2; j < y + 2; j++)
                 {
                     if (x == i && y == j)
                         continue;
