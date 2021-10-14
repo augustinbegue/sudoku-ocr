@@ -50,7 +50,7 @@ void process_image(
 
         morph(maskpt, Dilation, 5);
     }
-    else
+    else // Too much black = imperfections -> we remove it by bulk
     {
         // Erosion and Dilation for further noise removal and character
         // enlargement
@@ -78,32 +78,43 @@ void process_image(
     // Apply the mask onto the clean image
     apply_mask(imagept, maskpt);
 
+    // Adjust the colors of the obtained image
     filter_grayscale(imagept, 0);
-
     filter_contrast(imagept, 128);
-
     filter_gamma(imagept, 512);
-
-    if (verbose_mode)
-        printf("   🎨 Average Color: %i\n", (int)imagept->average_color);
 
     verbose_save(verbose_mode, verbose_path, "3-processing-step.png", imagept);
 
     if (verbose_mode)
         printf("   🔲 Applying a dynamic threshold.\n");
 
+    // Dynamic treshold to binarize the image
     filter_dynamic_threshold(imagept, 4);
+
+    verbose_save(verbose_mode, verbose_path, "4-processing-step.png", imagept);
 
     if (verbose_mode)
         printf("   🖌  Filtering noise.\n");
 
-    morph(maskpt, Erosion, 5);
+    if (verbose_mode)
+        printf("   🎨 Average Color: %i\n", (int)imagept->average_color);
 
-    morph(maskpt, Dilation, 5);
+    // Special interval to target foggy images -> noise removal
+    if (imagept->average_color >= 230 && imagept->average_color <= 240)
+    {
+        morph(imagept, Erosion, 8);
 
-    gaussian_blur_image(imagept, 5, 2, 1);
+        verbose_save(
+            verbose_mode, verbose_path, "4.1-processing-step.png", imagept);
 
+        morph(imagept, Dilation, 8);
+
+        verbose_save(
+            verbose_mode, verbose_path, "4.2-processing-step.png", imagept);
+    }
+
+    // Invert the binarization
     filter_invert(imagept, 0);
 
-    verbose_save(verbose_mode, verbose_path, "4-processing-step.png", imagept);
+    verbose_save(verbose_mode, verbose_path, "5-processing-step.png", imagept);
 }
