@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include "../image_processing/blur.h"
 #include "../image_processing/filters.h"
+#include "../image_processing/morph.h"
 #include "../image_processing/threshold.h"
 #include "../utils/helpers.h"
 #include "../utils/image.h"
@@ -341,18 +342,9 @@ static void non_maximal_suppression(
     }         // END OF FOR(i)
 }
 
-/**
- * @brief follows edges and draws them
- *
- * @param in input image
- * @param t index to start at
- * @param w width of the image
- * @param threshold threshold to detect neighbours
- * @param out output image
- */
-static void trace_edge(int *in, int t, int w, int threshold, int *out)
+static void trace_edge_find_neighbours(
+    int *in, int t, int w, int threshold, int *out, list *edges)
 {
-    list edges;                         // list of edges to be checked
     int nw, no, ne, we, ea, sw, so, se; // indice of 8 neighbours
 
     // get indice of 8 neighbours
@@ -370,43 +362,59 @@ static void trace_edge(int *in, int t, int w, int threshold, int *out)
     if (in[nw] >= threshold && out[nw] != STRONG_EDGE_VAL)
     {
         out[nw] = STRONG_EDGE_VAL;
-        l_append(&edges, nw);
+        l_append(edges, nw);
     }
     if (in[no] >= threshold && out[no] != STRONG_EDGE_VAL)
     {
         out[no] = STRONG_EDGE_VAL;
-        l_append(&edges, no);
+        l_append(edges, no);
     }
     if (in[ne] >= threshold && out[ne] != STRONG_EDGE_VAL)
     {
         out[ne] = STRONG_EDGE_VAL;
-        l_append(&edges, ne);
+        l_append(edges, ne);
     }
     if (in[we] >= threshold && out[we] != STRONG_EDGE_VAL)
     {
         out[we] = STRONG_EDGE_VAL;
-        l_append(&edges, we);
+        l_append(edges, we);
     }
     if (in[ea] >= threshold && out[ea] != STRONG_EDGE_VAL)
     {
         out[ea] = STRONG_EDGE_VAL;
-        l_append(&edges, ea);
+        l_append(edges, ea);
     }
     if (in[sw] >= threshold && out[sw] != STRONG_EDGE_VAL)
     {
         out[sw] = STRONG_EDGE_VAL;
-        l_append(&edges, sw);
+        l_append(edges, sw);
     }
     if (in[so] >= threshold && out[so] != STRONG_EDGE_VAL)
     {
         out[so] = STRONG_EDGE_VAL;
-        l_append(&edges, so);
+        l_append(edges, so);
     }
     if (in[se] >= threshold && out[se] != STRONG_EDGE_VAL)
     {
         out[se] = STRONG_EDGE_VAL;
-        l_append(&edges, se);
+        l_append(edges, se);
     }
+}
+
+/**
+ * @brief follows edges and draws them
+ *
+ * @param in input image
+ * @param t index to start at
+ * @param w width of the image
+ * @param threshold threshold to detect neighbours
+ * @param out output image
+ */
+static void trace_edge(int *in, int t, int w, int threshold, int *out)
+{
+    list edges; // list of edges to be checked
+
+    trace_edge_find_neighbours(in, t, w, threshold, out, &edges);
 
     // loop until all edge candiates are tested
     while (!l_empty(&edges))
@@ -414,57 +422,7 @@ static void trace_edge(int *in, int t, int w, int threshold, int *out)
         t = edges.tail->value;
         l_pop(&edges); // remove the last after read
 
-        nw = t - w - 1; // north-west
-        no = nw + 1;    // north
-        ne = no + 1;    // north-east
-        we = t - 1;     // west
-        ea = t + 1;     // east
-        sw = t + w - 1; // south-west
-        so = sw + 1;    // south
-        se = so + 1;    // south-east
-
-        // test 8 neighbours and add it to list so we can trace from it at next
-        // loop
-        if (in[nw] >= threshold && out[nw] != STRONG_EDGE_VAL) // north-west
-        {
-            out[nw] = STRONG_EDGE_VAL;
-            l_append(&edges, nw);
-        }
-        if (in[no] >= threshold && out[no] != STRONG_EDGE_VAL) // north
-        {
-            out[no] = STRONG_EDGE_VAL;
-            l_append(&edges, no);
-        }
-        if (in[ne] >= threshold && out[ne] != STRONG_EDGE_VAL) // north-east
-        {
-            out[ne] = STRONG_EDGE_VAL;
-            l_append(&edges, ne);
-        }
-        if (in[we] >= threshold && out[we] != STRONG_EDGE_VAL) // west
-        {
-            out[we] = STRONG_EDGE_VAL;
-            l_append(&edges, we);
-        }
-        if (in[ea] >= threshold && out[ea] != STRONG_EDGE_VAL) // east
-        {
-            out[ea] = STRONG_EDGE_VAL;
-            l_append(&edges, ea);
-        }
-        if (in[sw] >= threshold && out[sw] != STRONG_EDGE_VAL) // south-west
-        {
-            out[sw] = STRONG_EDGE_VAL;
-            l_append(&edges, sw);
-        }
-        if (in[so] >= threshold && out[so] != STRONG_EDGE_VAL) // south
-        {
-            out[so] = STRONG_EDGE_VAL;
-            l_append(&edges, so);
-        }
-        if (in[se] >= threshold && out[se] != STRONG_EDGE_VAL) // south-east
-        {
-            out[se] = STRONG_EDGE_VAL;
-            l_append(&edges, se);
-        }
+        trace_edge_find_neighbours(in, t, w, threshold, out, &edges);
     }
 }
 
@@ -640,6 +598,13 @@ Image canny_edge_filtering(
     free(nms_arr);
     free(edges_arr);
     free_Image(&image);
+
+    morph(&edge_image, Dilation, 2);
+
+    morph(&edge_image, Erosion, 2);
+
+    verbose_save(
+        verbose_mode, verbose_path, "6.5-edges-processed.png", &edge_image);
 
     return edge_image;
 }
