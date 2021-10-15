@@ -41,4 +41,8 @@ void image_partial_filter(Image *image, void (*filter)(Pixel *, int),
 int *image_grayscale_histogram(
     Image *image, int startx, int endx, int starty, int endy);
 
+int *Image_to_Array(Image *source);
+
+void Array_to_Image(int *array, Image *container);
+
 #endif

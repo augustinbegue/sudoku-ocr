@@ -1,7 +1,7 @@
 if make ; then
     echo ""
     echo "=== 1. TESTING PROCESSING ==="
-    for i in $(seq 1 6);
+    for i in $(seq 6 6);
     do
         echo ""
         echo "Processing image n.$i"
@@ -11,9 +11,9 @@ if make ; then
         
     done
 
-    echo "=== 2. TESTING ROTATION ==="
-    if ./main ./assets/grids/image_05.jpeg -o ./assets/output/output_5_rotated.png -v ./assets/output/output_5_rotated -r 35; then echo ""
-    else exit 2
-    fi
+    # echo "=== 2. TESTING ROTATION ==="
+    # if ./main ./assets/grids/image_05.jpeg -o ./assets/output/output_5_rotated.png -v ./assets/output/output_5_rotated -r 35; then echo ""
+    # else exit 2
+    # fi
 
 fi

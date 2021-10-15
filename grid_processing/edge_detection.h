@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include "../utils/image.h"
 
-void find_edges_image(Image *image, bool verbose_mode, char *verbose_path);
+Image canny_edge_filtering(
+    Image *image, bool verbose_mode, char *verbose_path);
 
 #endif

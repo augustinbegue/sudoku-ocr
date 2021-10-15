@@ -1,4 +1,5 @@
 #include <err.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include "./image.h"
 #include "./pixel_operations.h"
@@ -125,6 +126,51 @@ SDL_Surface *Image_to_SDL_Surface(Image *image)
     }
 
     return image->surface;
+}
+
+/**
+ * @brief Converts a grayscale image into a unidimensional array
+ *
+ * @param source grayscale image
+ * @return int*
+ */
+int *Image_to_Array(Image *source)
+{
+    int *out = malloc(sizeof(int) * source->width * source->height);
+    int w = source->width, h = source->height;
+
+    for (int x = 0; x < w; x++)
+    {
+        for (int y = 0; y < h; y++)
+        {
+            out[x + y * w] = source->pixels[x][y].r;
+        }
+    }
+
+    return out;
+}
+
+/**
+ * @brief Fills a container image from an array
+ *
+ * @param array int array to use of lenght width * height
+ * @param container container image of size width * height
+ * false
+ */
+void Array_to_Image(int *array, Image *container)
+{
+    int w = container->width, h = container->height;
+
+    for (int x = 0; x < w; x++)
+    {
+        for (int y = 0; y < h; y++)
+        {
+            int val = array[x + y * w];
+
+            Pixel pix = {val, val, val};
+            container->pixels[x][y] = pix;
+        }
+    }
 }
 
 void free_Image(Image *image)

@@ -143,7 +143,8 @@ int main(int argc, char const *argv[])
         /*
          * Edge detection
          */
-        find_edges_image(rotated_imagept, verbose_mode, verbose_path);
+        Image edge_image = canny_edge_filtering(
+            rotated_imagept, verbose_mode, verbose_path);
 
         // Saves the final image in the output_path file
         save_image(Image_to_SDL_Surface(rotated_imagept), output_path);
@@ -153,6 +154,8 @@ int main(int argc, char const *argv[])
                              // rotation (they are the same)
         if (image_rotation)
             free_Image(rotated_imagept);
+
+        free_Image(&edge_image);
     }
     else
     {
