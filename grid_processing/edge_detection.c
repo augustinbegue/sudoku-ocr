@@ -6,13 +6,14 @@
 #include "../image_processing/threshold.h"
 #include "../utils/helpers.h"
 #include "../utils/image.h"
+#include "../utils/list.h"
 
+#define MAX_BRIGHTNESS 255
 #define T_LOW 0.4
 #define T_HIGH 0.75
 #define SUPPRESSED 0
 #define WEAK_EDGE_VAL 128
-#define STRONG_EDGE_VAL 255
-#define MAX_BRIGHTNESS STRONG_EDGE_VAL
+#define STRONG_EDGE_VAL MAX_BRIGHTNESS
 
 static void histogram(int *buf, int w, int h, int *histo)
 {
@@ -340,10 +341,131 @@ static void non_maximal_suppression(
     }         // END OF FOR(i)
 }
 
-static void trace_edge(int *in, int t, int width, int threshold, int *out)
+/**
+ * @brief follows edges and draws them
+ *
+ * @param in input image
+ * @param t index to start at
+ * @param w width of the image
+ * @param threshold threshold to detect neighbours
+ * @param out output image
+ */
+static void trace_edge(int *in, int t, int w, int threshold, int *out)
 {
-    // TODO: Trace edge by looking at neighbours and putting correct ones into
-    // a linked list
+    list edges;                         // list of edges to be checked
+    int nw, no, ne, we, ea, sw, so, se; // indice of 8 neighbours
+
+    // get indice of 8 neighbours
+    nw = t - w - 1; // north-west
+    no = nw + 1;    // north
+    ne = no + 1;    // north-east
+    we = t - 1;     // west
+    ea = t + 1;     // east
+    sw = t + w - 1; // south-west
+    so = sw + 1;    // south
+    se = so + 1;    // south-east
+
+    // initially, test 8 neighbours and add them into edge list only if they
+    // are also edges
+    if (in[nw] >= threshold && out[nw] != STRONG_EDGE_VAL)
+    {
+        out[nw] = STRONG_EDGE_VAL;
+        l_append(&edges, nw);
+    }
+    if (in[no] >= threshold && out[no] != STRONG_EDGE_VAL)
+    {
+        out[no] = STRONG_EDGE_VAL;
+        l_append(&edges, no);
+    }
+    if (in[ne] >= threshold && out[ne] != STRONG_EDGE_VAL)
+    {
+        out[ne] = STRONG_EDGE_VAL;
+        l_append(&edges, ne);
+    }
+    if (in[we] >= threshold && out[we] != STRONG_EDGE_VAL)
+    {
+        out[we] = STRONG_EDGE_VAL;
+        l_append(&edges, we);
+    }
+    if (in[ea] >= threshold && out[ea] != STRONG_EDGE_VAL)
+    {
+        out[ea] = STRONG_EDGE_VAL;
+        l_append(&edges, ea);
+    }
+    if (in[sw] >= threshold && out[sw] != STRONG_EDGE_VAL)
+    {
+        out[sw] = STRONG_EDGE_VAL;
+        l_append(&edges, sw);
+    }
+    if (in[so] >= threshold && out[so] != STRONG_EDGE_VAL)
+    {
+        out[so] = STRONG_EDGE_VAL;
+        l_append(&edges, so);
+    }
+    if (in[se] >= threshold && out[se] != STRONG_EDGE_VAL)
+    {
+        out[se] = STRONG_EDGE_VAL;
+        l_append(&edges, se);
+    }
+
+    // loop until all edge candiates are tested
+    while (!l_empty(&edges))
+    {
+        t = edges.tail->value;
+        l_pop(&edges); // remove the last after read
+
+        nw = t - w - 1; // north-west
+        no = nw + 1;    // north
+        ne = no + 1;    // north-east
+        we = t - 1;     // west
+        ea = t + 1;     // east
+        sw = t + w - 1; // south-west
+        so = sw + 1;    // south
+        se = so + 1;    // south-east
+
+        // test 8 neighbours and add it to list so we can trace from it at next
+        // loop
+        if (in[nw] >= threshold && out[nw] != STRONG_EDGE_VAL) // north-west
+        {
+            out[nw] = STRONG_EDGE_VAL;
+            l_append(&edges, nw);
+        }
+        if (in[no] >= threshold && out[no] != STRONG_EDGE_VAL) // north
+        {
+            out[no] = STRONG_EDGE_VAL;
+            l_append(&edges, no);
+        }
+        if (in[ne] >= threshold && out[ne] != STRONG_EDGE_VAL) // north-east
+        {
+            out[ne] = STRONG_EDGE_VAL;
+            l_append(&edges, ne);
+        }
+        if (in[we] >= threshold && out[we] != STRONG_EDGE_VAL) // west
+        {
+            out[we] = STRONG_EDGE_VAL;
+            l_append(&edges, we);
+        }
+        if (in[ea] >= threshold && out[ea] != STRONG_EDGE_VAL) // east
+        {
+            out[ea] = STRONG_EDGE_VAL;
+            l_append(&edges, ea);
+        }
+        if (in[sw] >= threshold && out[sw] != STRONG_EDGE_VAL) // south-west
+        {
+            out[sw] = STRONG_EDGE_VAL;
+            l_append(&edges, sw);
+        }
+        if (in[so] >= threshold && out[so] != STRONG_EDGE_VAL) // south
+        {
+            out[so] = STRONG_EDGE_VAL;
+            l_append(&edges, so);
+        }
+        if (in[se] >= threshold && out[se] != STRONG_EDGE_VAL) // south-east
+        {
+            out[se] = STRONG_EDGE_VAL;
+            l_append(&edges, se);
+        }
+    }
 }
 
 /**
@@ -406,8 +528,8 @@ static void hysterisis_analysis(int *in, int w, int h, float tLow, float tHigh,
 
     if (verbose_mode)
     {
-        printf("   👆 High Treshold: %f, High Trigger: %i", tHigh, highValue);
-        printf("   👇 Low Treshold: %f, Low Trigger: %i", tLow, lowValue);
+        printf("   👆 High Treshold: %f, High Trigger: %i\n", tHigh, highValue);
+        printf("   👇 Low Treshold: %f, Low Trigger: %i\n", tLow, lowValue);
     }
 
     for (i = 1; i < iMax; ++i)
@@ -497,6 +619,10 @@ Image canny_edge_filtering(
     non_maximal_suppression(
         magnitude_arr, xgradient_arr, ygradient_arr, w, h, nms_arr);
 
+    Image edge_image = clone_image(&image);
+    Array_to_Image(nms_arr, &edge_image);
+    verbose_save(verbose_mode, verbose_path, "6.3-edges-nms.png", &edge_image);
+
     free(xgradient_arr);
     free(ygradient_arr);
 
@@ -506,7 +632,6 @@ Image canny_edge_filtering(
 
     hysterisis_analysis(nms_arr, w, h, T_LOW, T_HIGH, edges_arr, verbose_mode);
 
-    Image edge_image = clone_image(&image);
     Array_to_Image(edges_arr, &edge_image);
     verbose_save(
         verbose_mode, verbose_path, "6.4-edges-final.png", &edge_image);
