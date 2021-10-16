@@ -1,4 +1,5 @@
 #include <err.h>
+#include <float.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include "./image.h"
@@ -171,6 +172,52 @@ void Array_to_Image(int *array, Image *container)
             container->pixels[x][y] = pix;
         }
     }
+}
+
+Image Array2D_to_Image(int **array, int width, int height)
+{
+    Image image;
+    image.width = width;
+    image.height = height;
+    image.pixels = malloc(sizeof(int *) * width + 1);
+    image.surface = SDL_CreateRGBSurfaceWithFormat(
+        0, width, height, 32, SDL_PIXELFORMAT_RGBA32);
+    ;
+
+    float min = FLT_MAX;
+    float max = FLT_MIN;
+
+    for (int x = 0; x < width; x++)
+    {
+        for (int y = 0; y < height; y++)
+        {
+            int val = array[x][y];
+
+            if (val < min)
+                min = val;
+
+            if (val > max)
+                max = val;
+        }
+    }
+
+    for (int x = 0; x < width; x++)
+    {
+        image.pixels[x] = malloc(sizeof(int) * height + 1);
+
+        for (int y = 0; y < height; y++)
+        {
+            int pixel = array[x][y];
+
+            pixel = 255 * (pixel - min) / (max - min);
+
+            Pixel pix = {pixel, pixel, pixel};
+
+            image.pixels[x][y] = pix;
+        }
+    }
+
+    return image;
 }
 
 void free_Image(Image *image)

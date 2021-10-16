@@ -45,4 +45,6 @@ int *Image_to_Array(Image *source);
 
 void Array_to_Image(int *array, Image *container);
 
+Image Array2D_to_Image(int **array, int width, int height);
+
 #endif

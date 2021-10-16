@@ -7,6 +7,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include "./grid_processing/edge_detection.h"
+#include "./grid_processing/hough_transform.h"
 #include "./image_processing/image_processing.h"
 #include "./image_rotation/rotation.h"
 #include "./utils/helpers.h"
@@ -146,6 +147,9 @@ int main(int argc, char const *argv[])
         Image edge_image = canny_edge_filtering(
             rotated_imagept, verbose_mode, verbose_path);
 
+        Image hough_transform_image
+            = hough_transform(&edge_image, verbose_mode, verbose_path);
+
         // Saves the final image in the output_path file
         save_image(Image_to_SDL_Surface(rotated_imagept), output_path);
 
@@ -156,6 +160,8 @@ int main(int argc, char const *argv[])
             free_Image(rotated_imagept);
 
         free_Image(&edge_image);
+
+        free_Image(&hough_transform_image);
     }
     else
     {

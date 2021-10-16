@@ -1,4 +1,5 @@
 #include <math.h>
+#include "../utils/helpers.h"
 #include "../utils/image.h"
 
 /**
@@ -17,11 +18,6 @@ void corrected_rotation_matrix(double angle, double x, double y,
 {
     *rx = (x - center_x) * cos(angle) - (y - center_y) * sin(angle) + center_x;
     *ry = (x - center_x) * sin(angle) + (y - center_y) * cos(angle) + center_y;
-}
-
-double degrees_to_rad(double degrees)
-{
-    return degrees * (3.14159265359 / 180);
 }
 
 /**
