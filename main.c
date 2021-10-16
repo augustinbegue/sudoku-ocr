@@ -11,7 +11,8 @@
 #include "hough_transform.h"
 #include "image.h"
 #include "image_processing.h"
-#include "image_rotation/rotation.h"
+#include "list.h"
+#include "rotation.h"
 
 static void print_help(const char *exec_name)
 {
@@ -152,8 +153,11 @@ int main(int argc, char const *argv[])
         Image edge_image = canny_edge_filtering(
             rotated_imagept, verbose_mode, verbose_path);
 
-        Image hough_transform_image = hough_transform(
-            &edge_image, rotated_imagept, verbose_mode, verbose_path);
+        list *edges_x = l_create();
+        list *edges_y = l_create();
+
+        Image hough_transform_image = hough_transform(&edge_image,
+            rotated_imagept, edges_x, edges_y, verbose_mode, verbose_path);
 
         if (!verbose_mode)
             fprintf(stderr, "\33[2K\r[============================]");
@@ -169,10 +173,10 @@ int main(int argc, char const *argv[])
                              // rotation (they are the same)
         if (image_rotation)
             free_Image(rotated_imagept);
-
         free_Image(&edge_image);
-
         free_Image(&hough_transform_image);
+        l_free(edges_x);
+        l_free(edges_y);
     }
     else
     {

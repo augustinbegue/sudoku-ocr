@@ -35,13 +35,10 @@ void l_free(list *l)
 
         l->head = l->head->next;
 
-        free(el->prev);
-        free(el->next);
         free(el);
     }
 
     free(l->head);
-    free(l->tail);
     free(l);
 }
 
