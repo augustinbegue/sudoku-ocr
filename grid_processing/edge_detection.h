@@ -2,7 +2,7 @@
 #define EDGE_DETECTION_H
 
 #include <stdbool.h>
-#include "../utils/image.h"
+#include "image.h"
 
 Image canny_edge_filtering(
     Image *image, bool verbose_mode, char *verbose_path);

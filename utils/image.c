@@ -3,10 +3,10 @@
 #include <math.h>
 #include <stdbool.h>
 #include <stdio.h>
-#include "./image.h"
-#include "./pixel_operations.h"
+#include "image.h"
 #include "SDL2/SDL.h"
 #include "SDL2/SDL_image.h"
+#include "pixel_operations.h"
 
 SDL_Surface *load_image(char *path)
 {

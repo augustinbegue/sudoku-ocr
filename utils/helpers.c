@@ -1,7 +1,7 @@
 #include <err.h>
 #include <math.h>
 #include <stdbool.h>
-#include "./image.h"
+#include "image.h"
 
 double clamp(double d, double min, double max)
 {

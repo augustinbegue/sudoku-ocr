@@ -1,7 +1,7 @@
 #include <math.h>
 #include <stdio.h>
-#include "../utils/helpers.h"
-#include "../utils/image.h"
+#include "helpers.h"
+#include "image.h"
 
 static double **get_gaussian_filter_kernel(int range, double sigma, int K)
 {

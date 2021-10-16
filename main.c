@@ -6,16 +6,16 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include "./grid_processing/edge_detection.h"
-#include "./grid_processing/hough_transform.h"
-#include "./image_processing/image_processing.h"
-#include "./image_rotation/rotation.h"
-#include "./utils/helpers.h"
-#include "./utils/image.h"
+#include "edge_detection.h"
+#include "helpers.h"
+#include "hough_transform.h"
+#include "image.h"
+#include "image_processing.h"
+#include "image_rotation/rotation.h"
 
 static void print_help(const char *exec_name)
 {
-    printf("Usage: %s [options] file ...\n", exec_name);
+    printf("Usage: %s file [options]\n", exec_name);
     printf("Options:\n");
     printf("\t-o <file>     Save the output into <file>. (PNG format)\n");
     printf("\t-r <angle>    Rotate the image according to the specified "
@@ -43,9 +43,8 @@ int main(int argc, char const *argv[])
     }
 
     bool save_mask = false, image_rotation = false, verbose_mode = true;
-    char *input_path = "", *output_path = "./output.bmp",
-         *mask_output_path = "./output.grayscale.bmp",
-         *verbose_path = "./output";
+    char *input_path = "", *output_path = "output.bmp",
+         *mask_output_path = "output.grayscale.bmp", *verbose_path = "output";
 
     double rotation_amount = 0.0;
 

@@ -15,8 +15,8 @@ void l_append(list *l, int val)
     }
 
     l->tail->next = &el;
-    el.prev = l->tail;
     l->tail = &el;
+    el.prev = l->tail;
 }
 
 list_int *l_find(list *l, int val)

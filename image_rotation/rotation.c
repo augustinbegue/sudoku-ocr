@@ -1,6 +1,6 @@
 #include <math.h>
-#include "../utils/helpers.h"
-#include "../utils/image.h"
+#include "helpers.h"
+#include "image.h"
 
 /**
  * @brief Performs a rotation on the coordinates (x, y) by an angle

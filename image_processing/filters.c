@@ -1,9 +1,9 @@
 #include <err.h>
 #include <math.h>
 #include <stdio.h>
-#include "../utils/helpers.h"
-#include "../utils/image.h"
-#include "./threshold.h"
+#include "helpers.h"
+#include "image.h"
+#include "threshold.h"
 
 static void _grayscale(Pixel *pixel, int brightness)
 {

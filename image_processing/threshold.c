@@ -1,7 +1,7 @@
 #include <err.h>
 #include <stdio.h>
-#include "../utils/helpers.h"
-#include "../utils/image.h"
+#include "helpers.h"
+#include "image.h"
 
 Uint8 get_histogram_threshold_local_min(int *histogram)
 {

@@ -2,7 +2,7 @@
 
 #define ROTATION_H
 
-#include "../utils/image.h"
+#include "image.h"
 
 Image rotate_image(Image *image, double angle);
 

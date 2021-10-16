@@ -1,8 +1,8 @@
 #include <stdbool.h>
-#include "../utils/helpers.h"
-#include "../utils/image.h"
 #include "blur.h"
 #include "filters.h"
+#include "helpers.h"
+#include "image.h"
 #include "mask.h"
 #include "morph.h"
 

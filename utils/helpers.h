@@ -2,7 +2,7 @@
 #define HELPERS_H
 
 #include <stdbool.h>
-#include "./image.h"
+#include "image.h"
 
 #define M_PI 3.14159265359
 

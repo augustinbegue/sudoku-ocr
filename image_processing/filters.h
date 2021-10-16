@@ -3,7 +3,7 @@
 
 #include <err.h>
 #include <stdio.h>
-#include "../utils/image.h"
+#include "image.h"
 
 void filter_grayscale(Image *image, double brightness);
 

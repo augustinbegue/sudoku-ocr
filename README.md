@@ -4,11 +4,15 @@
 
 ```
 $ ./main --help
-Usage: ./main [options] file ...
+Usage: ./main file [options]
+
 Options:
-        -o <file>     Save the output into <file>.
-        -m            Save the mask image into <file>.
+        -o <file>     Save the output into <file>. (PNG format)
         -r <angle>    Rotate the image according to the specified <angle>.
+        -m <file>     Save the mask image into <file>.  (PNG format)
+        -v <path>     Verbose mode: save every step of the process in the folder <path>.
+
+For more information, see: https://github.com/augustinbegue/sudoku-ocr
 ```
 
 ## Build

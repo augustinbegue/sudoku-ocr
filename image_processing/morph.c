@@ -1,7 +1,7 @@
 #include <string.h>
-#include "./morph.h"
-#include "../utils/helpers.h"
-#include "../utils/image.h"
+#include "morph.h"
+#include "helpers.h"
+#include "image.h"
 
 Pixel erode(Image *image, int mask_size, int x, int y)
 {

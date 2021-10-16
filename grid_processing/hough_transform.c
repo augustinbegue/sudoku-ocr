@@ -1,9 +1,9 @@
 #include <err.h>
 #include <math.h>
 #include <stdbool.h>
-#include "../utils/helpers.h"
-#include "../utils/image.h"
-#include "../utils/list.h"
+#include "helpers.h"
+#include "image.h"
+#include "list.h"
 
 #define EDGE_COLOR 255
 #define LINES_THRESHOLD_PERCENTAGE 40

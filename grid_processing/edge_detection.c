@@ -1,13 +1,13 @@
 #include <float.h>
 #include <math.h>
 #include <stdbool.h>
-#include "../image_processing/blur.h"
-#include "../image_processing/filters.h"
-#include "../image_processing/morph.h"
-#include "../image_processing/threshold.h"
-#include "../utils/helpers.h"
-#include "../utils/image.h"
-#include "../utils/list.h"
+#include "blur.h"
+#include "filters.h"
+#include "helpers.h"
+#include "image.h"
+#include "list.h"
+#include "morph.h"
+#include "threshold.h"
 
 #define MAX_BRIGHTNESS 255
 #define T_LOW 0.4
