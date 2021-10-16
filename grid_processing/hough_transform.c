@@ -13,7 +13,7 @@ static void find_edges(int **accumulator, int diag, int rho_num, int theta_num,
     int w, int h, bool verbose_mode)
 {
     if (verbose_mode)
-        printf("   📍 Fiding lines...\n");
+        printf("   📍 Fiding edges...\n");
     else
         fprintf(stderr, "\33[2K\r[========================----]");
 
@@ -44,7 +44,7 @@ static void find_edges(int **accumulator, int diag, int rho_num, int theta_num,
     else
         fprintf(stderr, "\33[2K\r[=========================---]");
 
-    // 3. Fiding coordinates of the lines in the accumulator using the
+    // 3. Fiding coordinates of the edges in the accumulator using the
     // threshold
 
     int prev = accumulator[0][0];
@@ -52,7 +52,7 @@ static void find_edges(int **accumulator, int diag, int rho_num, int theta_num,
     bool increasing = true;
 
     int r_c = 255, g_c = 0, b_c = 255;
-    int lines = 0;
+    int edges = 0;
 
     for (int r = 0; r <= rho_num; r++)
     {
@@ -60,6 +60,8 @@ static void find_edges(int **accumulator, int diag, int rho_num, int theta_num,
         {
             int val = accumulator[r][t];
 
+            // Check if the current value is a local maximum. If so, we can
+            // treat it, otherwise, we continue the iteration
             if (val >= prev)
             {
                 prev = val;
@@ -98,18 +100,21 @@ static void find_edges(int **accumulator, int diag, int rho_num, int theta_num,
             int x2 = x0 - diag * (-ay);
             int y2 = y0 - diag * (ax);
 
-            l_append(edges_x, x1);
-            l_append(edges_y, y1);
+            // 4. Draw edges on output
+            int *coordinates
+                = draw_line(out, w, h, x1, y1, x2, y2, r_c, g_c, b_c);
+            edges++;
 
-            l_append(edges_x, x2);
-            l_append(edges_y, y2);
+            l_append(edges_x, coordinates[0]);
+            l_append(edges_y, coordinates[1]);
 
-            // 4. Draw lines on output
-            draw_line(out, w, h, x1, y1, x2, y2, r_c, g_c, b_c);
-            lines++;
+            l_append(edges_x, coordinates[2]);
+            l_append(edges_y, coordinates[3]);
+
+            free(coordinates);
 
             if (verbose_mode)
-                fprintf(stderr, "\33[2K\r   📊 Lines: %i", lines);
+                fprintf(stderr, "\33[2K\r   📊 Edges: %i", edges);
 
             if (g_c == 255)
             {
@@ -211,7 +216,7 @@ Image hough_transform(Image *in, Image *clean, list *edges_x, list *edges_y,
         edges_y, &out, w, h, verbose_mode);
 
     verbose_save(
-        verbose_mode, verbose_path, "7.2-hough-transform-lines.png", &out);
+        verbose_mode, verbose_path, "7.2-hough-transform-edges.png", &out);
 
     free(rhos);
     free(thetas);

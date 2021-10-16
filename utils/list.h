@@ -35,4 +35,8 @@ bool l_empty(list *l);
 
 void l_remove(list *l, int val);
 
+int l_size(list *l);
+
+int **coord_lists_to_arr(list *edges_x, list *edges_y, int size);
+
 #endif

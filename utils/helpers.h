@@ -19,4 +19,6 @@ int *substract_abs_arr(int in[], int size, int value);
 
 int min_arr_index(int array[], int size);
 
+void free_2d_arr(int **arr, int size);
+
 #endif

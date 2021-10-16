@@ -76,3 +76,10 @@ int min_arr_index(int array[], int size)
 
     return min;
 }
+
+void free_2d_arr(int **arr, int size)
+{
+    for (int i = 0; i < size; i++)
+        free(arr[i]);
+    free(arr);
+}

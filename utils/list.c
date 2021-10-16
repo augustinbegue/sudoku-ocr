@@ -112,3 +112,43 @@ void l_pop(list *l)
     l->tail = l->tail->prev;
     free(el);
 }
+
+int l_size(list *l)
+{
+    int size = 0;
+
+    list_int *e = l->head;
+    while (e != NULL)
+    {
+        e = e->next;
+        size++;
+    }
+
+    return size;
+}
+
+int **coord_lists_to_arr(list *edges_x, list *edges_y, int size)
+{
+    list_int *x_el = edges_x->head;
+    list_int *y_el = edges_y->head;
+
+    int **edges = malloc(sizeof(int *) * size + 1);
+    for (int i = 0; i < size / 2; i++)
+    {
+        edges[i] = malloc(sizeof(int) * 4 + 1);
+
+        edges[i][0] = x_el->value;
+        edges[i][1] = y_el->value;
+
+        x_el = x_el->next;
+        y_el = y_el->next;
+
+        edges[i][2] = x_el->value;
+        edges[i][3] = y_el->value;
+
+        x_el = x_el->next;
+        y_el = y_el->next;
+    }
+
+    return edges;
+}

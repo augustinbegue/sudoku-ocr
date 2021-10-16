@@ -292,10 +292,27 @@ int *image_grayscale_histogram(
     return hist;
 }
 
-void draw_line(Image *image, int w, int h, int x0, int y0, int x1, int y1,
+/**
+ * @brief Draws a line from (x0, y0) to (x1, y1).
+ *
+ * @param image
+ * @param w
+ * @param h
+ * @param x0
+ * @param y0
+ * @param x1
+ * @param y1
+ * @param r
+ * @param g
+ * @param b
+ * @return int** coordinates at which the line actually started.
+ */
+int *draw_line(Image *image, int w, int h, int x0, int y0, int x1, int y1,
     Uint8 r, Uint8 g, Uint8 b)
 {
     Pixel color = {r, g, b};
+    int *coordinates = malloc(sizeof(int) * 4 + 1);
+    memset(coordinates, -1, sizeof(int) * 4);
 
     int dx = abs(x1 - x0);
     int sx = x0 < x1 ? 1 : -1;
@@ -307,7 +324,19 @@ void draw_line(Image *image, int w, int h, int x0, int y0, int x1, int y1,
     while (true)
     {
         if (0 <= x0 && x0 < w && 0 <= y0 && y0 < h)
+        {
             image->pixels[x0][y0] = color;
+            if (coordinates[0] == -1 && coordinates[1] == -1)
+            {
+                coordinates[0] = x0;
+                coordinates[1] = y0;
+            }
+            else
+            {
+                coordinates[2] = x0;
+                coordinates[3] = y0;
+            }
+        }
 
         if (x0 == x1 && y0 == y1)
             break;
@@ -325,4 +354,6 @@ void draw_line(Image *image, int w, int h, int x0, int y0, int x1, int y1,
             y0 += sy;
         }
     }
+
+    return coordinates;
 }

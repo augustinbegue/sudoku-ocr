@@ -11,6 +11,7 @@
 #include "hough_transform.h"
 #include "image.h"
 #include "image_processing.h"
+#include "lines_averaging.h"
 #include "list.h"
 #include "rotation.h"
 
@@ -160,7 +161,11 @@ int main(int argc, char const *argv[])
             rotated_imagept, edges_x, edges_y, verbose_mode, verbose_path);
 
         if (!verbose_mode)
-            fprintf(stderr, "\33[2K\r[============================]");
+            fprintf(stderr, "\33[2K\r[==========================--]");
+
+        int edge_num = 0;
+        int **edges = average__hough_lines(edges_x, edges_y, rotated_imagept,
+            verbose_mode, verbose_path, &edge_num);
 
         if (!verbose_mode)
             fprintf(stderr, "\33[2K\r");
@@ -177,6 +182,7 @@ int main(int argc, char const *argv[])
         free_Image(&hough_transform_image);
         l_free(edges_x);
         l_free(edges_y);
+        free_2d_arr(edges, edge_num);
     }
     else
     {
