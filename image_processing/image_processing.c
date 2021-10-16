@@ -40,6 +40,8 @@ void process_image(
 
     if (verbose_mode)
         printf("   🎨 Average Color: %i\n", (int)maskpt->average_color);
+    else
+        fprintf(stderr, "\33[2K\r[===--------------------------]");
 
     verbose_save(verbose_mode, verbose_path, "1-processing-step.png", maskpt);
 
@@ -64,6 +66,8 @@ void process_image(
 
     if (verbose_mode)
         printf("   🔲 Applying a mask threshold.\n");
+    else
+        fprintf(stderr, "\33[2K\r[=====------------------------]");
 
     // Mask creation from a dynamic threshold
     filter_threshold(maskpt);
@@ -77,6 +81,8 @@ void process_image(
 
     if (verbose_mode)
         printf("   📥 Applying the mask on the original image.\n");
+    else
+        fprintf(stderr, "\33[2K\r[=======----------------------]");
 
     // Apply the mask onto the clean image
     apply_mask(imagept, maskpt);
@@ -90,6 +96,8 @@ void process_image(
 
     if (verbose_mode)
         printf("   🔲 Applying a dynamic threshold.\n");
+    else
+        fprintf(stderr, "\33[2K\r[=========--------------------]");
 
     // Dynamic treshold to binarize the image
     filter_dynamic_threshold(imagept, 4);
@@ -98,6 +106,8 @@ void process_image(
 
     if (verbose_mode)
         printf("   🖌  Filtering noise.\n");
+    else
+        fprintf(stderr, "\33[2K\r[===========-----------------]");
 
     if (verbose_mode)
         printf("   🎨 Average Color: %i\n", (int)imagept->average_color);
@@ -118,9 +128,14 @@ void process_image(
 
     if (verbose_mode)
         printf("   🔳 Inverting the image.\n");
+    else
+        fprintf(stderr, "\33[2K\r[===========------------------]");
 
     // Invert the binarization
     filter_invert(imagept, 0);
+
+    if (!verbose_mode)
+        fprintf(stderr, "\33[2K\r[=============----------------]");
 
     verbose_save(verbose_mode, verbose_path, "5-processing-step.png", imagept);
 }

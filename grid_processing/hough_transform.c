@@ -13,6 +13,8 @@ Image hough_transform(
 {
     if (verbose_mode)
         printf("   🧭 Hough Transform...\n");
+    else
+        fprintf(stderr, "\33[2K\r[=======================-----]");
 
     if (verbose_mode)
         printf("   🧮 Computing Edges...\n");
@@ -81,6 +83,8 @@ Image hough_transform(
 
     if (verbose_mode)
         printf("   📍 Fiding lines...\n");
+    else
+        fprintf(stderr, "\33[2K\r[========================----]");
 
     // 1. Fiding the maximum
     double max = 0;
@@ -106,6 +110,8 @@ Image hough_transform(
 
     if (verbose_mode)
         printf("   👈 Threshold: %i\n", line_threshold);
+    else
+        fprintf(stderr, "\33[2K\r[=========================---]");
 
     Image out = clone_image(clean);
 
@@ -194,6 +200,8 @@ Image hough_transform(
     }
     if (verbose_mode)
         fprintf(stderr, "\n");
+    else
+        fprintf(stderr, "\33[2K\r[===========================-]");
 
     verbose_save(
         verbose_mode, verbose_path, "7.2-hough-transform-lines.png", &out);

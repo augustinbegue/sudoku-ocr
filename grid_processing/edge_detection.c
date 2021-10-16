@@ -412,18 +412,20 @@ static void trace_edge_find_neighbours(
  */
 static void trace_edge(int *in, int t, int w, int threshold, int *out)
 {
-    list edges; // list of edges to be checked
+    list *edges = l_create(); // list of edges to be checked
 
-    trace_edge_find_neighbours(in, t, w, threshold, out, &edges);
+    trace_edge_find_neighbours(in, t, w, threshold, out, edges);
 
     // loop until all edge candiates are tested
-    while (!l_empty(&edges))
+    while (!l_empty(edges))
     {
-        t = edges.tail->value;
-        l_pop(&edges); // remove the last after read
+        t = edges->tail->value;
+        l_pop(edges); // remove the last after read
 
-        trace_edge_find_neighbours(in, t, w, threshold, out, &edges);
+        trace_edge_find_neighbours(in, t, w, threshold, out, edges);
     }
+
+    l_free(edges);
 }
 
 /**
@@ -532,6 +534,8 @@ Image canny_edge_filtering(
 
     if (verbose_mode)
         printf("   📈 Generating the intensity gradient...\n");
+    else
+        fprintf(stderr, "\33[2K\r[====================--------]");
 
     // Cloning images to store the gradients
     int *image_arr = Image_to_Array(&image);
@@ -573,6 +577,8 @@ Image canny_edge_filtering(
      */
     if (verbose_mode)
         printf("   🧨 Non-Maximal suppression...\n");
+    else
+        fprintf(stderr, "\33[2K\r[=====================-------]");
 
     non_maximal_suppression(
         magnitude_arr, xgradient_arr, ygradient_arr, w, h, nms_arr);
@@ -587,6 +593,8 @@ Image canny_edge_filtering(
     // Hysterisis Analysis
     if (verbose_mode)
         printf("   🕳️ Hysterisis Analysis...\n");
+    else
+        fprintf(stderr, "\33[2K\r[======================------]");
 
     hysterisis_analysis(nms_arr, w, h, T_LOW, T_HIGH, edges_arr, verbose_mode);
 

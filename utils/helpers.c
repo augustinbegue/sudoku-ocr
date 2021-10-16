@@ -19,7 +19,9 @@ void verbose_save(
         strcat(t, "/");
         strcat(t, file_name);
         save_image(Image_to_SDL_Surface(image), t);
+        return;
     }
+    return;
 }
 
 double degrees_to_rad(double degrees)

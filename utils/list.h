@@ -19,6 +19,10 @@ struct list
 };
 typedef struct list list;
 
+list *l_create();
+
+void l_free(list *l);
+
 void l_append(list *l, int val);
 
 list_int *l_find(list *l, int val);

@@ -42,7 +42,7 @@ int main(int argc, char const *argv[])
         return 0;
     }
 
-    bool save_mask = false, image_rotation = false, verbose_mode = true;
+    bool save_mask = false, image_rotation = false, verbose_mode = false;
     char *input_path = "", *output_path = "output.bmp",
          *mask_output_path = "output.grayscale.bmp", *verbose_path = "output";
 
@@ -109,6 +109,9 @@ int main(int argc, char const *argv[])
         Image mask = clone_image(imagept);
         Image *maskpt = &mask;
 
+        if (!verbose_mode)
+            fprintf(stderr, "\33[2K\r[=----------------------------]");
+
         /*
          * Processing
          */
@@ -140,6 +143,9 @@ int main(int argc, char const *argv[])
             rotated_imagept = imagept;
         }
 
+        if (!verbose_mode)
+            fprintf(stderr, "\33[2K\r[===============-------------]");
+
         /*
          * Edge detection
          */
@@ -148,6 +154,12 @@ int main(int argc, char const *argv[])
 
         Image hough_transform_image = hough_transform(
             &edge_image, rotated_imagept, verbose_mode, verbose_path);
+
+        if (!verbose_mode)
+            fprintf(stderr, "\33[2K\r[============================]");
+
+        if (!verbose_mode)
+            fprintf(stderr, "\33[2K\r");
 
         // Saves the final image in the output_path file
         save_image(Image_to_SDL_Surface(rotated_imagept), output_path);
