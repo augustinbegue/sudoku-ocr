@@ -599,13 +599,6 @@ Image canny_edge_filtering(
     free(edges_arr);
     free_Image(&image);
 
-    morph(&edge_image, Dilation, 2);
-
-    morph(&edge_image, Erosion, 2);
-
-    verbose_save(
-        verbose_mode, verbose_path, "6.5-edges-processed.png", &edge_image);
-
     return edge_image;
 }
 

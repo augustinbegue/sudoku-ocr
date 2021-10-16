@@ -147,8 +147,8 @@ int main(int argc, char const *argv[])
         Image edge_image = canny_edge_filtering(
             rotated_imagept, verbose_mode, verbose_path);
 
-        Image hough_transform_image
-            = hough_transform(&edge_image, verbose_mode, verbose_path);
+        Image hough_transform_image = hough_transform(
+            &edge_image, rotated_imagept, verbose_mode, verbose_path);
 
         // Saves the final image in the output_path file
         save_image(Image_to_SDL_Surface(rotated_imagept), output_path);

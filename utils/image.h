@@ -47,4 +47,7 @@ void Array_to_Image(int *array, Image *container);
 
 Image Array2D_to_Image(int **array, int width, int height);
 
+void draw_line(Image *image, int w, int h, int x0, int y0, int x1, int y1,
+    Uint8 r, Uint8 g, Uint8 b);
+
 #endif

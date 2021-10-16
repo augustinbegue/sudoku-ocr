@@ -1,5 +1,6 @@
 #include <err.h>
 #include <float.h>
+#include <math.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include "./image.h"
@@ -289,4 +290,39 @@ int *image_grayscale_histogram(
     }
 
     return hist;
+}
+
+void draw_line(Image *image, int w, int h, int x0, int y0, int x1, int y1,
+    Uint8 r, Uint8 g, Uint8 b)
+{
+    Pixel color = {r, g, b};
+
+    int dx = abs(x1 - x0);
+    int sx = x0 < x1 ? 1 : -1;
+    int dy = -abs(y1 - y0);
+    int sy = y0 < y1 ? 1 : -1;
+
+    int err = dx + dy;
+
+    while (true)
+    {
+        if (0 <= x0 && x0 < w && 0 <= y0 && y0 < h)
+            image->pixels[x0][y0] = color;
+
+        if (x0 == x1 && y0 == y1)
+            break;
+
+        int e2 = 2 * err;
+
+        if (e2 >= dy)
+        {
+            err += dy;
+            x0 += sx;
+        }
+        if (e2 <= dx)
+        {
+            err += dx;
+            y0 += sy;
+        }
+    }
 }
