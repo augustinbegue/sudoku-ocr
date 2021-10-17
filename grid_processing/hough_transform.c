@@ -184,11 +184,18 @@ Image hough_transform(Image *in, Image *clean, list *edges_x, list *edges_y,
         for (int t = 0; t <= theta_num; t++)
             accumulator[r][t] = 0;
     }
+
+    if (verbose_mode)
+        fprintf(stderr, "\33[2K\r   🖨️ Done: %i %%", 0);
+
+    int done = 0;
+    float total = w * h;
     // Filling the accumulator
     for (int x = 0; x < w; x++)
     {
         for (int y = 0; y < h; y++)
         {
+            done++;
             // Process pixel only if its an edge
             if (in->pixels[x][y].r != EDGE_COLOR)
                 continue;
@@ -200,8 +207,15 @@ Image hough_transform(Image *in, Image *clean, list *edges_x, list *edges_y,
 
                 accumulator[rho_i][t]++;
             }
+
+            int percent = (done / total) * 100;
+            if (verbose_mode && percent % 5 == 0)
+                fprintf(stderr, "\33[2K\r   🖨️ Done: %i %%", percent);
         }
     }
+
+    if (verbose_mode)
+        fprintf(stderr, "\33[2K\r");
 
     // Converting the accumulator into an image
     Image polar = Array2D_to_Image(accumulator, rho_num + 1, theta_num + 1);

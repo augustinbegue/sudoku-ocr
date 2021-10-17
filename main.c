@@ -4,16 +4,18 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <sys/sysinfo.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include "edge_averaging.h"
 #include "edge_detection.h"
 #include "helpers.h"
 #include "hough_transform.h"
 #include "image.h"
 #include "image_processing.h"
-#include "lines_averaging.h"
 #include "list.h"
 #include "rotation.h"
+#include "square_detection.h"
 
 static void print_help(const char *exec_name)
 {
@@ -164,11 +166,15 @@ int main(int argc, char const *argv[])
             fprintf(stderr, "\33[2K\r[==========================--]");
 
         int edge_num = 0;
-        int **edges = average__hough_lines(edges_x, edges_y, rotated_imagept,
+        int **edges = average_edges(edges_x, edges_y, rotated_imagept,
             verbose_mode, verbose_path, &edge_num);
 
         if (!verbose_mode)
             fprintf(stderr, "\33[2K\r");
+        else
+            printf("   ⏹️ Finding squares...\n");
+
+        find_squares(edges, edge_num, rotated_imagept);
 
         // Saves the final image in the output_path file
         save_image(Image_to_SDL_Surface(rotated_imagept), output_path);
