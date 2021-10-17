@@ -4,6 +4,7 @@
 #include "square_detection.h"
 #include "image.h"
 #include "int_list.h"
+#include "list.h"
 
 line edge_to_line(int *edge)
 {
@@ -138,8 +139,10 @@ intersection *find_line_intersections(
     return intersections;
 }
 
-void find_line_squares(int **edges, line edge_1, int edge_num, Image *image)
+list *find_line_squares(int **edges, line edge_1, int edge_num, Image *image)
 {
+    list *squares = l_create();
+
     int intersection_num_1 = 0;
 
     point zero = {.x = 0, .y = 0};
@@ -207,6 +210,14 @@ void find_line_squares(int **edges, line edge_1, int edge_num, Image *image)
 
                     if (lines_equal(edge_5, edge_1))
                     {
+                        square *sqr = malloc(sizeof(square));
+                        sqr->c1 = c1;
+                        sqr->c2 = c2;
+                        sqr->c3 = c3;
+                        sqr->c4 = c4;
+
+                        l_append(squares, sqr);
+
                         // Temp solution: drawing the square
                         free(draw_line(image, image->width, image->height,
                             c1.x, c1.y, c2.x, c2.y, 0, 255, 0));
@@ -253,16 +264,28 @@ void find_line_squares(int **edges, line edge_1, int edge_num, Image *image)
     }
 
     free(intersections_1);
+
+    return squares;
 }
 
 void find_squares(int **edges, int edge_num, Image *image)
 {
     int i = 0;
     fprintf(stderr, "\33[2K\r   🖨️ Treated Edges: %i", i);
+    list *found_squares = l_create();
+
     for (; i < edge_num; i++)
     {
-        find_line_squares(edges, edge_to_line(edges[i]), edge_num, image);
+        list *found = find_line_squares(
+            edges, edge_to_line(edges[i]), edge_num, image);
+        l_merge(found_squares, found);
+
+        // only free the container so the merged nodes are not lost
+        free(found);
+
         fprintf(stderr, "\33[2K\r   🖨️ Treated Edges: %i", i);
     }
     fprintf(stderr, "\33[2K\r   🖨️ Treated Edges: %i\n", i);
+
+    l_free(found_squares);
 }

@@ -9,7 +9,7 @@ struct list_node
 {
     list_node *prev;
     list_node *next;
-    int value;
+    void *value;
 };
 
 struct list
@@ -23,14 +23,16 @@ list *l_create();
 
 void l_free(list *l);
 
-void l_append(list *l, int val);
+void l_append(list *l, void *val);
 
 void l_pop(list *l);
 
 bool l_empty(list *l);
 
-void l_remove(list *l, int val);
+void l_remove(list *l, void *val);
 
 int l_size(list *l);
+
+void l_merge(list *l1, list *l2);
 
 #endif

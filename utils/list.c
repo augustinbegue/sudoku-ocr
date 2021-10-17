@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include "list.h"
 
-static list_node *li_create(int val)
+static list_node *li_create(void *val)
 {
     list_node *el = malloc(sizeof(list_node));
     el->prev = malloc(sizeof(list_node *));
@@ -15,6 +15,11 @@ static list_node *li_create(int val)
     return el;
 }
 
+/**
+ * @brief creates and returns an empty list stored in the heap
+ *
+ * @return list*
+ */
 list *l_create()
 {
     list *l = malloc(sizeof(list));
@@ -27,6 +32,11 @@ list *l_create()
     return l;
 }
 
+/**
+ * @brief frees l and the pointers contained
+ *
+ * @param l
+ */
 void l_free(list *l)
 {
     while (l->head != NULL)
@@ -42,7 +52,13 @@ void l_free(list *l)
     free(l);
 }
 
-void l_append(list *l, int val)
+/**
+ * @brief apprends val to l
+ *
+ * @param l
+ * @param val
+ */
+void l_append(list *l, void *val)
 {
     list_node *el = li_create(val);
 
@@ -64,6 +80,13 @@ void l_append(list *l, int val)
     }
 }
 
+/**
+ * @brief returns true if l is empty
+ *
+ * @param l
+ * @return true
+ * @return false
+ */
 bool l_empty(list *l)
 {
     return l->head == NULL && l->tail == NULL;
@@ -86,6 +109,12 @@ void l_pop(list *l)
     free(el);
 }
 
+/**
+ * @brief Returns the size of l
+ *
+ * @param l
+ * @return int
+ */
 int l_size(list *l)
 {
     int size = 0;
@@ -98,4 +127,28 @@ int l_size(list *l)
     }
 
     return size;
+}
+
+/**
+ * @brief Merges l2 into l1
+ *
+ * @param l1
+ * @param l2
+ */
+void l_merge(list *l1, list *l2)
+{
+    if (l_empty(l1))
+    {
+        l1->head = l2->head;
+        l1->tail = l2->tail;
+        return;
+    }
+
+    if (l_empty(l2))
+    {
+        return;
+    }
+
+    l1->tail->next = l2->head;
+    l1->tail = l2->tail;
 }
