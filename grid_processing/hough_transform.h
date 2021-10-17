@@ -5,9 +5,9 @@
 #include <math.h>
 #include "helpers.h"
 #include "image.h"
-#include "list.h"
+#include "int_list.h"
 
-Image hough_transform(Image *in, Image *clean, list *edges_x, list *edges_y,
-                      bool verbose_mode, char *verbose_path);
+Image hough_transform(Image *in, Image *clean, int_list *edges_x,
+    int_list *edges_y, bool verbose_mode, char *verbose_path);
 
 #endif

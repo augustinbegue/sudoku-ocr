@@ -4,18 +4,18 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-typedef struct list_int list_int;
-struct list_int
+typedef struct list_node list_node;
+struct list_node
 {
-    list_int *prev;
-    list_int *next;
+    list_node *prev;
+    list_node *next;
     int value;
 };
 
 struct list
 {
-    list_int *head;
-    list_int *tail;
+    list_node *head;
+    list_node *tail;
 };
 typedef struct list list;
 
@@ -25,10 +25,6 @@ void l_free(list *l);
 
 void l_append(list *l, int val);
 
-list_int *l_find(list *l, int val);
-
-void l_remove(list *l, int val);
-
 void l_pop(list *l);
 
 bool l_empty(list *l);
@@ -36,7 +32,5 @@ bool l_empty(list *l);
 void l_remove(list *l, int val);
 
 int l_size(list *l);
-
-int **coord_lists_to_arr(list *edges_x, list *edges_y, int size);
 
 #endif

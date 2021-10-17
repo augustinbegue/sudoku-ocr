@@ -4,9 +4,9 @@
 #include <stdbool.h>
 #include "helpers.h"
 #include "image.h"
-#include "list.h"
+#include "int_list.h"
 
-int **average_edges(list *edges_x, list *edges_y, Image *image,
+int **average_edges(int_list *edges_x, int_list *edges_y, Image *image,
     bool verbose_mode, char *verbose_path, int *new_edge_num_);
 
 #endif

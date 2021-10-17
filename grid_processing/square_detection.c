@@ -3,7 +3,7 @@
 #include <stdbool.h>
 #include "square_detection.h"
 #include "image.h"
-#include "list.h"
+#include "int_list.h"
 
 line edge_to_line(int *edge)
 {
@@ -65,9 +65,9 @@ intersection *find_line_intersections(
     int **edges, line edge1, int edge_num, int w, int h, int *intersection_num)
 {
 
-    list *intersections_x = l_create();
-    list *intersections_y = l_create();
-    list *edges_index = l_create();
+    int_list *intersections_x = li_create();
+    int_list *intersections_y = li_create();
+    int_list *edges_index = li_create();
 
     // iterate over the other edges
     for (int j = 0; j < edge_num; j++)
@@ -93,18 +93,18 @@ intersection *find_line_intersections(
         else
         {
             // lines intersect
-            l_append(intersections_x, intersection_pt.x);
-            l_append(intersections_y, intersection_pt.y);
-            l_append(edges_index, j);
+            li_append(intersections_x, intersection_pt.x);
+            li_append(intersections_y, intersection_pt.y);
+            li_append(edges_index, j);
         }
     }
 
     // Convert the lists to an array
-    list_int *edge_index_el = edges_index->head;
-    list_int *inter_x_el = intersections_x->head;
-    list_int *inter_y_el = intersections_y->head;
+    int_list_node *edge_index_el = edges_index->head;
+    int_list_node *inter_x_el = intersections_x->head;
+    int_list_node *inter_y_el = intersections_y->head;
 
-    *intersection_num = l_size(edges_index);
+    *intersection_num = li_size(edges_index);
     intersection *intersections
         = malloc(sizeof(intersection) * (*intersection_num) + 1);
 
@@ -131,9 +131,9 @@ intersection *find_line_intersections(
         inter_y_el = inter_y_el->next;
     }
 
-    l_free(intersections_x);
-    l_free(intersections_y);
-    l_free(edges_index);
+    li_free(intersections_x);
+    li_free(intersections_y);
+    li_free(edges_index);
 
     return intersections;
 }

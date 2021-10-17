@@ -3,14 +3,14 @@
 #include <stdbool.h>
 #include "helpers.h"
 #include "image.h"
-#include "list.h"
+#include "int_list.h"
 
 #define EDGE_COLOR 255
 #define LINES_THRESHOLD_PERCENTAGE 40
 
 static void find_edges(int **accumulator, int diag, int rho_num, int theta_num,
-    double *rhos, double *thetas, list *edges_x, list *edges_y, Image *out,
-    int w, int h, bool verbose_mode)
+    double *rhos, double *thetas, int_list *edges_x, int_list *edges_y,
+    Image *out, int w, int h, bool verbose_mode)
 {
     if (verbose_mode)
         printf("   📍 Fiding edges...\n");
@@ -105,11 +105,11 @@ static void find_edges(int **accumulator, int diag, int rho_num, int theta_num,
                 = draw_line(out, w, h, x1, y1, x2, y2, r_c, g_c, b_c);
             edges++;
 
-            l_append(edges_x, coordinates[0]);
-            l_append(edges_y, coordinates[1]);
+            li_append(edges_x, coordinates[0]);
+            li_append(edges_y, coordinates[1]);
 
-            l_append(edges_x, coordinates[2]);
-            l_append(edges_y, coordinates[3]);
+            li_append(edges_x, coordinates[2]);
+            li_append(edges_y, coordinates[3]);
 
             free(coordinates);
 
@@ -140,8 +140,8 @@ static void find_edges(int **accumulator, int diag, int rho_num, int theta_num,
         fprintf(stderr, "\33[2K\r[===========================-]");
 }
 
-Image hough_transform(Image *in, Image *clean, list *edges_x, list *edges_y,
-    bool verbose_mode, char *verbose_path)
+Image hough_transform(Image *in, Image *clean, int_list *edges_x,
+    int_list *edges_y, bool verbose_mode, char *verbose_path)
 {
     if (verbose_mode)
         printf("   🧭 Hough Transform...\n");

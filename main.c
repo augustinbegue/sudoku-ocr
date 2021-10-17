@@ -13,7 +13,7 @@
 #include "hough_transform.h"
 #include "image.h"
 #include "image_processing.h"
-#include "list.h"
+#include "int_list.h"
 #include "rotation.h"
 #include "square_detection.h"
 
@@ -156,8 +156,8 @@ int main(int argc, char const *argv[])
         Image edge_image = canny_edge_filtering(
             rotated_imagept, verbose_mode, verbose_path);
 
-        list *edges_x = l_create();
-        list *edges_y = l_create();
+        int_list *edges_x = li_create();
+        int_list *edges_y = li_create();
 
         Image hough_transform_image = hough_transform(&edge_image,
             rotated_imagept, edges_x, edges_y, verbose_mode, verbose_path);
@@ -186,8 +186,8 @@ int main(int argc, char const *argv[])
             free_Image(rotated_imagept);
         free_Image(&edge_image);
         free_Image(&hough_transform_image);
-        l_free(edges_x);
-        l_free(edges_y);
+        li_free(edges_x);
+        li_free(edges_y);
         free_2d_arr(edges, edge_num);
     }
     else

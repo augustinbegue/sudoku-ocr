@@ -1,7 +1,7 @@
 #include <stdbool.h>
 #include "helpers.h"
 #include "image.h"
-#include "list.h"
+#include "int_list.h"
 // Amount we divide the biggest side of the image by to get the error factor
 static const int ERR_FACTOR = 100;
 
@@ -16,7 +16,7 @@ static const int ERR_FACTOR = 100;
  * @param image
  * @return int**
  */
-int **average_edges(list *edges_x, list *edges_y, Image *image,
+int **average_edges(int_list *edges_x, int_list *edges_y, Image *image,
     bool verbose_mode, char *verbose_path, int *new_edge_num)
 {
     if (verbose_mode)
@@ -24,16 +24,16 @@ int **average_edges(list *edges_x, list *edges_y, Image *image,
 
     int w = image->width, h = image->height;
     int err_factor = (w > h ? w : h) / ERR_FACTOR;
-    int size = l_size(edges_x);
+    int size = li_size(edges_x);
 
     int **edges = coord_lists_to_arr(edges_x, edges_y, size);
 
-    list *avg_edges_x = l_create();
-    list *avg_edges_y = l_create();
-    list_int *x0_el;
-    list_int *y0_el;
-    list_int *x1_el;
-    list_int *y1_el;
+    int_list *avg_edges_x = li_create();
+    int_list *avg_edges_y = li_create();
+    int_list_node *x0_el;
+    int_list_node *y0_el;
+    int_list_node *x1_el;
+    int_list_node *y1_el;
 
     for (int i = 0; i < size / 2; i++)
     {
@@ -99,18 +99,18 @@ int **average_edges(list *edges_x, list *edges_y, Image *image,
 
         if (!found)
         {
-            l_append(avg_edges_x, x0);
-            l_append(avg_edges_y, y0);
-            l_append(avg_edges_x, x1);
-            l_append(avg_edges_y, y1);
+            li_append(avg_edges_x, x0);
+            li_append(avg_edges_y, y0);
+            li_append(avg_edges_x, x1);
+            li_append(avg_edges_y, y1);
         }
     }
 
-    int new_size = l_size(avg_edges_x);
+    int new_size = li_size(avg_edges_x);
     int **new_edges = coord_lists_to_arr(avg_edges_x, avg_edges_y, new_size);
 
-    l_free(avg_edges_x);
-    l_free(avg_edges_y);
+    li_free(avg_edges_x);
+    li_free(avg_edges_y);
 
     for (int i = 0; i < new_size / 2; i++)
     {

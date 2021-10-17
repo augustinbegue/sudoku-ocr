@@ -5,7 +5,7 @@
 #include "filters.h"
 #include "helpers.h"
 #include "image.h"
-#include "list.h"
+#include "int_list.h"
 #include "morph.h"
 #include "threshold.h"
 
@@ -343,7 +343,7 @@ static void non_maximal_suppression(
 }
 
 static void trace_edge_find_neighbours(
-    int *in, int t, int w, int threshold, int *out, list *edges)
+    int *in, int t, int w, int threshold, int *out, int_list *edges)
 {
     int nw, no, ne, we, ea, sw, so, se; // indice of 8 neighbours
 
@@ -362,42 +362,42 @@ static void trace_edge_find_neighbours(
     if (in[nw] >= threshold && out[nw] != STRONG_EDGE_VAL)
     {
         out[nw] = STRONG_EDGE_VAL;
-        l_append(edges, nw);
+        li_append(edges, nw);
     }
     if (in[no] >= threshold && out[no] != STRONG_EDGE_VAL)
     {
         out[no] = STRONG_EDGE_VAL;
-        l_append(edges, no);
+        li_append(edges, no);
     }
     if (in[ne] >= threshold && out[ne] != STRONG_EDGE_VAL)
     {
         out[ne] = STRONG_EDGE_VAL;
-        l_append(edges, ne);
+        li_append(edges, ne);
     }
     if (in[we] >= threshold && out[we] != STRONG_EDGE_VAL)
     {
         out[we] = STRONG_EDGE_VAL;
-        l_append(edges, we);
+        li_append(edges, we);
     }
     if (in[ea] >= threshold && out[ea] != STRONG_EDGE_VAL)
     {
         out[ea] = STRONG_EDGE_VAL;
-        l_append(edges, ea);
+        li_append(edges, ea);
     }
     if (in[sw] >= threshold && out[sw] != STRONG_EDGE_VAL)
     {
         out[sw] = STRONG_EDGE_VAL;
-        l_append(edges, sw);
+        li_append(edges, sw);
     }
     if (in[so] >= threshold && out[so] != STRONG_EDGE_VAL)
     {
         out[so] = STRONG_EDGE_VAL;
-        l_append(edges, so);
+        li_append(edges, so);
     }
     if (in[se] >= threshold && out[se] != STRONG_EDGE_VAL)
     {
         out[se] = STRONG_EDGE_VAL;
-        l_append(edges, se);
+        li_append(edges, se);
     }
 }
 
@@ -412,20 +412,20 @@ static void trace_edge_find_neighbours(
  */
 static void trace_edge(int *in, int t, int w, int threshold, int *out)
 {
-    list *edges = l_create(); // list of edges to be checked
+    int_list *edges = li_create(); // list of edges to be checked
 
     trace_edge_find_neighbours(in, t, w, threshold, out, edges);
 
     // loop until all edge candiates are tested
-    while (!l_empty(edges))
+    while (!li_empty(edges))
     {
         t = edges->tail->value;
-        l_pop(edges); // remove the last after read
+        li_pop(edges); // remove the last after read
 
         trace_edge_find_neighbours(in, t, w, threshold, out, edges);
     }
 
-    l_free(edges);
+    li_free(edges);
 }
 
 /**
