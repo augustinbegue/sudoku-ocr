@@ -14,6 +14,7 @@
 #include "image.h"
 #include "image_processing.h"
 #include "int_list.h"
+#include "list.h"
 #include "rotation.h"
 #include "square_detection.h"
 
@@ -174,7 +175,7 @@ int main(int argc, char const *argv[])
         else
             printf("   ⏹️ Finding squares...\n");
 
-        find_squares(edges, edge_num, rotated_imagept);
+        list *squares = find_squares(edges, edge_num, rotated_imagept);
 
         // Saves the final image in the output_path file
         save_image(Image_to_SDL_Surface(rotated_imagept), output_path);
@@ -186,6 +187,16 @@ int main(int argc, char const *argv[])
             free_Image(rotated_imagept);
         free_Image(&edge_image);
         free_Image(&hough_transform_image);
+
+        list_node *sq_el = squares->head;
+        while (sq_el != NULL)
+        {
+            free(sq_el->value);
+            sq_el = sq_el->next;
+        }
+
+        l_free(squares);
+
         li_free(edges_x);
         li_free(edges_y);
         free_2d_arr(edges, edge_num);

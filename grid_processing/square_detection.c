@@ -268,7 +268,7 @@ list *find_line_squares(int **edges, line edge_1, int edge_num, Image *image)
     return squares;
 }
 
-void find_squares(int **edges, int edge_num, Image *image)
+list *find_squares(int **edges, int edge_num, Image *image)
 {
     int i = 0;
     fprintf(stderr, "\33[2K\r   🖨️ Treated Edges: %i", i);
@@ -287,5 +287,5 @@ void find_squares(int **edges, int edge_num, Image *image)
     }
     fprintf(stderr, "\33[2K\r   🖨️ Treated Edges: %i\n", i);
 
-    l_free(found_squares);
+    return found_squares;
 }

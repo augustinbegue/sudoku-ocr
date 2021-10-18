@@ -52,16 +52,24 @@ void process_image(
         // Erosion and Dilation for further noise removal and character
         // enlargement
         morph(maskpt, Erosion, 3);
+        verbose_save(
+            verbose_mode, verbose_path, "1.1-processing-erode.png", maskpt);
 
         morph(maskpt, Dilation, 5);
+        verbose_save(
+            verbose_mode, verbose_path, "1.2-processing-dilate.png", maskpt);
     }
     else // Too much black = imperfections -> we remove it by bulk
     {
         // Erosion and Dilation for further noise removal and character
         // enlargement
         morph(maskpt, Erosion, 9);
+        verbose_save(
+            verbose_mode, verbose_path, "1.1-processing-erode.png", maskpt);
 
         morph(maskpt, Dilation, 9);
+        verbose_save(
+            verbose_mode, verbose_path, "1.2-processing-dilate.png", maskpt);
     }
 
     if (verbose_mode)

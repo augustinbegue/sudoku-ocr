@@ -2,6 +2,7 @@
 #define  SQUARE_DETECT_H
 
 #include "image.h"
+#include "list.h"
 
 struct line
 {
@@ -33,6 +34,6 @@ struct square {
 };
 typedef struct square square;
 
-void find_squares(int **edges, int edge_num, Image *image);
+list *find_squares(int **edges, int edge_num, Image *image);
 
 #endif
