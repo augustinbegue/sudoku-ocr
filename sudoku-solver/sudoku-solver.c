@@ -5,6 +5,21 @@
 // N is the size of the 2D matrix   N*N
 #define N 9
 
+/* Function to create an array of char fro ma matrix of int */
+char *create(int grid[N][N])
+{
+    int pos = 0;
+    char *arr = malloc(sizeof(int) * 81);
+    for (int i = 0; i < N; i++)
+    {
+        for (int j = 0; j < N; j++, pos++)
+        {
+            arr[pos] = grid[i][j] + '0';
+        }
+    }
+    return arr;
+}
+
 /* Function to print the matrix */
 void print(int arr[N][N])
 {

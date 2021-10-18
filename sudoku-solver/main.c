@@ -15,10 +15,12 @@ int main()
                        { 0, 0, 0, 0, 0, 0, 0, 7, 4 },
                        { 0, 0, 5, 2, 0, 6, 3, 0, 0 } };
 
- 
     if (solveSuduko(grid, 0, 0) == 1)
     {
-        print(grid);
+        FILE *fp;
+        fp = fopen("bouboubou.txt", "w");
+        fputs(create(grid), fp);
+        fclose(fp);
     }
     else
         printf("No solution exists");
