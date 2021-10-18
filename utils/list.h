@@ -23,6 +23,8 @@ list *l_create();
 
 void l_free(list *l);
 
+void l_free_values(list *l);
+
 void l_append(list *l, void *val);
 
 void l_pop(list *l);

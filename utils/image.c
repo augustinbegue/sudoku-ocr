@@ -6,6 +6,7 @@
 #include "image.h"
 #include "SDL2/SDL.h"
 #include "SDL2/SDL_image.h"
+#include "helpers.h"
 #include "pixel_operations.h"
 
 SDL_Surface *load_image(char *path)
@@ -356,4 +357,32 @@ int *draw_line(Image *image, int w, int h, int x0, int y0, int x1, int y1,
     }
 
     return coordinates;
+}
+
+void draw_square(Image *image, square *sqr, int r, int g, int b)
+{
+    free(draw_line(image, image->width, image->height, sqr->c1.x, sqr->c1.y,
+        sqr->c2.x, sqr->c2.y, r, g, b));
+    free(draw_line(image, image->width, image->height, sqr->c2.x, sqr->c2.y,
+        sqr->c3.x, sqr->c3.y, r, g, b));
+    free(draw_line(image, image->width, image->height, sqr->c3.x, sqr->c3.y,
+        sqr->c4.x, sqr->c4.y, r, g, b));
+    free(draw_line(image, image->width, image->height, sqr->c4.x, sqr->c4.y,
+        sqr->c1.x, sqr->c1.y, r, g, b));
+    free(draw_line(image, image->width, image->height, sqr->c1.x + 1,
+        sqr->c1.y + 1, sqr->c2.x + 1, sqr->c2.y + 1, r, g, b));
+    free(draw_line(image, image->width, image->height, sqr->c2.x + 1,
+        sqr->c2.y + 1, sqr->c3.x + 1, sqr->c3.y + 1, r, g, b));
+    free(draw_line(image, image->width, image->height, sqr->c3.x + 1,
+        sqr->c3.y + 1, sqr->c4.x + 1, sqr->c4.y + 1, r, g, b));
+    free(draw_line(image, image->width, image->height, sqr->c4.x + 1,
+        sqr->c4.y + 1, sqr->c1.x + 1, sqr->c1.y + 1, r, g, b));
+    free(draw_line(image, image->width, image->height, sqr->c1.x - 1,
+        sqr->c1.y - 1, sqr->c2.x - 1, sqr->c2.y - 1, r, g, b));
+    free(draw_line(image, image->width, image->height, sqr->c2.x - 1,
+        sqr->c2.y - 1, sqr->c3.x - 1, sqr->c3.y - 1, r, g, b));
+    free(draw_line(image, image->width, image->height, sqr->c3.x - 1,
+        sqr->c3.y - 1, sqr->c4.x - 1, sqr->c4.y - 1, r, g, b));
+    free(draw_line(image, image->width, image->height, sqr->c4.x - 1,
+        sqr->c4.y - 1, sqr->c1.x - 1, sqr->c1.y - 1, r, g, b));
 }

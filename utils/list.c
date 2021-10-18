@@ -52,6 +52,18 @@ void l_free(list *l)
     free(l);
 }
 
+void l_free_values(list *l)
+{
+    list_node *el = l->head;
+    while (el != NULL)
+    {
+        free(el->value);
+        el = el->next;
+    }
+
+    l_free(l);
+}
+
 /**
  * @brief apprends val to l
  *
@@ -137,18 +149,26 @@ int l_size(list *l)
  */
 void l_merge(list *l1, list *l2)
 {
-    if (l_empty(l1))
+    list_node *el = l2->head;
+
+    while (el != NULL)
     {
-        l1->head = l2->head;
-        l1->tail = l2->tail;
-        return;
+        l_append(l1, el->value);
+        el = el->next;
     }
 
-    if (l_empty(l2))
-    {
-        return;
-    }
+    // if (l_empty(l1))
+    // {
+    //     l1->head = l2->head;
+    //     l1->tail = l2->tail;
+    //     return;
+    // }
 
-    l1->tail->next = l2->head;
-    l1->tail = l2->tail;
+    // if (l_empty(l2))
+    // {
+    //     return;
+    // }
+
+    // l1->tail->next = l2->head;
+    // l1->tail = l2->tail;
 }

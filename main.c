@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include "edge_averaging.h"
 #include "edge_detection.h"
+#include "geometry.h"
 #include "helpers.h"
 #include "hough_transform.h"
 #include "image.h"
@@ -17,6 +18,7 @@
 #include "list.h"
 #include "rotation.h"
 #include "square_detection.h"
+#include "square_selection.h"
 
 static void print_help(const char *exec_name)
 {
@@ -177,6 +179,9 @@ int main(int argc, char const *argv[])
 
         list *squares = find_squares(edges, edge_num, rotated_imagept);
 
+        square *selected_square = select_square(
+            squares, rotated_imagept, verbose_mode, verbose_path);
+
         // Saves the final image in the output_path file
         save_image(Image_to_SDL_Surface(rotated_imagept), output_path);
 
@@ -188,14 +193,8 @@ int main(int argc, char const *argv[])
         free_Image(&edge_image);
         free_Image(&hough_transform_image);
 
-        list_node *sq_el = squares->head;
-        while (sq_el != NULL)
-        {
-            free(sq_el->value);
-            sq_el = sq_el->next;
-        }
-
-        l_free(squares);
+        l_free_values(squares);
+        free(selected_square);
 
         li_free(edges_x);
         li_free(edges_y);

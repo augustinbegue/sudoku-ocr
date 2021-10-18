@@ -33,17 +33,27 @@ void process_image(
     // Grayscale and contrast adjustement
     filter_grayscale(maskpt, 0);
 
+    verbose_save(
+        verbose_mode, verbose_path, "0.1-processing-grayscale.png", maskpt);
+
     filter_gamma(maskpt, 255);
+
+    verbose_save(
+        verbose_mode, verbose_path, "0.2-processing-gamma.png", maskpt);
 
     // Gaussian blur for noise removal
     gaussian_blur_image(maskpt, 11, 1, 1);
+
+    verbose_save(
+        verbose_mode, verbose_path, "0.2-processing-blur.png", maskpt);
 
     if (verbose_mode)
         printf("   🎨 Average Color: %i\n", (int)maskpt->average_color);
     else
         fprintf(stderr, "\33[2K\r[===--------------------------]");
 
-    verbose_save(verbose_mode, verbose_path, "1-processing-step.png", maskpt);
+    verbose_save(
+        verbose_mode, verbose_path, "1-processing-color-blur.png", maskpt);
 
     if (maskpt->average_color >= 160)
     {
@@ -80,7 +90,7 @@ void process_image(
     // Mask creation from a dynamic threshold
     filter_threshold(maskpt);
 
-    verbose_save(verbose_mode, verbose_path, "2-processing-step.png", maskpt);
+    verbose_save(verbose_mode, verbose_path, "2-processing-mask.png", maskpt);
 
     /*
      * PASS 2 - Apply the mask to a clean version of the image and reapply
@@ -100,7 +110,8 @@ void process_image(
     filter_contrast(imagept, 128);
     filter_gamma(imagept, 512);
 
-    verbose_save(verbose_mode, verbose_path, "3-processing-step.png", imagept);
+    verbose_save(
+        verbose_mode, verbose_path, "3-processing-mask-applied.png", imagept);
 
     if (verbose_mode)
         printf("   🔲 Applying a dynamic threshold.\n");
@@ -110,7 +121,8 @@ void process_image(
     // Dynamic treshold to binarize the image
     filter_dynamic_threshold(imagept, 4);
 
-    verbose_save(verbose_mode, verbose_path, "4-processing-step.png", imagept);
+    verbose_save(verbose_mode, verbose_path,
+        "4-processing-dynamic-threshold.png", imagept);
 
     if (verbose_mode)
         printf("   🖌  Filtering noise.\n");
@@ -126,12 +138,12 @@ void process_image(
         morph(imagept, Erosion, 8);
 
         verbose_save(
-            verbose_mode, verbose_path, "4.1-processing-step.png", imagept);
+            verbose_mode, verbose_path, "4.1-processing-erode.png", imagept);
 
         morph(imagept, Dilation, 8);
 
         verbose_save(
-            verbose_mode, verbose_path, "4.2-processing-step.png", imagept);
+            verbose_mode, verbose_path, "4.2-processing-dilate.png", imagept);
     }
 
     if (verbose_mode)
@@ -145,5 +157,6 @@ void process_image(
     if (!verbose_mode)
         fprintf(stderr, "\33[2K\r[=============----------------]");
 
-    verbose_save(verbose_mode, verbose_path, "5-processing-step.png", imagept);
+    verbose_save(verbose_mode, verbose_path, "5-processing-final-inverted.png",
+        imagept);
 }
