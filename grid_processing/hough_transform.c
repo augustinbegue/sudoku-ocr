@@ -140,7 +140,7 @@ static void find_edges(int **accumulator, int diag, int rho_num, int theta_num,
         fprintf(stderr, "\33[2K\r[===========================-]");
 }
 
-Image hough_transform(Image *in, Image *clean, int_list *edges_x,
+int **hough_transform(Image *in, Image *clean, int_list *edges_x,
     int_list *edges_y, bool verbose_mode, char *verbose_path)
 {
     if (verbose_mode)
@@ -231,14 +231,12 @@ Image hough_transform(Image *in, Image *clean, int_list *edges_x,
 
     verbose_save(
         verbose_mode, verbose_path, "7.2-hough-transform-edges.png", &out);
+    free_Image(&out);
 
     free(rhos);
     free(thetas);
     free(cos_t);
     free(sin_t);
-    for (int r = 0; r <= rho_num; r++)
-        free(accumulator[r]);
-    free(accumulator);
 
-    return out;
+    return accumulator;
 }

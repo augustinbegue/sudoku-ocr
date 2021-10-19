@@ -7,6 +7,7 @@
 #include <sys/sysinfo.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include "automatic_rotation.h"
 #include "edge_averaging.h"
 #include "edge_detection.h"
 #include "geometry.h"
@@ -162,8 +163,8 @@ int main(int argc, char const *argv[])
         int_list *edges_x = li_create();
         int_list *edges_y = li_create();
 
-        Image hough_transform_image = hough_transform(&edge_image,
-            rotated_imagept, edges_x, edges_y, verbose_mode, verbose_path);
+        int **hough_accumulator = hough_transform(&edge_image, rotated_imagept,
+            edges_x, edges_y, verbose_mode, verbose_path);
 
         if (!verbose_mode)
             fprintf(stderr, "\33[2K\r[==========================--]");
@@ -182,6 +183,12 @@ int main(int argc, char const *argv[])
         square *selected_square = select_square(
             squares, rotated_imagept, verbose_mode, verbose_path);
 
+        Image autorotated_image = automatic_rotation(
+            hough_accumulator, selected_square, rotated_imagept);
+
+        verbose_save(verbose_mode, verbose_path, "8-autorotated.png",
+            &autorotated_image);
+
         // Saves the final image in the output_path file
         save_image(Image_to_SDL_Surface(rotated_imagept), output_path);
 
@@ -191,15 +198,16 @@ int main(int argc, char const *argv[])
         if (image_rotation)
             free_Image(rotated_imagept);
         free_Image(&edge_image);
-        free_Image(&hough_transform_image);
+        free_Image(&autorotated_image);
 
-        free(selected_square);
+        free_2d_arr(edges, edge_num);
+
         l_free_values(squares);
 
         li_free(edges_x);
         li_free(edges_y);
 
-        free_2d_arr(edges, edge_num);
+        free(selected_square);
     }
     else
     {

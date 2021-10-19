@@ -14,9 +14,12 @@ square *select_square(
     square *selected = malloc(sizeof(square));
 
     list_node *sqr_el = squares->head;
-    double area_max = 0;
 
-    while (sqr_el->next != NULL)
+    // Used to determine the best square to select by giving different weights
+    // to some parameters
+    double best_selection_factor = 0;
+
+    while (sqr_el != NULL)
     {
         square *current = (square *)sqr_el->value;
 
@@ -35,23 +38,52 @@ square *select_square(
             (c4.x - c1.x) * (c4.x - c1.x) + (c4.y - c1.y) * (c4.y - c1.y));
 
         double smallest;
+        double biggest;
         if (side1_length < side2_length)
+        {
             smallest = side1_length;
+            biggest = side2_length;
+        }
         else
+        {
             smallest = side2_length;
+            biggest = side1_length;
+        }
 
         if (side3_length < smallest)
+        {
             smallest = side3_length;
+        }
+        else if (side3_length > biggest)
+        {
+            biggest = side3_length;
+        }
 
         if (side4_length < smallest)
+        {
             smallest = side4_length;
+        }
+        else if (side4_length > biggest)
+        {
+            biggest = side4_length;
+        }
 
-        double area = pow(smallest, 2);
+        double ideal_area = pow(smallest, 2);
+        double actual_area = pow(biggest, 2);
 
-        if (area > area_max)
+        double diff = actual_area - ideal_area;
+        // diff between biggest and smallest possible area / biggest area)
+        double diff_factor = (diff / actual_area) * ideal_area;
+
+        // Parameters Weight for selection:
+        // ideal_area * 1
+        // diff_factor * 100
+        double selection_factor = ideal_area - (diff_factor);
+
+        if (selection_factor >= best_selection_factor)
         {
             *selected = *current;
-            area_max = area;
+            best_selection_factor = selection_factor;
         }
 
         sqr_el = sqr_el->next;
