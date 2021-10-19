@@ -5,7 +5,7 @@ if make ; then
     do
         echo ""
         echo "Processing image n.$i"
-        if ./main ./assets/grids/image_0$i-big.jpeg -o ./assets/output/output_$i.png -v ./assets/output/output_$i; then echo ""
+        if ./main ./assets/grids/image_0$i.jpeg -o ./assets/output/output_$i.png -v ./assets/output/output_$i; then echo ""
         else exit 1
         fi
         

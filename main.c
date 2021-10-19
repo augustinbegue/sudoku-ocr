@@ -193,11 +193,12 @@ int main(int argc, char const *argv[])
         free_Image(&edge_image);
         free_Image(&hough_transform_image);
 
-        l_free_values(squares);
         free(selected_square);
+        l_free_values(squares);
 
         li_free(edges_x);
         li_free(edges_y);
+
         free_2d_arr(edges, edge_num);
     }
     else

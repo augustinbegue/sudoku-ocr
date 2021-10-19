@@ -1,7 +1,7 @@
 #include <err.h>
 #include <float.h>
 #include <stdbool.h>
-#include "geometry.h"
+#include "square_detection.h"
 #include "image.h"
 #include "int_list.h"
 #include "list.h"
@@ -218,7 +218,39 @@ list *find_line_squares(int **edges, line edge_1, int edge_num, Image *image)
 
                         l_append(squares, sqr);
 
-                        draw_square(image, sqr, 0, 255, 0);
+                        // Temp solution: drawing the square
+                        free(draw_line(image, image->width, image->height,
+                            c1.x, c1.y, c2.x, c2.y, 0, 255, 0));
+                        free(draw_line(image, image->width, image->height,
+                            c2.x, c2.y, c3.x, c3.y, 0, 255, 0));
+                        free(draw_line(image, image->width, image->height,
+                            c3.x, c3.y, c4.x, c4.y, 0, 255, 0));
+                        free(draw_line(image, image->width, image->height,
+                            c4.x, c4.y, c1.x, c1.y, 0, 255, 0));
+                        free(draw_line(image, image->width, image->height,
+                            c1.x + 1, c1.y + 1, c2.x + 1, c2.y + 1, 0, 255,
+                            0));
+                        free(draw_line(image, image->width, image->height,
+                            c2.x + 1, c2.y + 1, c3.x + 1, c3.y + 1, 0, 255,
+                            0));
+                        free(draw_line(image, image->width, image->height,
+                            c3.x + 1, c3.y + 1, c4.x + 1, c4.y + 1, 0, 255,
+                            0));
+                        free(draw_line(image, image->width, image->height,
+                            c4.x + 1, c4.y + 1, c1.x + 1, c1.y + 1, 0, 255,
+                            0));
+                        free(draw_line(image, image->width, image->height,
+                            c1.x - 1, c1.y - 1, c2.x - 1, c2.y - 1, 0, 255,
+                            0));
+                        free(draw_line(image, image->width, image->height,
+                            c2.x - 1, c2.y - 1, c3.x - 1, c3.y - 1, 0, 255,
+                            0));
+                        free(draw_line(image, image->width, image->height,
+                            c3.x - 1, c3.y - 1, c4.x - 1, c4.y - 1, 0, 255,
+                            0));
+                        free(draw_line(image, image->width, image->height,
+                            c4.x - 1, c4.y - 1, c1.x - 1, c1.y - 1, 0, 255,
+                            0));
                     }
                 }
 

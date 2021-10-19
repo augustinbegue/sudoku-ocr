@@ -149,26 +149,18 @@ int l_size(list *l)
  */
 void l_merge(list *l1, list *l2)
 {
-    list_node *el = l2->head;
-
-    while (el != NULL)
+    if (l_empty(l1))
     {
-        l_append(l1, el->value);
-        el = el->next;
+        l1->head = l2->head;
+        l1->tail = l2->tail;
+        return;
     }
 
-    // if (l_empty(l1))
-    // {
-    //     l1->head = l2->head;
-    //     l1->tail = l2->tail;
-    //     return;
-    // }
+    if (l_empty(l2))
+    {
+        return;
+    }
 
-    // if (l_empty(l2))
-    // {
-    //     return;
-    // }
-
-    // l1->tail->next = l2->head;
-    // l1->tail = l2->tail;
+    l1->tail->next = l2->head;
+    l1->tail = l2->tail;
 }
