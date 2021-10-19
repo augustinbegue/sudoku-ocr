@@ -5,7 +5,7 @@
 // N is the size of the 2D matrix   N*N
 #define N 9
 
-/* Function to create an array of char fro ma matrix of int */
+/* Function to create an array of char from a matrix of int */
 char *create(int grid[N][N])
 {
     int pos = 0;
@@ -18,6 +18,35 @@ char *create(int grid[N][N])
         }
     }
     return arr;
+}
+
+/* Function to write a 2D array into a file*/
+
+void writefile(int arr[N][N], char *filename)
+{
+    FILE *fp;
+    fp = fopen(filename, "w");
+    int i = 0;
+    while (i < N)
+    {
+        for (int j = 0; j < N; j++)
+        {
+            if (j == 2 || j == 5)
+            {
+                fprintf(fp, "%d ", arr[i][j]);
+            }
+            else
+            {
+                fprintf(fp, "%d", arr[i][j]);
+            }
+        }
+        fprintf(fp, "\n");
+        if (i == 2 || i == 5)
+        {
+            fprintf(fp, "\n");
+        }
+        i++;
+    }
 }
 
 /* Function to print the matrix */

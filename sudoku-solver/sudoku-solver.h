@@ -5,6 +5,7 @@
 #define N 9
 
 char *create(int grid[N][N]);
+void writefile(int arr[N][N], char *filename);
 void print(int arr[N][N]);
 int isSafe(int grid[N][N], int row,int col, int num);
 int solveSuduko(int grid[N][N], int row, int col);
