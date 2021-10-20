@@ -293,6 +293,56 @@ int *image_grayscale_histogram(
     return hist;
 }
 
+Image crop_image(Image *input, square *crop)
+{
+    point c1 = crop->c1;
+    point c2 = crop->c2;
+    point c3 = crop->c3;
+    point c4 = crop->c4;
+
+    double side1_length
+        = sqrt((c2.x - c1.x) * (c2.x - c1.x) + (c2.y - c1.y) * (c2.y - c1.y));
+    double side2_length
+        = sqrt((c3.x - c2.x) * (c3.x - c2.x) + (c3.y - c2.y) * (c3.y - c2.y));
+    double side3_length
+        = sqrt((c4.x - c3.x) * (c4.x - c3.x) + (c4.y - c3.y) * (c4.y - c3.y));
+    double side4_length
+        = sqrt((c4.x - c1.x) * (c4.x - c1.x) + (c4.y - c1.y) * (c4.y - c1.y));
+
+    double size;
+    if (side1_length < side2_length)
+        size = side2_length;
+    else
+        size = side1_length;
+
+    if (side3_length > size)
+        size = side3_length;
+
+    if (side4_length > size)
+        size = side4_length;
+
+    Image cropped;
+    cropped.height = size;
+    cropped.width = size;
+    cropped.surface = SDL_CreateRGBSurfaceWithFormat(
+        0, size, size, 32, SDL_PIXELFORMAT_RGBA32);
+    cropped.pixels = malloc(sizeof(int *) * size + 1);
+
+    int old_x = c1.x;
+    for (int x = 0; x < size; x++, old_x++)
+    {
+        cropped.pixels[x] = malloc(sizeof(int) * size + 1);
+
+        int old_y = c1.y;
+        for (int y = 0; y < size; y++, old_y++)
+        {
+            cropped.pixels[x][y] = input->pixels[old_x][old_y];
+        }
+    }
+
+    return cropped;
+}
+
 /**
  * @brief Draws a line from (x0, y0) to (x1, y1).
  *
@@ -359,6 +409,15 @@ int *draw_line(Image *image, int w, int h, int x0, int y0, int x1, int y1,
     return coordinates;
 }
 
+/**
+ * @brief Draws a square from the coordinates
+ *
+ * @param image
+ * @param sqr
+ * @param r
+ * @param g
+ * @param b
+ */
 void draw_square(Image *image, square *sqr, int r, int g, int b)
 {
     free(draw_line(image, image->width, image->height, sqr->c1.x, sqr->c1.y,

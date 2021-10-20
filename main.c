@@ -190,10 +190,15 @@ int main(int argc, char const *argv[])
             hough_accumulator, selected_square, rotated_imagept);
 
         // Drawing BIG SQUARE
-        draw_square(&autorotated_image, selected_square, 255, 0, 128);
+        // draw_square(&autorotated_image, selected_square, 255, 0, 128);
 
         verbose_save(verbose_mode, verbose_path, "8-autorotated.png",
             &autorotated_image);
+
+        Image cropped_image = crop_image(&autorotated_image, selected_square);
+
+        verbose_save(
+            verbose_mode, verbose_path, "9-cropped.png", &cropped_image);
 
         // Saves the final image in the output_path file
         save_image(Image_to_SDL_Surface(&autorotated_image), output_path);

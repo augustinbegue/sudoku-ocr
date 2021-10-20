@@ -53,4 +53,6 @@ int *draw_line(Image *image, int w, int h, int x0, int y0, int x1, int y1,
 
 void draw_square(Image *image, square *sqr, int r, int g, int b);
 
+Image crop_image(Image *input, square *crop);
+
 #endif
