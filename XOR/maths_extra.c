@@ -30,3 +30,14 @@ double rand_weight()
 {
     return ((double)rand()) / ((double)RAND_MAX);
 }
+
+double rand_input_XOR()
+{
+    double res = ((double)rand()) / ((double)RAND_MAX);
+    if (res > 0.5)
+    {
+        return 0.1;
+    }
+    return 0.0;
+    
+}

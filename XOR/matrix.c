@@ -45,7 +45,7 @@ Matrix *m_identity(Matrix *a, int size)
 
 /* Mutators */
 
-Matrix *m_setIndexIndex(Matrix *a, int r, int c, double val)
+Matrix *m_setIndex(Matrix *a, int r, int c, double val)
 {
     a->data[r * (a->cols) + c] = val;
     return a;

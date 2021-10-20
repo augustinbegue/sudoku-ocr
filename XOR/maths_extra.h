@@ -17,7 +17,10 @@ double sigmoid(double x);
 // its derivate
 double d_sigmoid(double x);
 
-//
+// random weight
 double rand_weight();
+
+// random input for the XOR
+double rand_input_XOR();
 
 #endif
