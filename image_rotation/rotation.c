@@ -5,7 +5,7 @@
 /**
  * @brief Performs a rotation on the coordinates (x, y) by an angle
  *
- * @param angle degrees
+ * @param angle radians
  * @param x
  * @param y
  * @param center_x center of the image on the x axis

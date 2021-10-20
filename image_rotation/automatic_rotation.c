@@ -56,26 +56,32 @@ Image automatic_rotation(
     if (most_freq_theta < 0)
         most_freq_theta = most_freq_theta + 90;
 
-    if (most_freq_theta > 10)
+    if (most_freq_theta > 10 && most_freq_theta < 45)
     {
         double x = 0, y = 0;
-        corrected_rotation_matrix(most_freq_theta, found_grid_square->c1.x,
-            found_grid_square->c1.y, w / 2, h / 2, &x, &y);
+
+        double center_x = (w / (double)2);
+        double center_y = (h / (double)2);
+
+        double theta_rad = -degrees_to_rad(most_freq_theta);
+
+        corrected_rotation_matrix(theta_rad, found_grid_square->c1.x,
+            found_grid_square->c1.y, center_x, center_y, &x, &y);
         found_grid_square->c1.x = x;
         found_grid_square->c1.y = y;
 
-        corrected_rotation_matrix(most_freq_theta, found_grid_square->c2.x,
-            found_grid_square->c2.y, w / 2, h / 2, &x, &y);
+        corrected_rotation_matrix(theta_rad, found_grid_square->c2.x,
+            found_grid_square->c2.y, center_x, center_y, &x, &y);
         found_grid_square->c2.x = x;
         found_grid_square->c2.y = y;
 
-        corrected_rotation_matrix(most_freq_theta, found_grid_square->c3.x,
-            found_grid_square->c3.y, w / 2, h / 2, &x, &y);
+        corrected_rotation_matrix(theta_rad, found_grid_square->c3.x,
+            found_grid_square->c3.y, center_x, center_y, &x, &y);
         found_grid_square->c3.x = x;
         found_grid_square->c3.y = y;
 
-        corrected_rotation_matrix(most_freq_theta, found_grid_square->c4.x,
-            found_grid_square->c4.y, w / 2, h / 2, &x, &y);
+        corrected_rotation_matrix(theta_rad, found_grid_square->c4.x,
+            found_grid_square->c4.y, center_x, center_y, &x, &y);
         found_grid_square->c4.x = x;
         found_grid_square->c4.y = y;
 
