@@ -3,7 +3,7 @@
 
 #include <err.h>
 #include <stdio.h>
-#include "../utils/image.h"
+#include "image.h"
 
 Uint8 get_histogram_threshold(int *histogram);
 

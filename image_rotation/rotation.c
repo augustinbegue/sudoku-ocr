@@ -1,10 +1,11 @@
 #include <math.h>
-#include "../utils/image.h"
+#include "helpers.h"
+#include "image.h"
 
 /**
  * @brief Performs a rotation on the coordinates (x, y) by an angle
  *
- * @param angle degrees
+ * @param angle radians
  * @param x
  * @param y
  * @param center_x center of the image on the x axis
@@ -19,11 +20,6 @@ void corrected_rotation_matrix(double angle, double x, double y,
     *ry = (x - center_x) * sin(angle) + (y - center_y) * cos(angle) + center_y;
 }
 
-double degrees_to_rad(double degrees)
-{
-    return degrees * (3.14159265359 / 180);
-}
-
 /**
  * @brief Rotates image counterclockwise by an angle
  *
@@ -33,7 +29,7 @@ double degrees_to_rad(double degrees)
 Image rotate_image(Image *image, double angle)
 {
     Image rotated_image = clone_image(image);
-    printf("...🔃 Rotating image by %.0f° (%.5f rad)\n", angle,
+    printf("   🔃 Rotating image by %.0f° (%.5f rad)\n", angle,
         degrees_to_rad(angle));
 
     angle = degrees_to_rad(angle);
@@ -43,7 +39,7 @@ Image rotate_image(Image *image, double angle)
     double center_x = (w / (double)2);
     double center_y = (h / (double)2);
 
-    Pixel white = {255, 255, 255};
+    Pixel black = {0, 0, 0};
 
     for (int x = 0; x < w; x++)
     {
@@ -61,7 +57,7 @@ Image rotate_image(Image *image, double angle)
             }
             else
             {
-                rotated_image.pixels[x][y] = white;
+                rotated_image.pixels[x][y] = black;
             }
         }
     }

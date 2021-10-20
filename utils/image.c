@@ -1,9 +1,13 @@
 #include <err.h>
+#include <float.h>
+#include <math.h>
+#include <stdbool.h>
 #include <stdio.h>
-#include "./image.h"
-#include "./pixel_operations.h"
+#include "image.h"
 #include "SDL2/SDL.h"
 #include "SDL2/SDL_image.h"
+#include "helpers.h"
+#include "pixel_operations.h"
 
 SDL_Surface *load_image(char *path)
 {
@@ -23,7 +27,7 @@ SDL_Surface *load_image(char *path)
 void save_image(SDL_Surface *image_surface, char *path)
 {
     printf("<--💾 Saving output to %s\n", path);
-    int success = SDL_SaveBMP(image_surface, path);
+    int success = IMG_SavePNG(image_surface, path);
 
     if (success != 0)
         errx(1, "could not save the image to '%s': %s.\n", path,
@@ -127,6 +131,97 @@ SDL_Surface *Image_to_SDL_Surface(Image *image)
     return image->surface;
 }
 
+/**
+ * @brief Converts a grayscale image into a unidimensional array
+ *
+ * @param source grayscale image
+ * @return int*
+ */
+int *Image_to_Array(Image *source)
+{
+    int *out = malloc(sizeof(int) * source->width * source->height);
+    int w = source->width, h = source->height;
+
+    for (int x = 0; x < w; x++)
+    {
+        for (int y = 0; y < h; y++)
+        {
+            out[x + y * w] = source->pixels[x][y].r;
+        }
+    }
+
+    return out;
+}
+
+/**
+ * @brief Fills a container image from an array
+ *
+ * @param array int array to use of lenght width * height
+ * @param container container image of size width * height
+ * false
+ */
+void Array_to_Image(int *array, Image *container)
+{
+    int w = container->width, h = container->height;
+
+    for (int x = 0; x < w; x++)
+    {
+        for (int y = 0; y < h; y++)
+        {
+            int val = array[x + y * w];
+
+            Pixel pix = {val, val, val};
+            container->pixels[x][y] = pix;
+        }
+    }
+}
+
+Image Array2D_to_Image(int **array, int width, int height)
+{
+    Image image;
+    image.width = width;
+    image.height = height;
+    image.pixels = malloc(sizeof(int *) * width + 1);
+    image.surface = SDL_CreateRGBSurfaceWithFormat(
+        0, width, height, 32, SDL_PIXELFORMAT_RGBA32);
+    ;
+
+    float min = FLT_MAX;
+    float max = FLT_MIN;
+
+    for (int x = 0; x < width; x++)
+    {
+        for (int y = 0; y < height; y++)
+        {
+            int val = array[x][y];
+
+            if (val < min)
+                min = val;
+
+            if (val > max)
+                max = val;
+        }
+    }
+
+    for (int x = 0; x < width; x++)
+    {
+        image.pixels[x] = malloc(sizeof(int) * height + 1);
+
+        for (int y = 0; y < height; y++)
+        {
+            int pixel = array[x][y];
+
+            pixel = 255 * (pixel - min) / (max - min);
+
+            Pixel pix = {pixel, pixel, pixel};
+
+            image.pixels[x][y] = pix;
+        }
+    }
+
+    return image;
+}
+
 void free_Image(Image *image)
 {
     for (int i = 0; i < image->width; i++)
@@ -196,4 +291,98 @@ int *image_grayscale_histogram(
     }
 
     return hist;
+}
+
+/**
+ * @brief Draws a line from (x0, y0) to (x1, y1).
+ *
+ * @param image
+ * @param w
+ * @param h
+ * @param x0
+ * @param y0
+ * @param x1
+ * @param y1
+ * @param r
+ * @param g
+ * @param b
+ * @return int** coordinates at which the line actually started.
+ */
+int *draw_line(Image *image, int w, int h, int x0, int y0, int x1, int y1,
+    Uint8 r, Uint8 g, Uint8 b)
+{
+    Pixel color = {r, g, b};
+    int *coordinates = malloc(sizeof(int) * 4 + 1);
+    memset(coordinates, -1, sizeof(int) * 4);
+
+    int dx = abs(x1 - x0);
+    int sx = x0 < x1 ? 1 : -1;
+    int dy = -abs(y1 - y0);
+    int sy = y0 < y1 ? 1 : -1;
+
+    int err = dx + dy;
+
+    while (true)
+    {
+        if (0 <= x0 && x0 < w && 0 <= y0 && y0 < h)
+        {
+            image->pixels[x0][y0] = color;
+            if (coordinates[0] == -1 && coordinates[1] == -1)
+            {
+                coordinates[0] = x0;
+                coordinates[1] = y0;
+            }
+            else
+            {
+                coordinates[2] = x0;
+                coordinates[3] = y0;
+            }
+        }
+
+        if (x0 == x1 && y0 == y1)
+            break;
+
+        int e2 = 2 * err;
+
+        if (e2 >= dy)
+        {
+            err += dy;
+            x0 += sx;
+        }
+        if (e2 <= dx)
+        {
+            err += dx;
+            y0 += sy;
+        }
+    }
+
+    return coordinates;
+}
+
+void draw_square(Image *image, square *sqr, int r, int g, int b)
+{
+    free(draw_line(image, image->width, image->height, sqr->c1.x, sqr->c1.y,
+        sqr->c2.x, sqr->c2.y, r, g, b));
+    free(draw_line(image, image->width, image->height, sqr->c2.x, sqr->c2.y,
+        sqr->c3.x, sqr->c3.y, r, g, b));
+    free(draw_line(image, image->width, image->height, sqr->c3.x, sqr->c3.y,
+        sqr->c4.x, sqr->c4.y, r, g, b));
+    free(draw_line(image, image->width, image->height, sqr->c4.x, sqr->c4.y,
+        sqr->c1.x, sqr->c1.y, r, g, b));
+    free(draw_line(image, image->width, image->height, sqr->c1.x + 1,
+        sqr->c1.y + 1, sqr->c2.x + 1, sqr->c2.y + 1, r, g, b));
+    free(draw_line(image, image->width, image->height, sqr->c2.x + 1,
+        sqr->c2.y + 1, sqr->c3.x + 1, sqr->c3.y + 1, r, g, b));
+    free(draw_line(image, image->width, image->height, sqr->c3.x + 1,
+        sqr->c3.y + 1, sqr->c4.x + 1, sqr->c4.y + 1, r, g, b));
+    free(draw_line(image, image->width, image->height, sqr->c4.x + 1,
+        sqr->c4.y + 1, sqr->c1.x + 1, sqr->c1.y + 1, r, g, b));
+    free(draw_line(image, image->width, image->height, sqr->c1.x - 1,
+        sqr->c1.y - 1, sqr->c2.x - 1, sqr->c2.y - 1, r, g, b));
+    free(draw_line(image, image->width, image->height, sqr->c2.x - 1,
+        sqr->c2.y - 1, sqr->c3.x - 1, sqr->c3.y - 1, r, g, b));
+    free(draw_line(image, image->width, image->height, sqr->c3.x - 1,
+        sqr->c3.y - 1, sqr->c4.x - 1, sqr->c4.y - 1, r, g, b));
+    free(draw_line(image, image->width, image->height, sqr->c4.x - 1,
+        sqr->c4.y - 1, sqr->c1.x - 1, sqr->c1.y - 1, r, g, b));
 }

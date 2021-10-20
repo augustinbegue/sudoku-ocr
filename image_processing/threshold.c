@@ -1,7 +1,7 @@
 #include <err.h>
 #include <stdio.h>
-#include "../utils/helpers.h"
-#include "../utils/image.h"
+#include "helpers.h"
+#include "image.h"
 
 Uint8 get_histogram_threshold_local_min(int *histogram)
 {
@@ -24,6 +24,12 @@ Uint8 get_histogram_threshold_local_min(int *histogram)
     return i;
 }
 
+/**
+ * @brief Get the histogram threshold otsu object
+ *
+ * @param histogram
+ * @return Uint8
+ */
 Uint8 get_histogram_threshold_otsu(int *histogram)
 {
     int nbpixel = 0;

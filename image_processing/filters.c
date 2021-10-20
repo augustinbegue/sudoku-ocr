@@ -1,14 +1,14 @@
 #include <err.h>
 #include <math.h>
 #include <stdio.h>
-#include "../utils/helpers.h"
-#include "../utils/image.h"
-#include "./threshold.h"
+#include "helpers.h"
+#include "image.h"
+#include "threshold.h"
 
 static void _grayscale(Pixel *pixel, int brightness)
 {
     pixel->r = pixel->g = pixel->b
-        = (0.3 * pixel->r + 0.59 * pixel->g + 0.11 * pixel->b) + brightness;
+        = (0.40 * pixel->r + 0.35 * pixel->g + 0.25 * pixel->b) + brightness;
 }
 
 static double _contrast_helper(Uint8 p, int contrast)
@@ -46,9 +46,14 @@ static void _bw(Pixel *pixel, int threshold)
     pixel->r = pixel->g = pixel->b = pixel->r > threshold ? 255 : 0;
 }
 
-static void _bw_mask(Pixel *pixel, int threshold)
+static void _bw_inverted(Pixel *pixel, int threshold)
 {
     pixel->r = pixel->g = pixel->b = pixel->r > threshold ? 0 : 255;
+}
+
+static void _bw_invert(Pixel *pixel, int min)
+{
+    pixel->r = pixel->g = pixel->b = pixel->r >= 128 ? 0 + min : 255;
 }
 
 void filter_grayscale(Image *image, double brightness)
@@ -71,51 +76,52 @@ void filter_gamma(Image *image, double value)
     image_filter(image, _gamma, value);
 }
 
+void filter_invert(Image *image, double value)
+{
+    image_filter(image, _bw_invert, value);
+}
+
 /**
  * @brief applies a dynamic black and white threshold on image in n.
  * subdivisions
  *
  * @param image image to apply the filter on
- * @param subdivisions number of subdivisions to do the filtering
+ * @param radius radius of the pixel window to take the values from
  */
-void filter_dynamic_threshold(Image *image, int subdivisions)
+void filter_dynamic_threshold(Image *image, int radius)
 {
-    int subdivisions_x = subdivisions;
-    int subdivisions_y = subdivisions;
+    int width = image->width;
+    int height = image->height;
 
-    subdivisions = subdivisions_x * subdivisions_y;
-
-    int divx = image->height / subdivisions_x;
-    int divy = image->width / subdivisions_y;
-
-    int divnum = 1;
-    for (int divnum_x = 0; divnum_x < subdivisions_x; divnum_x++)
+    for (int x = 0; x < width; x++)
     {
-        int startx = divx * divnum_x, endx = divx * (divnum_x + 1);
-
-        if (divnum_x + 1 == subdivisions_x)
-            endx = image->width;
-
-        for (int divnum_y = 0; divnum_y < subdivisions_y; divnum_y++, divnum++)
+        for (int y = 0; y < height; y++)
         {
-            int starty = divy * divnum_y, endy = divy * (divnum_y + 1);
+            int colorSum = 0, colorMean = 0, sampleNum = 0, threshold = 0;
 
-            if (divnum_y + 1 == subdivisions_y)
-                endy = image->height;
+            for (int xi = x - radius; xi <= x + radius; xi++)
+            {
+                if (xi < 0 || xi >= width)
+                    continue;
 
-            int *hist
-                = image_grayscale_histogram(image, startx, endx, starty, endy);
+                for (int yi = y - radius; yi < y + radius; yi++)
+                {
+                    if (yi < 0 || yi >= height)
+                        continue;
 
-            Uint8 threshold = get_histogram_threshold(hist);
+                    colorSum += image->pixels[xi][yi].r;
+                    sampleNum++;
+                }
+            }
 
-            printf("...✂️ Subdivision n.%i/%i: %d -> %d * %d -> %d | "
-                   "threshold: %i\n",
-                divnum, subdivisions, startx, endx, starty, endy, threshold);
+            colorMean = colorSum / sampleNum;
+            threshold = colorMean - 2;
 
-            image_partial_filter(
-                image, _bw_mask, threshold, startx, endx, starty, endy);
-
-            free(hist);
+            Pixel *pix = &image->pixels[x][y];
+            if (pix->r > threshold)
+                pix->r = pix->g = pix->b = 255;
+            else
+                pix->r = pix->g = pix->b = 0;
         }
     }
 }
@@ -134,7 +140,7 @@ void filter_threshold(Image *image)
 
     Uint8 threshold = get_histogram_threshold(hist);
 
-    image_filter(image, _bw, threshold);
+    image_filter(image, _bw_inverted, threshold);
 
     free(hist);
 }

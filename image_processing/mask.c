@@ -1,4 +1,4 @@
-#include "../utils/image.h"
+#include "image.h"
 
 /**
  * @brief Applies a mask on an image
