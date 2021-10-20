@@ -6,6 +6,8 @@
 
 #define M_PI 3.14159265359
 
+static void _mkdir(const char *dir);
+
 double clamp(double d, double min, double max);
 
 void verbose_save(

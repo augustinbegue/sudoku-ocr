@@ -26,7 +26,7 @@ clean-output:
 	${RM} *.csv
 	${RM} ./**/*.bmp
 	${RM} ./**/*.csv
-	${RM} ./assets/output/*.png
+	${RM} -r ./assets/output/*
 
 clean: clean-output
 	${RM} $(OBJ) $(DEP) main

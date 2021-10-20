@@ -104,7 +104,7 @@ int main(int argc, char const *argv[])
 
             if (stat(verbose_path, &st) == -1)
             {
-                mkdir(verbose_path, 0700);
+                _mkdir(verbose_path);
             }
         }
 
