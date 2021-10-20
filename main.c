@@ -189,6 +189,7 @@ int main(int argc, char const *argv[])
         Image autorotated_image = automatic_rotation(
             hough_accumulator, selected_square, rotated_imagept);
 
+        // Drawing BIG SQUARE
         draw_square(&autorotated_image, selected_square, 255, 0, 128);
 
         verbose_save(verbose_mode, verbose_path, "8-autorotated.png",

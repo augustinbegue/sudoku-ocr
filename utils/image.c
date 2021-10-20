@@ -385,4 +385,90 @@ void draw_square(Image *image, square *sqr, int r, int g, int b)
         sqr->c3.y - 1, sqr->c4.x - 1, sqr->c4.y - 1, r, g, b));
     free(draw_line(image, image->width, image->height, sqr->c4.x - 1,
         sqr->c4.y - 1, sqr->c1.x - 1, sqr->c1.y - 1, r, g, b));
+
+    square _sqr2 = *sqr;
+    square *sqr2 = &_sqr2;
+    _sqr2.c1.x--;
+    _sqr2.c1.y--;
+    _sqr2.c2.x--;
+    _sqr2.c2.y--;
+    _sqr2.c3.x--;
+    _sqr2.c3.y--;
+    _sqr2.c4.x--;
+    _sqr2.c4.y--;
+    _sqr2.c1.x--;
+    _sqr2.c1.y--;
+    _sqr2.c2.x--;
+    _sqr2.c2.y--;
+    _sqr2.c3.x--;
+    _sqr2.c3.y--;
+    _sqr2.c4.x--;
+    _sqr2.c4.y--;
+
+    free(draw_line(image, image->width, image->height, sqr2->c1.x, sqr2->c1.y,
+        sqr2->c2.x, sqr2->c2.y, r, g, b));
+    free(draw_line(image, image->width, image->height, sqr2->c2.x, sqr2->c2.y,
+        sqr2->c3.x, sqr2->c3.y, r, g, b));
+    free(draw_line(image, image->width, image->height, sqr2->c3.x, sqr2->c3.y,
+        sqr2->c4.x, sqr2->c4.y, r, g, b));
+    free(draw_line(image, image->width, image->height, sqr2->c4.x, sqr2->c4.y,
+        sqr2->c1.x, sqr2->c1.y, r, g, b));
+    free(draw_line(image, image->width, image->height, sqr2->c1.x + 1,
+        sqr2->c1.y + 1, sqr2->c2.x + 1, sqr2->c2.y + 1, r, g, b));
+    free(draw_line(image, image->width, image->height, sqr2->c2.x + 1,
+        sqr2->c2.y + 1, sqr2->c3.x + 1, sqr2->c3.y + 1, r, g, b));
+    free(draw_line(image, image->width, image->height, sqr2->c3.x + 1,
+        sqr2->c3.y + 1, sqr2->c4.x + 1, sqr2->c4.y + 1, r, g, b));
+    free(draw_line(image, image->width, image->height, sqr2->c4.x + 1,
+        sqr2->c4.y + 1, sqr2->c1.x + 1, sqr2->c1.y + 1, r, g, b));
+    free(draw_line(image, image->width, image->height, sqr2->c1.x - 1,
+        sqr2->c1.y - 1, sqr2->c2.x - 1, sqr2->c2.y - 1, r, g, b));
+    free(draw_line(image, image->width, image->height, sqr2->c2.x - 1,
+        sqr2->c2.y - 1, sqr2->c3.x - 1, sqr2->c3.y - 1, r, g, b));
+    free(draw_line(image, image->width, image->height, sqr2->c3.x - 1,
+        sqr2->c3.y - 1, sqr2->c4.x - 1, sqr2->c4.y - 1, r, g, b));
+    free(draw_line(image, image->width, image->height, sqr2->c4.x - 1,
+        sqr2->c4.y - 1, sqr2->c1.x - 1, sqr2->c1.y - 1, r, g, b));
+
+    _sqr2.c1.x++;
+    _sqr2.c1.y++;
+    _sqr2.c2.x++;
+    _sqr2.c2.y++;
+    _sqr2.c3.x++;
+    _sqr2.c3.y++;
+    _sqr2.c4.x++;
+    _sqr2.c4.y++;
+    _sqr2.c1.x++;
+    _sqr2.c1.y++;
+    _sqr2.c2.x++;
+    _sqr2.c2.y++;
+    _sqr2.c3.x++;
+    _sqr2.c3.y++;
+    _sqr2.c4.x++;
+    _sqr2.c4.y++;
+
+    free(draw_line(image, image->width, image->height, sqr2->c1.x, sqr2->c1.y,
+        sqr2->c2.x, sqr2->c2.y, r, g, b));
+    free(draw_line(image, image->width, image->height, sqr2->c2.x, sqr2->c2.y,
+        sqr2->c3.x, sqr2->c3.y, r, g, b));
+    free(draw_line(image, image->width, image->height, sqr2->c3.x, sqr2->c3.y,
+        sqr2->c4.x, sqr2->c4.y, r, g, b));
+    free(draw_line(image, image->width, image->height, sqr2->c4.x, sqr2->c4.y,
+        sqr2->c1.x, sqr2->c1.y, r, g, b));
+    free(draw_line(image, image->width, image->height, sqr2->c1.x + 1,
+        sqr2->c1.y + 1, sqr2->c2.x + 1, sqr2->c2.y + 1, r, g, b));
+    free(draw_line(image, image->width, image->height, sqr2->c2.x + 1,
+        sqr2->c2.y + 1, sqr2->c3.x + 1, sqr2->c3.y + 1, r, g, b));
+    free(draw_line(image, image->width, image->height, sqr2->c3.x + 1,
+        sqr2->c3.y + 1, sqr2->c4.x + 1, sqr2->c4.y + 1, r, g, b));
+    free(draw_line(image, image->width, image->height, sqr2->c4.x + 1,
+        sqr2->c4.y + 1, sqr2->c1.x + 1, sqr2->c1.y + 1, r, g, b));
+    free(draw_line(image, image->width, image->height, sqr2->c1.x - 1,
+        sqr2->c1.y - 1, sqr2->c2.x - 1, sqr2->c2.y - 1, r, g, b));
+    free(draw_line(image, image->width, image->height, sqr2->c2.x - 1,
+        sqr2->c2.y - 1, sqr2->c3.x - 1, sqr2->c3.y - 1, r, g, b));
+    free(draw_line(image, image->width, image->height, sqr2->c3.x - 1,
+        sqr2->c3.y - 1, sqr2->c4.x - 1, sqr2->c4.y - 1, r, g, b));
+    free(draw_line(image, image->width, image->height, sqr2->c4.x - 1,
+        sqr2->c4.y - 1, sqr2->c1.x - 1, sqr2->c1.y - 1, r, g, b));
 }
