@@ -21,7 +21,8 @@ void process_image(
     if (verbose_mode)
         printf("[1]♻️ Processing the image.\n");
 
-    verbose_save(verbose_mode, verbose_path, "0-processing-step.png", imagept);
+    verbose_save(
+        verbose_mode, verbose_path, "0.0-processing-step.png", imagept);
 
     /*
      * PASS 1 - Create a mask with the pixels to keep

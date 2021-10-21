@@ -11,6 +11,7 @@
 #include "edge_averaging.h"
 #include "edge_detection.h"
 #include "geometry.h"
+#include "grid_splitting.h"
 #include "helpers.h"
 #include "hough_transform.h"
 #include "image.h"
@@ -192,12 +193,15 @@ int main(int argc, char const *argv[])
         verbose_save(verbose_mode, verbose_path, "8-autorotated.png",
             &autorotated_image);
 
-        // TODO: Split the grid
+        Image **image_cells = split_grid(
+            &autorotated_image, selected_square, verbose_mode, verbose_path);
 
         // Saves the final image in the output_path file
         save_image(Image_to_SDL_Surface(rotated_imagept), output_path);
 
-        // Freeing
+        /*
+         * FREEING SHIT
+         */
         free_Image(imagept); // Also frees rotated_imagept if there has been no
                              // rotation (they are the same)
         if (image_rotation)
@@ -205,7 +209,15 @@ int main(int argc, char const *argv[])
         free_Image(&edge_image);
         free_Image(&autorotated_image);
         free_Image(lines_imagept);
-        // free_Image(&cropped_image);
+        for (int i = 0; i < 9; i++)
+        {
+            for (int j = 0; j < 9; j++)
+            {
+                free_Image(image_cells[i * 9 + j]);
+                free(image_cells[i * 9 + j]);
+            }
+        }
+        free(image_cells);
 
         free_2d_arr(edges, edge_num);
 

@@ -67,18 +67,104 @@ Image clone_image(Image *source)
     return image;
 }
 
-Image create_image(int height, int width)
+Image *create_image(int height, int width)
 {
-    Image image;
-    image.height = height;
-    image.width = width;
-    image.pixels = malloc((image.width + 1) * sizeof(Pixel *));
-    for (int x = 0; x < image.width; x++)
-        image.pixels[x] = malloc((image.height + 1) * sizeof(Pixel));
-    image.surface = SDL_CreateRGBSurfaceWithFormat(
+    Image *image = malloc(sizeof(Image));
+
+    image->height = height;
+    image->width = width;
+    image->pixels = malloc(sizeof(Pixel *) * width + 1);
+
+    if (image->pixels == NULL)
+        errx(1, "Error when allocating memory in create_image.");
+
+    for (int x = 0; x < width; x++)
+        image->pixels[x] = malloc(sizeof(Pixel) * height + 1);
+
+    image->surface = SDL_CreateRGBSurfaceWithFormat(
         0, width, height, 32, SDL_PIXELFORMAT_RGBA32);
 
+    if (image->surface == NULL)
+    {
+        char errm[1000];
+        SDL_GetErrorMsg(errm, 1000);
+        errx(-1, errm);
+    }
+
     return image;
+}
+
+Image crop_image(Image *input, square *crop)
+{
+    point c1 = crop->c1;
+    point c2 = crop->c2;
+    point c3 = crop->c3;
+    point c4 = crop->c4;
+
+    double side1_length
+        = sqrt((c2.x - c1.x) * (c2.x - c1.x) + (c2.y - c1.y) * (c2.y - c1.y));
+    double side2_length
+        = sqrt((c3.x - c2.x) * (c3.x - c2.x) + (c3.y - c2.y) * (c3.y - c2.y));
+    double side3_length
+        = sqrt((c4.x - c3.x) * (c4.x - c3.x) + (c4.y - c3.y) * (c4.y - c3.y));
+    double side4_length
+        = sqrt((c4.x - c1.x) * (c4.x - c1.x) + (c4.y - c1.y) * (c4.y - c1.y));
+
+    int size;
+    if (side1_length < side2_length)
+        size = side2_length;
+    else
+        size = side1_length;
+
+    if (side3_length > size)
+        size = side3_length;
+
+    if (side4_length > size)
+        size = side4_length;
+
+    point start;
+    if (c1.x < c2.x)
+        start.x = c1.x;
+    else
+        start.x = c2.x;
+    if (c3.x < start.x)
+        start.x = c3.x;
+    if (c4.x < start.x)
+        start.x = c4.x;
+
+    if (c1.y < c2.y)
+        start.y = c1.y;
+    else
+        start.y = c2.y;
+    if (c3.y < start.y)
+        start.y = c3.y;
+    if (c4.y < start.y)
+        start.y = c4.y;
+
+    printf("   ✂️ Cropping Image - Start: (%i, %i), Size: %i\n", start.x,
+        start.y, size);
+
+    Image cropped;
+    cropped.height = size;
+    cropped.width = size;
+    cropped.surface = SDL_CreateRGBSurfaceWithFormat(
+        0, size, size, 32, SDL_PIXELFORMAT_RGBA32);
+    cropped.pixels = malloc(sizeof(Pixel *) * size + 1);
+
+    int old_x = start.x;
+    for (int x = 0; x < size && old_x < input->width; x++, old_x++)
+    {
+        cropped.pixels[x] = malloc(sizeof(Pixel) * size + 1);
+
+        int old_y = start.y;
+        for (int y = 0; y < size && old_y < input->height; y++, old_y++)
+        {
+            Pixel old = input->pixels[old_x][old_y];
+            cropped.pixels[x][y] = old;
+        }
+    }
+
+    return cropped;
 }
 
 Image SDL_Surface_to_Image(SDL_Surface *image_surface)
@@ -313,79 +399,6 @@ int *image_grayscale_histogram(
     }
 
     return hist;
-}
-
-Image crop_image(Image *input, square *crop)
-{
-    point c1 = crop->c1;
-    point c2 = crop->c2;
-    point c3 = crop->c3;
-    point c4 = crop->c4;
-
-    double side1_length
-        = sqrt((c2.x - c1.x) * (c2.x - c1.x) + (c2.y - c1.y) * (c2.y - c1.y));
-    double side2_length
-        = sqrt((c3.x - c2.x) * (c3.x - c2.x) + (c3.y - c2.y) * (c3.y - c2.y));
-    double side3_length
-        = sqrt((c4.x - c3.x) * (c4.x - c3.x) + (c4.y - c3.y) * (c4.y - c3.y));
-    double side4_length
-        = sqrt((c4.x - c1.x) * (c4.x - c1.x) + (c4.y - c1.y) * (c4.y - c1.y));
-
-    int size;
-    if (side1_length < side2_length)
-        size = side2_length;
-    else
-        size = side1_length;
-
-    if (side3_length > size)
-        size = side3_length;
-
-    if (side4_length > size)
-        size = side4_length;
-
-    point start;
-    if (c1.x < c2.x)
-        start.x = c1.x;
-    else
-        start.x = c2.x;
-    if (c3.x < start.x)
-        start.x = c3.x;
-    if (c4.x < start.x)
-        start.x = c4.x;
-
-    if (c1.y < c2.y)
-        start.y = c1.y;
-    else
-        start.y = c2.y;
-    if (c3.y < start.y)
-        start.y = c3.y;
-    if (c4.y < start.y)
-        start.y = c4.y;
-
-    printf("   ✂️ Cropping Image - Start: (%i, %i), Size: %i\n", start.x,
-        start.y, size);
-
-    Image cropped;
-    cropped.height = size;
-    cropped.width = size;
-    cropped.surface = SDL_CreateRGBSurfaceWithFormat(
-        0, size, size, 32, SDL_PIXELFORMAT_RGBA32);
-    cropped.pixels = malloc(sizeof(int *) * size + 1);
-
-    int old_x = start.x;
-    for (int x = 0; x < size && old_x < input->width; x++, old_x++)
-    {
-        cropped.pixels[x] = malloc(sizeof(int) * size + 1);
-
-        int old_y = start.y;
-        for (int y = 0; y < size && old_y < input->height; y++, old_y++)
-        {
-            Pixel old = input->pixels[old_x][old_y];
-            cropped.pixels[x][y] = old;
-        }
-    }
-
-    return cropped;
 }
 
 /**
