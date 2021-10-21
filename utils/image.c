@@ -309,7 +309,7 @@ Image crop_image(Image *input, square *crop)
     double side4_length
         = sqrt((c4.x - c1.x) * (c4.x - c1.x) + (c4.y - c1.y) * (c4.y - c1.y));
 
-    double size;
+    int size;
     if (side1_length < side2_length)
         size = side2_length;
     else
@@ -321,6 +321,28 @@ Image crop_image(Image *input, square *crop)
     if (side4_length > size)
         size = side4_length;
 
+    point start;
+    if (c1.x < c2.x)
+        start.x = c1.x;
+    else
+        start.x = c2.x;
+    if (c3.x < start.x)
+        start.x = c3.x;
+    if (c4.x < start.x)
+        start.x = c4.x;
+
+    if (c1.y < c2.y)
+        start.y = c1.y;
+    else
+        start.y = c2.y;
+    if (c3.y < start.y)
+        start.y = c3.y;
+    if (c4.y < start.y)
+        start.y = c4.y;
+
+    printf("   ✂️ Cropping Image - Start: (%i, %i), Size: %i\n", start.x,
+        start.y, size);
+
     Image cropped;
     cropped.height = size;
     cropped.width = size;
@@ -328,15 +350,16 @@ Image crop_image(Image *input, square *crop)
         0, size, size, 32, SDL_PIXELFORMAT_RGBA32);
     cropped.pixels = malloc(sizeof(int *) * size + 1);
 
-    int old_x = c1.x;
-    for (int x = 0; x < size; x++, old_x++)
+    int old_x = start.x;
+    for (int x = 0; x < size && old_x < input->width; x++, old_x++)
     {
         cropped.pixels[x] = malloc(sizeof(int) * size + 1);
 
-        int old_y = c1.y;
-        for (int y = 0; y < size; y++, old_y++)
+        int old_y = start.y;
+        for (int y = 0; y < size && old_y < input->height; y++, old_y++)
         {
-            cropped.pixels[x][y] = input->pixels[old_x][old_y];
+            Pixel old = input->pixels[old_x][old_y];
+            cropped.pixels[x][y] = old;
         }
     }
 

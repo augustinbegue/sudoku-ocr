@@ -186,8 +186,8 @@ int main(int argc, char const *argv[])
         square *selected_square = select_square(
             squares, lines_imagept, verbose_mode, verbose_path);
 
-        Image autorotated_image = automatic_rotation(
-            hough_accumulator, selected_square, rotated_imagept);
+        Image autorotated_image = automatic_rotation(hough_accumulator,
+            selected_square, rotated_imagept, verbose_mode, verbose_path);
 
         // Drawing BIG SQUARE
         // draw_square(&autorotated_image, selected_square, 255, 0, 128);
@@ -211,6 +211,7 @@ int main(int argc, char const *argv[])
         free_Image(&edge_image);
         free_Image(&autorotated_image);
         free_Image(lines_imagept);
+        free_Image(&cropped_image);
 
         free_2d_arr(edges, edge_num);
 

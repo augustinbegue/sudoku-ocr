@@ -3,8 +3,8 @@
 #include "image.h"
 #include "rotation.h"
 
-Image automatic_rotation(
-    int **hough_accumulator, square *found_grid_square, Image *in)
+Image automatic_rotation(int **hough_accumulator, square *found_grid_square,
+    Image *in, bool verbose_mode, char *verbose_path)
 {
     double w = in->width, h = in->height;
     double diag = sqrt(w * w + h * h);
@@ -56,7 +56,11 @@ Image automatic_rotation(
     if (most_freq_theta < 0)
         most_freq_theta = most_freq_theta + 90;
 
-    if (most_freq_theta > 10 && most_freq_theta < 45)
+    if (verbose_mode)
+        printf("   🎣 Most found angle for automatic rotation: %.2f\n",
+            most_freq_theta);
+
+    if (most_freq_theta >= 1 && most_freq_theta <= 45)
     {
         double x = 0, y = 0;
 
