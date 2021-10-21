@@ -67,6 +67,20 @@ Image clone_image(Image *source)
     return image;
 }
 
+Image create_image(int height, int width)
+{
+    Image image;
+    image.height = height;
+    image.width = width;
+    image.pixels = malloc((image.width + 1) * sizeof(Pixel *));
+    for (int x = 0; x < image.width; x++)
+        image.pixels[x] = malloc((image.height + 1) * sizeof(Pixel));
+    image.surface = SDL_CreateRGBSurfaceWithFormat(
+        0, width, height, 32, SDL_PIXELFORMAT_RGBA32);
+
+    return image;
+}
+
 Image SDL_Surface_to_Image(SDL_Surface *image_surface)
 {
     Image image;
@@ -176,6 +190,14 @@ void Array_to_Image(int *array, Image *container)
     }
 }
 
+/**
+ * @brief Creates an image from a 2d array
+ *
+ * @param array
+ * @param width
+ * @param height
+ * @return Image
+ */
 Image Array2D_to_Image(int **array, int width, int height)
 {
     Image image;

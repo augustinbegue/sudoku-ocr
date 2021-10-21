@@ -192,13 +192,10 @@ int main(int argc, char const *argv[])
         verbose_save(verbose_mode, verbose_path, "8-autorotated.png",
             &autorotated_image);
 
-        Image cropped_image = crop_image(&autorotated_image, selected_square);
-
-        verbose_save(
-            verbose_mode, verbose_path, "9-cropped.png", &cropped_image);
+        // TODO: Split the grid
 
         // Saves the final image in the output_path file
-        save_image(Image_to_SDL_Surface(&cropped_image), output_path);
+        save_image(Image_to_SDL_Surface(rotated_imagept), output_path);
 
         // Freeing
         free_Image(imagept); // Also frees rotated_imagept if there has been no
@@ -208,7 +205,7 @@ int main(int argc, char const *argv[])
         free_Image(&edge_image);
         free_Image(&autorotated_image);
         free_Image(lines_imagept);
-        free_Image(&cropped_image);
+        // free_Image(&cropped_image);
 
         free_2d_arr(edges, edge_num);
 
