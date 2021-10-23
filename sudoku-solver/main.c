@@ -1,16 +1,29 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include "sudoku-solver.h"
+#include <string.h>
+#include <err.h>
+#include "solver.h"
 
-int main()
+int main(int argc, char **argv)
 {
     int grid[N][N];
-    loadarray("grid_00", grid);
+    loadarray(argv[1], grid);
     
-    if (solveSuduko(grid, 0, 0) == 1)
+    if (argc != 2)
     {
-        writefile(grid, "grid_00.result");
+        errx(1, "Wrong number of arguments.");
+    }
+    else if (argc == 0)
+    {
+        errx(1, "Not enough arguments entered.");
+    }
+    else if (solveSuduko(grid, 0, 0) == 1)
+    {
+        char *c = ".result";
+        char *extension = argv[1];
+        strncat(extension, c, 7);
+        writefile(grid, extension);
     }
     else
     {

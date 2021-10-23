@@ -1,5 +1,5 @@
-#ifndef SUDOKU_SOLVER
-#define SUDOKU_SOLVER
+#ifndef SOLVER
+#define SOLVER
 
 // N is define for the size of the 2D matrix
 #define N 9

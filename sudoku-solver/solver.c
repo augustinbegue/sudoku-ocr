@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "sudoku-solver.h"
+#include "solver.h"
  
 // N is the size of the 2D matrix   N*N
 #define N 9
