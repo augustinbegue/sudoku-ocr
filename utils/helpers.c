@@ -100,7 +100,7 @@ void convolution(
  * @param out
  */
 void convolution_mat(
-    double *kernel, int ksize_x, int ksize_y, Image *in, double *out)
+    double *kernel, int ksize_x, int ksize_y, Image *in, int *out)
 {
     int w = in->width;
     int h = in->height;
@@ -143,7 +143,7 @@ void convolution_mat(
                 }
             }
 
-            out[ix * w + iy] = convoluted_value;
+            out[ix + iy * w] = convoluted_value;
         }
     }
 }
