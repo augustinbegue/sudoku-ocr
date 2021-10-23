@@ -4,13 +4,14 @@
 #include <math.h>
 #include "matrix.h"
 #include "maths_extra.h"
+#include "saveLoad.h"
 
 static const int num_inputs = 2;
-static const int num_hidden = 8;
+static const int num_hidden = 5;
 static const int num_outputs = 1;
 
 // number of "generation" of AI
-static const int EPOCHS = 100000;
+static const int EPOCHS = 1000000;
 
 // learning rate
 static const double LR = 0.1;
@@ -58,8 +59,8 @@ double result_network(double i1, double i2, Matrix *hw, Matrix *hb, Matrix *ow, 
     return res;
 }
 
-// Execute random test on a trained network and display the accurency of the network
-void random_test(Matrix *hw, Matrix *hb, Matrix *ow, Matrix *ob, bool verbose)
+// Execute random test on a trained network and display the accuracy of the network
+void random_test(Matrix *hw, Matrix *hb, Matrix *ow, Matrix *ob)
 {
     int correct_predictions = 0;
     double total_error = 0.0;
@@ -98,13 +99,7 @@ void random_test(Matrix *hw, Matrix *hb, Matrix *ow, Matrix *ob, bool verbose)
         {
             correct_predictions++;
         }
-        else
-        {
-            if (verbose)
-            {
-                printf("XOR of (%f, %f) (Expected: %d): %f\n", i1, i2, ((int)(expected)), predicted_result);
-            }
-        }
+
     }
 
     double accuracy = ((double)(correct_predictions)) / ((double)(NUMBER_OF_TESTS));
@@ -201,7 +196,9 @@ int main()
         m_copy(&in_o, &out_o);
         m_map(&out_o, sigmoid);
 
-        //Backward pass (back propagation)
+        //Back Propagation
+
+        // Error of the output
         Matrix error;
         m_copy(&out_o, &error);
         m_subtract(&error, &training_outputs);
@@ -282,28 +279,25 @@ int main()
         m_free(&d_hidden_bias);
     }
 
-    printf("\n========== Final Weights and Biases ==========\n");
-    printf("Hidden Weights\n");
-    m_full_print(&hidden_weights);
-    printf("Hidden Biases\n");
-    m_full_print(&hidden_bias);
-    printf("Output Weights\n");
-    m_full_print(&output_weights);
-    printf("Output Biases\n");
-    m_full_print(&output_bias);
-    printf("\n========== Predictions on input data ==========\n");
-    printf("Prediction for (0, 0) (Expected: 0): %f\n", result_network(0.0, 0.0, &hidden_weights, &hidden_bias, &output_weights, &output_bias));
-    printf("Prediction for (0, 1) (Expected: 1): %f\n", result_network(0.0, 1.0, &hidden_weights, &hidden_bias, &output_weights, &output_bias));
-    printf("Prediction for (1, 0) (Expected: 1): %f\n", result_network(1.0, 0.0, &hidden_weights, &hidden_bias, &output_weights, &output_bias));
-    printf("Prediction for (1, 1) (Expected: 0): %f\n", result_network(1.0, 1.0, &hidden_weights, &hidden_bias, &output_weights, &output_bias));
+    // Saving the final weigths and bias
+
+    save(&hidden_weights, &hidden_bias, &output_weights, &output_bias,"save");
+
+    // Printing the different result of the tests
+    printf("Result of tests after training\n");
+    printf("Result for (0, 0) (Expected: 0): %f\n", result_network(0.0, 0.0, &hidden_weights, &hidden_bias, &output_weights, &output_bias));
+    printf("Result for (0, 1) (Expected: 1): %f\n", result_network(0.0, 1.0, &hidden_weights, &hidden_bias, &output_weights, &output_bias));
+    printf("Result for (1, 0) (Expected: 1): %f\n", result_network(1.0, 0.0, &hidden_weights, &hidden_bias, &output_weights, &output_bias));
+    printf("Result for (1, 1) (Expected: 0): %f\n", result_network(1.0, 1.0, &hidden_weights, &hidden_bias, &output_weights, &output_bias));
     printf("\n");
     
-    printf("\n========== Predictions on random data ==========\n");
+    printf("\nAccuracy of the network:\n");
 
-    random_test(&hidden_weights, &hidden_bias, &output_weights, &output_bias, false);
+    random_test(&hidden_weights, &hidden_bias, &output_weights, &output_bias);
 
-   
-    
-    
+    m_free(&hidden_weights);
+    m_free(&hidden_bias);
+    m_free(&output_weights);
+    m_free(&output_bias);
 }
 
