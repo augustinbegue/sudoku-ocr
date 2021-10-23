@@ -120,7 +120,7 @@ void process_image(
         fprintf(stderr, "\33[2K\r[=========--------------------]");
 
     // Dynamic treshold to binarize the image
-    filter_dynamic_threshold(imagept, 4);
+    filter_adaptive_threshold(imagept, 4);
 
     verbose_save(verbose_mode, verbose_path,
         "4-processing-dynamic-threshold.png", imagept);

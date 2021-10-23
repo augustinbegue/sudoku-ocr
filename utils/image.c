@@ -264,11 +264,25 @@ void Array_to_Image(int *array, Image *container)
 {
     int w = container->width, h = container->height;
 
+    double max = 0;
     for (int x = 0; x < w; x++)
     {
         for (int y = 0; y < h; y++)
         {
             int val = array[x + y * w];
+
+            if (val > max)
+            {
+                max = val;
+            }
+        }
+    }
+
+    for (int x = 0; x < w; x++)
+    {
+        for (int y = 0; y < h; y++)
+        {
+            double val = (array[x + y * w] / max) * (double)255;
 
             Pixel pix = {val, val, val};
             container->pixels[x][y] = pix;
@@ -375,8 +389,8 @@ void image_partial_filter(Image *image, void (*filter)(Pixel *, int),
 }
 
 /**
- * @brief Generates a grayscale repartition histogram from the image in the
- * specified positions
+ * @brief Generates a grayscale repartition histogram from the image in
+ * the specified positions
  *
  * @param image image to generate the histogram from
  * @param startx x start position

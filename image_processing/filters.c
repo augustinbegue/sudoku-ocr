@@ -82,13 +82,12 @@ void filter_invert(Image *image, double value)
 }
 
 /**
- * @brief applies a dynamic black and white threshold on image in n.
- * subdivisions
+ * @brief applies a adaptive dynamic threshold
  *
  * @param image image to apply the filter on
  * @param radius radius of the pixel window to take the values from
  */
-void filter_dynamic_threshold(Image *image, int radius)
+void filter_adaptive_threshold(Image *image, int radius)
 {
     int width = image->width;
     int height = image->height;

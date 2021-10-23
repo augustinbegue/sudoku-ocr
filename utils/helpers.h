@@ -23,4 +23,10 @@ int min_arr_index(int array[], int size);
 
 void free_2d_arr(int **arr, int size);
 
+void convolution(
+    double *kernel, int ksize, Image *image, Image *out, bool normalize);
+
+void convolution_mat(
+    double *kernel, int ksize_x, int ksize_y, Image *in, double *out);
+
 #endif
