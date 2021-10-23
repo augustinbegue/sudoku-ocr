@@ -5,29 +5,17 @@
 
 int main()
 {
-    int grid[N][N] = { { 3, 0, 6, 5, 0, 8, 4, 0, 0 },
-                       { 5, 2, 0, 0, 0, 0, 0, 0, 0 },
-                       { 0, 8, 7, 0, 0, 0, 0, 3, 1 },
-                       { 0, 0, 3, 0, 1, 0, 0, 8, 0 },
-                       { 9, 0, 0, 8, 6, 3, 0, 0, 5 },
-                       { 0, 5, 0, 0, 9, 0, 6, 0, 0 },
-                       { 1, 3, 0, 0, 0, 0, 2, 5, 0 },
-                       { 0, 0, 0, 0, 0, 0, 0, 7, 4 },
-                       { 0, 0, 5, 2, 0, 6, 3, 0, 0 } };
-
+    int grid[N][N];
+    loadarray("grid_00", grid);
+    
     if (solveSuduko(grid, 0, 0) == 1)
     {
-        print(grid);
-        writefile(grid, "solver.txt");
-        /*
-        FILE *fp;
-        fp = fopen("bouboubou.txt", "w");
-        fputs(create(grid), fp);
-        fclose(fp);
-        */
+        writefile(grid, "grid_00.result");
     }
     else
+    {
         printf("No solution exists");
+    }
  
     return 0;
 }

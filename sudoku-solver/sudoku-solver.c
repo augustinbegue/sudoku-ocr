@@ -5,23 +5,39 @@
 // N is the size of the 2D matrix   N*N
 #define N 9
 
-/* Function to create an array of char from a matrix of int */
-char *create(int grid[N][N])
+/* Function to read and store an array from a file */
+void loadarray(char *filename, int grid[N][N])
 {
-    int pos = 0;
-    char *arr = malloc(sizeof(int) * 81);
-    for (int i = 0; i < N; i++)
+    FILE *fp;
+    fp = fopen(filename, "r");
+    int i = 0;
+    int j = 0;
+    char charac;
+    while ((charac = fgetc(fp)) != EOF)
     {
-        for (int j = 0; j < N; j++, pos++)
+        if (charac != ' ')
         {
-            arr[pos] = grid[i][j] + '0';
+            if (charac == '\n')
+            {
+               j = 0;
+               i++; 
+            }
+            else if (charac == '.')
+            {
+                grid[i][j] = 0;
+                j++;
+            }
+            else
+            {
+                grid[i][j] = charac - '0';
+                j++;
+            }
         }
     }
-    return arr;
+    fclose(fp);
 }
 
 /* Function to write a 2D array into a file*/
-
 void writefile(int arr[N][N], char *filename)
 {
     FILE *fp;
@@ -47,6 +63,7 @@ void writefile(int arr[N][N], char *filename)
         }
         i++;
     }
+    fclose(fp);
 }
 
 /* Function to print the matrix */
@@ -97,7 +114,7 @@ int isSafe(int grid[N][N], int row,int col, int num)
         }
     }
  
-    // Check if we find the same number in the particular 3*3 matrix
+    // Check if we find the same number in the 3*3 matrix
     int startRow = row - row % 3;
     int startCol = col - col % 3;
    
