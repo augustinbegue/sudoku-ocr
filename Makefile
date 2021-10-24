@@ -3,7 +3,7 @@
 CC=gcc -I./image_processing -I./grid_processing -I./utils -I./image_rotation 
 
 # do not change
-CPPFLAGS=`pkg-config --cflags sdl2` -MMD
+CPPFLAGS=`pkg-config --cflags sdl2` -D__NO_INLINE__
 CFLAGS= -Wall -Wextra  -std=c99 -O3 -g -fsanitize=address 
 LDFLAGS= -fsanitize=address 
 LDLIBS= `pkg-config --libs sdl2` -lSDL2_image -lm
@@ -12,9 +12,15 @@ SRC=main.c $(wildcard image_processing/*.c) $(wildcard image_rotation/*.c) $(wil
 OBJ=$(SRC:.c=.o)
 DEP=$(SRC:.c=.d)
 
-all: main
+all: main network solver
 
 main: $(OBJ)
+
+network:
+	make -C ./XOR
+
+solver:
+	make -C ./sudoku-solver
 
 # unecessary for other projects
 check:
@@ -30,5 +36,7 @@ clean-output:
 
 clean: clean-output
 	${RM} $(OBJ) $(DEP) main
+	make clean -C ./sudoku-solver
+	make clean -C ./XOR
 
 # END
