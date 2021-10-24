@@ -57,8 +57,6 @@ int main(int argc, char const *argv[])
 
     double rotation_amount = 0.0;
 
-    double rotation_amount = 0.0;
-
     // Argument handling
     for (int i = 1; i < argc; i++)
     {
@@ -79,7 +77,6 @@ int main(int argc, char const *argv[])
         }
         else if (strcmp(argv[i], "-r") == 0)
         {
-
             image_rotation = true;
             // next argument is the rotation amount
             i++;
@@ -116,28 +113,6 @@ int main(int argc, char const *argv[])
          * Loading Image
          */
 
-        Image mask = SDL_Surface_to_Image(load_image(input_path));
-        Image *maskpt = &mask;
-
-        /*
-         * PREPROCESSING
-         */
-
-        /*
-         * Image Rotation
-         */
-        if (rotate_image)
-        {
-            printf("...🔃 Rotating image by %.2f°\n", rotation_amount);
-        }
-
-        /*
-         * PASS 1 - Create a mask with the pixels to keep
-         */
-
-        // Grayscale and contrast adjustement
-        filter_grayscale(maskpt, 0);
-      
         Image image = SDL_Surface_to_Image(load_image(input_path));
         Image *imagept = &image;
         Image mask = clone_image(imagept);
