@@ -1,7 +1,7 @@
 #ifndef MORPH_H
 #define MORPH_H
 
-#include "../utils/image.h"
+#include "image.h"
 
 enum MorphType
 {
