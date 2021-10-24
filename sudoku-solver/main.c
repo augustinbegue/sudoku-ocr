@@ -1,15 +1,15 @@
+#include <err.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
 #include <string.h>
-#include <err.h>
 #include "solver.h"
 
 int main(int argc, char **argv)
 {
     int grid[N][N];
     loadarray(argv[1], grid);
-    
+
     if (argc != 2)
     {
         errx(1, "Wrong number of arguments.");
@@ -27,8 +27,8 @@ int main(int argc, char **argv)
     }
     else
     {
-        printf("No solution exists");
+        printf("No solution exists\n");
     }
- 
+
     return 0;
 }

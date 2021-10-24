@@ -3,3 +3,4 @@
 *.bmp
 *.csv
 main
+assets/output/*
