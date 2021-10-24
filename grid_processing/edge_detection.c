@@ -27,74 +27,6 @@ static void histogram(int *buf, int w, int h, int *histo)
 }
 
 /**
- * @brief convolution operator
- *
- * @link https://en.wikipedia.org/wiki/Kernel_(image_processing)#Convolution
- *
- * @param kernel kernel to apply
- * @param kernel_size size of the kernel (should be odd)
- * @param x x coordinate of the pixel to convolute
- * @param y y coordinate of the pixel to convolute
- * @param image image to take samples from
- * @return Pixel pixel to return
- */
-static void convolution(
-    double *kernel, int ksize, Image *image, Image *out, bool normalize)
-{
-    const int khalf = ksize / 2;
-
-    int w = image->height;
-    int h = image->width;
-
-    float min = FLT_MAX, max = -FLT_MAX;
-
-    float *pixels = malloc(sizeof(float) * w * h);
-    int pindex = 0;
-
-    for (int m = khalf; m < w - khalf; m++)
-    {
-        for (int n = khalf; n < h - khalf; n++)
-        {
-            float pixel = 0.0;
-            size_t c = 0;
-            for (int j = -khalf; j <= khalf; j++)
-                for (int i = -khalf; i <= khalf; i++)
-                {
-                    pixel += image->pixels[n - j][m - i].r * kernel[c];
-                    c++;
-                }
-
-            if (normalize && pixel < min)
-                min = pixel;
-
-            if (normalize && pixel > max)
-                max = pixel;
-
-            pixels[pindex] = pixel;
-            pindex++;
-        }
-    }
-
-    pindex = 0;
-    for (int m = khalf; m < w - khalf; m++)
-    {
-        for (int n = khalf; n < h - khalf; n++)
-        {
-            float pixel = pixels[pindex];
-
-            if (normalize)
-                pixel = MAX_BRIGHTNESS * (pixel - min) / (max - min);
-
-            Pixel pix = {pixel, pixel, pixel};
-            out->pixels[n][m] = pix;
-            pindex++;
-        }
-    }
-
-    free(pixels);
-}
-
-/**
  * @brief Computes the intensity gradients per pixel and per axis of an image
  *
  * @param in int array containing the image's pixels
@@ -587,9 +519,6 @@ Image canny_edge_filtering(
     Array_to_Image(nms_arr, &edge_image);
     verbose_save(verbose_mode, verbose_path, "6.3-edges-nms.png", &edge_image);
 
-    free(xgradient_arr);
-    free(ygradient_arr);
-
     // Hysterisis Analysis
     if (verbose_mode)
         printf("   🕳️ Hysterisis Analysis...\n");
@@ -602,6 +531,8 @@ Image canny_edge_filtering(
     verbose_save(
         verbose_mode, verbose_path, "6.4-edges-final.png", &edge_image);
 
+    free(xgradient_arr);
+    free(ygradient_arr);
     free(magnitude_arr);
     free(nms_arr);
     free(edges_arr);
@@ -609,118 +540,3 @@ Image canny_edge_filtering(
 
     return edge_image;
 }
-
-#if 0
-static void histogram(int *buf, int w, int h, int *histo)
-{
-    int bufLength = w * h;
-
-    for (int i = 0; i < bufLength; ++i)
-    {
-        histo[buf[i]]++;
-    }
-}
-
-/**
- * @brief Applies a double threshold to thin edges
- *
- * @link https://en.wikipedia.org/wiki/Canny_edge_detector#Double_threshold
- *
- * @param gradient gradient to apply the filter on
- * @param verbose_mode
- * @param w width of the image
- * @param h height of the image
- */
-static void double_threshold(Image *gradient, bool verbose_mode, int w, int h)
-{
-    // Threshold determination
-    int *hist = image_grayscale_histogram(gradient, 1, w - 1, 1, h - 1);
-    int high_threshold = get_histogram_threshold(hist);
-    int low_threshold = high_threshold / 2;
-
-    free(hist);
-
-    if (verbose_mode)
-    {
-        printf("   👇 Low threshold: %i\n", low_threshold);
-        printf("   👆 High threshold: %i\n", high_threshold);
-    }
-
-    // Threshold application
-    for (int x = 1; x < w - 1; x++)
-    {
-        for (int y = 1; y < h - 1; y++)
-        {
-            int val = gradient->pixels[x][y].r;
-
-            if (val == 0)
-                continue;
-
-            if (val <= low_threshold)
-                val = SUPPRESSED;
-            else if (low_threshold <= val && val <= high_threshold)
-                val = WEAK_EDGE_VAL;
-            else
-                val = STRONG_EDGE_VAL;
-
-            Pixel pix = {val, val, val};
-            gradient->pixels[x][y] = pix;
-        }
-    }
-}
-
-void old_compute_gradients(Image *image, Image *xgradient, Image *ygradient,
-    Image *magnitude, bool normalize)
-{
-    int w = image->width;
-    int h = image->height;
-
-    convolution(sobel_kernel_x, 3, image, xgradient, normalize);
-
-    convolution(sobel_kernel_y, 3, image, ygradient, normalize);
-
-    float min = FLT_MAX, max = -FLT_MAX,
-          *pixels = malloc(sizeof(float) * w * h);
-    int pindex = 0;
-
-    for (int x = 0; x < w; x++)
-    {
-        for (int y = 0; y < h; y++)
-        {
-            float xval = xgradient->pixels[x][y].r,
-                  yval = ygradient->pixels[x][y].r;
-
-            float pixel = sqrt(xval * xval + yval * yval);
-
-            if (normalize && pixel < min)
-                min = pixel;
-
-            if (normalize && pixel > max)
-                max = pixel;
-
-            pixels[pindex] = pixel;
-
-            pindex++;
-        }
-    }
-
-    pindex = 0;
-    for (int x = 0; x < w; x++)
-    {
-        for (int y = 0; y < h; y++)
-        {
-            float pixel = pixels[pindex];
-
-            if (normalize)
-                pixel = MAX_BRIGHTNESS * (pixel - min) / (max - min);
-
-            Pixel pix = {pixel, pixel, pixel};
-            magnitude->pixels[x][y] = pix;
-            pindex++;
-        }
-    }
-
-    free(pixels);
-}
-
-#endif

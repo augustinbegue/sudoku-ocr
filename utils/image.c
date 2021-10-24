@@ -67,6 +67,105 @@ Image clone_image(Image *source)
     return image;
 }
 
+Image *create_image(int height, int width)
+{
+    Image *image = malloc(sizeof(Image));
+
+    image->height = height;
+    image->width = width;
+    image->pixels = malloc(sizeof(Pixel *) * width + 1);
+
+    if (image->pixels == NULL)
+        errx(1, "Error when allocating memory in create_image.");
+
+    for (int x = 0; x < width; x++)
+        image->pixels[x] = malloc(sizeof(Pixel) * height + 1);
+
+    image->surface = SDL_CreateRGBSurfaceWithFormat(
+        0, width, height, 32, SDL_PIXELFORMAT_RGBA32);
+
+    if (image->surface == NULL)
+    {
+        const char *errm = SDL_GetError();
+        errx(-1, errm);
+    }
+
+    return image;
+}
+
+Image crop_image(Image *input, square *crop)
+{
+    point c1 = crop->c1;
+    point c2 = crop->c2;
+    point c3 = crop->c3;
+    point c4 = crop->c4;
+
+    double side1_length
+        = sqrt((c2.x - c1.x) * (c2.x - c1.x) + (c2.y - c1.y) * (c2.y - c1.y));
+    double side2_length
+        = sqrt((c3.x - c2.x) * (c3.x - c2.x) + (c3.y - c2.y) * (c3.y - c2.y));
+    double side3_length
+        = sqrt((c4.x - c3.x) * (c4.x - c3.x) + (c4.y - c3.y) * (c4.y - c3.y));
+    double side4_length
+        = sqrt((c4.x - c1.x) * (c4.x - c1.x) + (c4.y - c1.y) * (c4.y - c1.y));
+
+    int size;
+    if (side1_length < side2_length)
+        size = side2_length;
+    else
+        size = side1_length;
+
+    if (side3_length > size)
+        size = side3_length;
+
+    if (side4_length > size)
+        size = side4_length;
+
+    point start;
+    if (c1.x < c2.x)
+        start.x = c1.x;
+    else
+        start.x = c2.x;
+    if (c3.x < start.x)
+        start.x = c3.x;
+    if (c4.x < start.x)
+        start.x = c4.x;
+
+    if (c1.y < c2.y)
+        start.y = c1.y;
+    else
+        start.y = c2.y;
+    if (c3.y < start.y)
+        start.y = c3.y;
+    if (c4.y < start.y)
+        start.y = c4.y;
+
+    printf("   ✂️ Cropping Image - Start: (%i, %i), Size: %i\n", start.x,
+        start.y, size);
+
+    Image cropped;
+    cropped.height = size;
+    cropped.width = size;
+    cropped.surface = SDL_CreateRGBSurfaceWithFormat(
+        0, size, size, 32, SDL_PIXELFORMAT_RGBA32);
+    cropped.pixels = malloc(sizeof(Pixel *) * size + 1);
+
+    int old_x = start.x;
+    for (int x = 0; x < size && old_x < input->width; x++, old_x++)
+    {
+        cropped.pixels[x] = malloc(sizeof(Pixel) * size + 1);
+
+        int old_y = start.y;
+        for (int y = 0; y < size && old_y < input->height; y++, old_y++)
+        {
+            Pixel old = input->pixels[old_x][old_y];
+            cropped.pixels[x][y] = old;
+        }
+    }
+
+    return cropped;
+}
+
 Image SDL_Surface_to_Image(SDL_Surface *image_surface)
 {
     Image image;
@@ -164,11 +263,25 @@ void Array_to_Image(int *array, Image *container)
 {
     int w = container->width, h = container->height;
 
+    double max = 0;
     for (int x = 0; x < w; x++)
     {
         for (int y = 0; y < h; y++)
         {
             int val = array[x + y * w];
+
+            if (val > max)
+            {
+                max = val;
+            }
+        }
+    }
+
+    for (int x = 0; x < w; x++)
+    {
+        for (int y = 0; y < h; y++)
+        {
+            double val = (array[x + y * w] / max) * (double)255;
 
             Pixel pix = {val, val, val};
             container->pixels[x][y] = pix;
@@ -176,6 +289,14 @@ void Array_to_Image(int *array, Image *container)
     }
 }
 
+/**
+ * @brief Creates an image from a 2d array
+ *
+ * @param array
+ * @param width
+ * @param height
+ * @return Image
+ */
 Image Array2D_to_Image(int **array, int width, int height)
 {
     Image image;
@@ -267,8 +388,8 @@ void image_partial_filter(Image *image, void (*filter)(Pixel *, int),
 }
 
 /**
- * @brief Generates a grayscale repartition histogram from the image in the
- * specified positions
+ * @brief Generates a grayscale repartition histogram from the image in
+ * the specified positions
  *
  * @param image image to generate the histogram from
  * @param startx x start position
@@ -296,17 +417,18 @@ int *image_grayscale_histogram(
 /**
  * @brief Draws a line from (x0, y0) to (x1, y1).
  *
- * @param image
- * @param w
- * @param h
- * @param x0
- * @param y0
- * @param x1
- * @param y1
- * @param r
- * @param g
- * @param b
- * @return int** coordinates at which the line actually started.
+ * @param image image to draw on
+ * @param w width of the image
+ * @param h height of the image
+ * @param x0 starting point, x coordinate
+ * @param y0 starting point, y coordinate
+ * @param x1 end point, x coordinate
+ * @param y1 end point, y coordinate
+ * @param r red amount (0 -> 255)
+ * @param g green amount (0 -> 255)
+ * @param b blue amount (0 -> 255)
+ * @return int** coordinates at which the line actually started and ended
+ * (within the bound of the image).
  */
 int *draw_line(Image *image, int w, int h, int x0, int y0, int x1, int y1,
     Uint8 r, Uint8 g, Uint8 b)
@@ -359,6 +481,15 @@ int *draw_line(Image *image, int w, int h, int x0, int y0, int x1, int y1,
     return coordinates;
 }
 
+/**
+ * @brief Draws a square from the coordinates
+ *
+ * @param image
+ * @param sqr
+ * @param r
+ * @param g
+ * @param b
+ */
 void draw_square(Image *image, square *sqr, int r, int g, int b)
 {
     free(draw_line(image, image->width, image->height, sqr->c1.x, sqr->c1.y,
@@ -385,4 +516,90 @@ void draw_square(Image *image, square *sqr, int r, int g, int b)
         sqr->c3.y - 1, sqr->c4.x - 1, sqr->c4.y - 1, r, g, b));
     free(draw_line(image, image->width, image->height, sqr->c4.x - 1,
         sqr->c4.y - 1, sqr->c1.x - 1, sqr->c1.y - 1, r, g, b));
+
+    square _sqr2 = *sqr;
+    square *sqr2 = &_sqr2;
+    _sqr2.c1.x--;
+    _sqr2.c1.y--;
+    _sqr2.c2.x--;
+    _sqr2.c2.y--;
+    _sqr2.c3.x--;
+    _sqr2.c3.y--;
+    _sqr2.c4.x--;
+    _sqr2.c4.y--;
+    _sqr2.c1.x--;
+    _sqr2.c1.y--;
+    _sqr2.c2.x--;
+    _sqr2.c2.y--;
+    _sqr2.c3.x--;
+    _sqr2.c3.y--;
+    _sqr2.c4.x--;
+    _sqr2.c4.y--;
+
+    free(draw_line(image, image->width, image->height, sqr2->c1.x, sqr2->c1.y,
+        sqr2->c2.x, sqr2->c2.y, r, g, b));
+    free(draw_line(image, image->width, image->height, sqr2->c2.x, sqr2->c2.y,
+        sqr2->c3.x, sqr2->c3.y, r, g, b));
+    free(draw_line(image, image->width, image->height, sqr2->c3.x, sqr2->c3.y,
+        sqr2->c4.x, sqr2->c4.y, r, g, b));
+    free(draw_line(image, image->width, image->height, sqr2->c4.x, sqr2->c4.y,
+        sqr2->c1.x, sqr2->c1.y, r, g, b));
+    free(draw_line(image, image->width, image->height, sqr2->c1.x + 1,
+        sqr2->c1.y + 1, sqr2->c2.x + 1, sqr2->c2.y + 1, r, g, b));
+    free(draw_line(image, image->width, image->height, sqr2->c2.x + 1,
+        sqr2->c2.y + 1, sqr2->c3.x + 1, sqr2->c3.y + 1, r, g, b));
+    free(draw_line(image, image->width, image->height, sqr2->c3.x + 1,
+        sqr2->c3.y + 1, sqr2->c4.x + 1, sqr2->c4.y + 1, r, g, b));
+    free(draw_line(image, image->width, image->height, sqr2->c4.x + 1,
+        sqr2->c4.y + 1, sqr2->c1.x + 1, sqr2->c1.y + 1, r, g, b));
+    free(draw_line(image, image->width, image->height, sqr2->c1.x - 1,
+        sqr2->c1.y - 1, sqr2->c2.x - 1, sqr2->c2.y - 1, r, g, b));
+    free(draw_line(image, image->width, image->height, sqr2->c2.x - 1,
+        sqr2->c2.y - 1, sqr2->c3.x - 1, sqr2->c3.y - 1, r, g, b));
+    free(draw_line(image, image->width, image->height, sqr2->c3.x - 1,
+        sqr2->c3.y - 1, sqr2->c4.x - 1, sqr2->c4.y - 1, r, g, b));
+    free(draw_line(image, image->width, image->height, sqr2->c4.x - 1,
+        sqr2->c4.y - 1, sqr2->c1.x - 1, sqr2->c1.y - 1, r, g, b));
+
+    _sqr2.c1.x++;
+    _sqr2.c1.y++;
+    _sqr2.c2.x++;
+    _sqr2.c2.y++;
+    _sqr2.c3.x++;
+    _sqr2.c3.y++;
+    _sqr2.c4.x++;
+    _sqr2.c4.y++;
+    _sqr2.c1.x++;
+    _sqr2.c1.y++;
+    _sqr2.c2.x++;
+    _sqr2.c2.y++;
+    _sqr2.c3.x++;
+    _sqr2.c3.y++;
+    _sqr2.c4.x++;
+    _sqr2.c4.y++;
+
+    free(draw_line(image, image->width, image->height, sqr2->c1.x, sqr2->c1.y,
+        sqr2->c2.x, sqr2->c2.y, r, g, b));
+    free(draw_line(image, image->width, image->height, sqr2->c2.x, sqr2->c2.y,
+        sqr2->c3.x, sqr2->c3.y, r, g, b));
+    free(draw_line(image, image->width, image->height, sqr2->c3.x, sqr2->c3.y,
+        sqr2->c4.x, sqr2->c4.y, r, g, b));
+    free(draw_line(image, image->width, image->height, sqr2->c4.x, sqr2->c4.y,
+        sqr2->c1.x, sqr2->c1.y, r, g, b));
+    free(draw_line(image, image->width, image->height, sqr2->c1.x + 1,
+        sqr2->c1.y + 1, sqr2->c2.x + 1, sqr2->c2.y + 1, r, g, b));
+    free(draw_line(image, image->width, image->height, sqr2->c2.x + 1,
+        sqr2->c2.y + 1, sqr2->c3.x + 1, sqr2->c3.y + 1, r, g, b));
+    free(draw_line(image, image->width, image->height, sqr2->c3.x + 1,
+        sqr2->c3.y + 1, sqr2->c4.x + 1, sqr2->c4.y + 1, r, g, b));
+    free(draw_line(image, image->width, image->height, sqr2->c4.x + 1,
+        sqr2->c4.y + 1, sqr2->c1.x + 1, sqr2->c1.y + 1, r, g, b));
+    free(draw_line(image, image->width, image->height, sqr2->c1.x - 1,
+        sqr2->c1.y - 1, sqr2->c2.x - 1, sqr2->c2.y - 1, r, g, b));
+    free(draw_line(image, image->width, image->height, sqr2->c2.x - 1,
+        sqr2->c2.y - 1, sqr2->c3.x - 1, sqr2->c3.y - 1, r, g, b));
+    free(draw_line(image, image->width, image->height, sqr2->c3.x - 1,
+        sqr2->c3.y - 1, sqr2->c4.x - 1, sqr2->c4.y - 1, r, g, b));
+    free(draw_line(image, image->width, image->height, sqr2->c4.x - 1,
+        sqr2->c4.y - 1, sqr2->c1.x - 1, sqr2->c1.y - 1, r, g, b));
 }

@@ -32,6 +32,8 @@ Image SDL_Surface_to_Image(SDL_Surface *image_surface);
 
 SDL_Surface *Image_to_SDL_Surface(Image *image);
 
+Image *create_image(int height, int width);
+
 void free_Image(Image *image);
 
 void image_filter(Image *image, void (*filter)(Pixel *, int), double value);
@@ -52,5 +54,7 @@ int *draw_line(Image *image, int w, int h, int x0, int y0, int x1, int y1,
     Uint8 r, Uint8 g, Uint8 b);
 
 void draw_square(Image *image, square *sqr, int r, int g, int b);
+
+Image crop_image(Image *input, square *crop);
 
 #endif

@@ -1,8 +1,153 @@
 #include <err.h>
+#include <float.h>
 #include <math.h>
 #include <stdbool.h>
+#include <string.h>
 #include <sys/stat.h>
 #include "image.h"
+
+/**
+ * @brief Convolution operator
+ *
+ * @link https://en.wikipedia.org/wiki/Kernel_(image_processing)#Convolution
+ *
+ * @param kernel kernel of the convolution
+ * @param ksize size of the kernel
+ * @param image image to convolute from
+ * @param out output
+ * @param normalize normalize values
+ */
+void convolution(
+    double *kernel, int ksize, Image *image, Image *out, bool normalize)
+{
+    const int khalf = ksize / 2;
+
+    int w = image->width;
+    int h = image->height;
+
+    float min = FLT_MAX, max = -FLT_MAX;
+
+    float *pixels = malloc(sizeof(float) * w * h);
+    int pindex = 0;
+
+    for (int ix = 0; ix < w; ix++)
+    {
+        for (int iy = 0; iy < h; iy++)
+        {
+            float pixel = 0.0;
+            size_t c = 0;
+            for (int j = -khalf; j <= khalf; j++)
+            {
+                for (int i = -khalf; i <= khalf; i++)
+                {
+                    int x = ix - i;
+                    int y = iy - j;
+
+                    if (0 > x)
+                        x = 0;
+
+                    if (x >= w)
+                        x = w - 1;
+
+                    if (0 > y)
+                        y = 0;
+
+                    if (y >= h)
+                        y = h - 1;
+
+                    pixel += image->pixels[x][y].r * kernel[c];
+
+                    c++;
+                }
+            }
+
+            if (normalize && pixel < min)
+                min = pixel;
+
+            if (normalize && pixel > max)
+                max = pixel;
+
+            pixels[pindex] = pixel;
+            pindex++;
+        }
+    }
+
+    pindex = 0;
+    for (int m = 0; m < w; m++)
+    {
+        for (int n = 0; n < h; n++)
+        {
+            float pixel = pixels[pindex];
+
+            if (normalize)
+                pixel = 255 * (pixel - min) / (max - min);
+
+            Pixel pix = {pixel, pixel, pixel};
+            out->pixels[m][n] = pix;
+            pindex++;
+        }
+    }
+
+    free(pixels);
+}
+
+/**
+ * @brief Convolution operator. Returns a 2d array.
+ *
+ * @param kernel
+ * @param ksize_x
+ * @param ksize_y
+ * @param in
+ * @param out
+ */
+void convolution_mat(
+    double *kernel, int ksize_x, int ksize_y, Image *in, int *out)
+{
+    int w = in->width;
+    int h = in->height;
+
+    if (ksize_x % 2 == 0)
+        ksize_x--;
+
+    if (ksize_y % 2 == 0)
+        ksize_y--;
+
+    int khalf_x = ksize_x / 2;
+    int khalf_y = ksize_y / 2;
+
+    for (int ix = 0; ix < w; ix++)
+    {
+        for (int iy = 0; iy < h; iy++)
+        {
+            double convoluted_value = 0;
+            int c = 0;
+
+            for (int i = -khalf_x; i <= khalf_x; i++)
+            {
+                for (int j = -khalf_y; j <= khalf_y; j++)
+                {
+                    int x = ix - i;
+                    int y = iy - j;
+
+                    if (0 > x)
+                        x = 0;
+                    if (x >= w)
+                        x = w - 1;
+                    if (0 > y)
+                        y = 0;
+                    if (y >= h)
+                        y = h - 1;
+
+                    convoluted_value += in->pixels[x][y].r * kernel[c];
+
+                    c++;
+                }
+            }
+
+            out[ix + iy * w] = convoluted_value;
+        }
+    }
+}
 
 void _mkdir(const char *dir)
 {
@@ -103,4 +248,16 @@ void free_2d_arr(int **arr, int size)
     for (int i = 0; i < size; i++)
         free(arr[i]);
     free(arr);
+}
+
+char *remove_end_str(char *input, int to_remove)
+{
+    int len = strlen(input);
+    int new_len = len - to_remove;
+    char *output = malloc(new_len * sizeof(char) + 1);
+
+    for (int i = 0; i < new_len; i++)
+        output[i] = input[i];
+
+    return input;
 }

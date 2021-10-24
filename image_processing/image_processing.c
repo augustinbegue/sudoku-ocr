@@ -21,7 +21,8 @@ void process_image(
     if (verbose_mode)
         printf("[1]♻️ Processing the image.\n");
 
-    verbose_save(verbose_mode, verbose_path, "0-processing-step.png", imagept);
+    verbose_save(
+        verbose_mode, verbose_path, "0.0-processing-step.png", imagept);
 
     /*
      * PASS 1 - Create a mask with the pixels to keep
@@ -53,7 +54,7 @@ void process_image(
         fprintf(stderr, "\33[2K\r[===--------------------------]");
 
     verbose_save(
-        verbose_mode, verbose_path, "1-processing-color-blur.png", maskpt);
+        verbose_mode, verbose_path, "1.0-processing-color-blur.png", maskpt);
 
     if (maskpt->average_color >= 160)
     {
@@ -119,7 +120,7 @@ void process_image(
         fprintf(stderr, "\33[2K\r[=========--------------------]");
 
     // Dynamic treshold to binarize the image
-    filter_dynamic_threshold(imagept, 4);
+    filter_adaptive_threshold(imagept, 4);
 
     verbose_save(verbose_mode, verbose_path,
         "4-processing-dynamic-threshold.png", imagept);

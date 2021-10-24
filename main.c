@@ -11,6 +11,7 @@
 #include "edge_averaging.h"
 #include "edge_detection.h"
 #include "geometry.h"
+#include "grid_splitting.h"
 #include "helpers.h"
 #include "hough_transform.h"
 #include "image.h"
@@ -186,18 +187,21 @@ int main(int argc, char const *argv[])
         square *selected_square = select_square(
             squares, lines_imagept, verbose_mode, verbose_path);
 
-        Image autorotated_image = automatic_rotation(
-            hough_accumulator, selected_square, rotated_imagept);
-
-        draw_square(&autorotated_image, selected_square, 255, 0, 128);
+        Image autorotated_image = automatic_rotation(hough_accumulator,
+            selected_square, rotated_imagept, verbose_mode, verbose_path);
 
         verbose_save(verbose_mode, verbose_path, "8-autorotated.png",
             &autorotated_image);
 
-        // Saves the final image in the output_path file
-        save_image(Image_to_SDL_Surface(&autorotated_image), output_path);
+        Image **image_cells = split_grid(
+            &autorotated_image, selected_square, verbose_mode, verbose_path);
 
-        // Freeing
+        // Saves the final image in the output_path file
+        save_image(Image_to_SDL_Surface(rotated_imagept), output_path);
+
+        /*
+         * FREEING SHIT
+         */
         free_Image(imagept); // Also frees rotated_imagept if there has been no
                              // rotation (they are the same)
         if (image_rotation)
@@ -205,6 +209,15 @@ int main(int argc, char const *argv[])
         free_Image(&edge_image);
         free_Image(&autorotated_image);
         free_Image(lines_imagept);
+        for (int i = 0; i < 9; i++)
+        {
+            for (int j = 0; j < 9; j++)
+            {
+                free_Image(image_cells[i * 9 + j]);
+                free(image_cells[i * 9 + j]);
+            }
+        }
+        free(image_cells);
 
         free_2d_arr(edges, edge_num);
 

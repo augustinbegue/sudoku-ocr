@@ -11,7 +11,7 @@ void filter_bw(Image *image, double threshold);
 
 void filter_contrast(Image *image, double value);
 
-void filter_dynamic_threshold(Image *image, int subdivisions);
+void filter_adaptive_threshold(Image *image, int radius);
 
 void filter_threshold(Image *image);
 
