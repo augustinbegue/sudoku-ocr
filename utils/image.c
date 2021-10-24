@@ -418,17 +418,18 @@ int *image_grayscale_histogram(
 /**
  * @brief Draws a line from (x0, y0) to (x1, y1).
  *
- * @param image
- * @param w
- * @param h
- * @param x0
- * @param y0
- * @param x1
- * @param y1
- * @param r
- * @param g
- * @param b
- * @return int** coordinates at which the line actually started.
+ * @param image image to draw on
+ * @param w width of the image
+ * @param h height of the image
+ * @param x0 starting point, x coordinate
+ * @param y0 starting point, y coordinate
+ * @param x1 end point, x coordinate
+ * @param y1 end point, y coordinate
+ * @param r red amount (0 -> 255)
+ * @param g green amount (0 -> 255)
+ * @param b blue amount (0 -> 255)
+ * @return int** coordinates at which the line actually started and ended
+ * (within the bound of the image).
  */
 int *draw_line(Image *image, int w, int h, int x0, int y0, int x1, int y1,
     Uint8 r, Uint8 g, Uint8 b)

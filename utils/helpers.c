@@ -2,6 +2,7 @@
 #include <float.h>
 #include <math.h>
 #include <stdbool.h>
+#include <string.h>
 #include <sys/stat.h>
 #include "image.h"
 
@@ -247,4 +248,16 @@ void free_2d_arr(int **arr, int size)
     for (int i = 0; i < size; i++)
         free(arr[i]);
     free(arr);
+}
+
+char *remove_end_str(char *input, int to_remove)
+{
+    int len = strlen(input);
+    int new_len = len - to_remove;
+    char *output = malloc(new_len * sizeof(char) + 1);
+
+    for (int i = 0; i < new_len; i++)
+        output[i] = input[i];
+
+    return input;
 }

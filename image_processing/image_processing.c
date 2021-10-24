@@ -54,7 +54,7 @@ void process_image(
         fprintf(stderr, "\33[2K\r[===--------------------------]");
 
     verbose_save(
-        verbose_mode, verbose_path, "1-processing-color-blur.png", maskpt);
+        verbose_mode, verbose_path, "1.0-processing-color-blur.png", maskpt);
 
     if (maskpt->average_color >= 160)
     {

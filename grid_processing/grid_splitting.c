@@ -15,8 +15,6 @@ Image **split_grid(Image *input, square *selected_square, bool verbose_mode,
     int cropped_size = cropped_image.width;
     int cell_size = cropped_size / 9;
 
-    printf("Cell Size: %i\n", cell_size);
-
     /*
      * Array containing the 9*9 grid cells
      * Grid cell x,y can be accessed by image_cells[x * 9 + y]
