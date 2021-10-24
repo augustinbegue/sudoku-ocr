@@ -1,7 +1,7 @@
 # Compilers vars
 CC=gcc
 CPPFLAGS= -MMD
-CFLAGS= -Wall -Wextra -std=c99 -O2
+CFLAGS= -Wall -Wextra -std=c99 -O3 -D__NO_INLINE__
 LDFLAGS=
 LDLIBS=
 
@@ -9,7 +9,7 @@ SRC=main.c solver.c
 OBJ=$(SRC:.c=.o)
 DEP=$(SRC:.c=.d)
 
-all: ${PRG}
+all: solver
 
 solver: $(OBJ)
 

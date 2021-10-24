@@ -6,12 +6,12 @@ LIBS   = -lm
 EXE    = network
 
 # Compiler, Linker Defines
-CC      = /usr/bin/gcc
-CFLAGS  = -std=c99 -Wall -O2
+CC      = gcc
+CFLAGS  = -std=c99 -Wall -O2 -D__NO_INLINE__
 LIBPATH = -L.
 LDFLAGS = -o $(EXE) $(LIBPATH) $(LIBS)
 CFDEBUG = -std=c99c -Wall -g -DDEBUG $(LDFLAGS)
-RM      = /bin/rm -f
+RM      = rm -f
 
 # Compile and Assemble C Source Files into Object Files
 %.o: %.c
