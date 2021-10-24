@@ -2,5 +2,7 @@
 *.[do]
 *.bmp
 *.csv
-assets/output/*
 main
+assets/output/*
+*.result
+
