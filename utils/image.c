@@ -86,8 +86,7 @@ Image *create_image(int height, int width)
 
     if (image->surface == NULL)
     {
-        char errm[1000];
-        SDL_GetErrorMsg(errm, 1000);
+        const char *errm = SDL_GetError();
         errx(-1, errm);
     }
 

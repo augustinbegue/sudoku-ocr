@@ -4,7 +4,7 @@
 #include "rotation.h"
 
 Image automatic_rotation(int **hough_accumulator, square *found_grid_square,
-    Image *in, bool verbose_mode, char *verbose_path)
+    Image *in, bool verbose_mode)
 {
     double w = in->width, h = in->height;
     double diag = sqrt(w * w + h * h);
