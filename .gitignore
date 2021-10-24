@@ -4,3 +4,4 @@
 *.csv
 main
 assets/output/*
+*.result
