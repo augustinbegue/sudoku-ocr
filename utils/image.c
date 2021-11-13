@@ -1,5 +1,6 @@
 #include <err.h>
 #include <float.h>
+#include <limits.h>
 #include <math.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -412,6 +413,52 @@ int *image_grayscale_histogram(
     }
 
     return hist;
+}
+
+/**
+ * @brief Get the histogram minimum value's index
+ *
+ * @param hist
+ * @return int
+ */
+int get_histogram_min(int *hist)
+{
+    int min = INT_MAX;
+    int minColor = 0;
+
+    for (int i = 0; i < 256; i++)
+    {
+        if (hist[i] < min)
+        {
+            min = hist[i];
+            minColor = i;
+        }
+    }
+
+    return minColor;
+}
+
+/**
+ * @brief Get the histogram maximum value's index
+ *
+ * @param hist
+ * @return int
+ */
+int get_histogram_max(int *hist)
+{
+    int max = INT_MIN;
+    int maxColor = 0;
+
+    for (int i = 0; i < 256; i++)
+    {
+        if (hist[i] > max)
+        {
+            max = hist[i];
+            maxColor = i;
+        }
+    }
+
+    return maxColor;
 }
 
 /**

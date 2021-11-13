@@ -466,8 +466,6 @@ Image canny_edge_filtering(
 
     if (verbose_mode)
         printf("   📈 Generating the intensity gradient...\n");
-    else
-        fprintf(stderr, "\33[2K\r[====================--------]");
 
     // Cloning images to store the gradients
     int *image_arr = Image_to_Array(&image);
@@ -509,8 +507,6 @@ Image canny_edge_filtering(
      */
     if (verbose_mode)
         printf("   🧨 Non-Maximal suppression...\n");
-    else
-        fprintf(stderr, "\33[2K\r[=====================-------]");
 
     non_maximal_suppression(
         magnitude_arr, xgradient_arr, ygradient_arr, w, h, nms_arr);
@@ -522,8 +518,6 @@ Image canny_edge_filtering(
     // Hysterisis Analysis
     if (verbose_mode)
         printf("   🕳️ Hysterisis Analysis...\n");
-    else
-        fprintf(stderr, "\33[2K\r[======================------]");
 
     hysterisis_analysis(nms_arr, w, h, T_LOW, T_HIGH, edges_arr, verbose_mode);
 

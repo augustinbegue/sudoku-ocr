@@ -5,6 +5,7 @@
 #include "image.h"
 #include "mask.h"
 #include "morph.h"
+#include "sauvola.h"
 
 /**
  * @brief Processes the images contained in imagept and maskpt to create and
@@ -15,149 +16,126 @@
  * @param save_mask save the mask to a separate file
  * @param mask_output_path path where the mask is to be saved
  */
-void process_image(
+void image_processing_extract_grid(
     Image *maskpt, Image *imagept, bool verbose_mode, char *verbose_path)
 {
-    if (verbose_mode)
-        printf("[1]♻️ Processing the image.\n");
-
-    verbose_save(
-        verbose_mode, verbose_path, "0.0-processing-step.png", imagept);
+    int adaptive_range
+        = (maskpt->width > maskpt->height ? maskpt->height : maskpt->width)
+          / 300;
 
     /*
      * PASS 1 - Create a mask with the pixels to keep
      */
 
     if (verbose_mode)
-        printf("   🖌  Applying grayscale and filtering noise.\n");
+        printf("[1]♻️ Processing the image.\n");
+    verbose_save(
+        verbose_mode, verbose_path, "0.0-processing-step.png", imagept);
+
+    if (verbose_mode)
+        printf("   🖌  Applying grayscale.\n");
 
     // Grayscale and contrast adjustement
     filter_grayscale(maskpt, 0);
 
-    verbose_save(
-        verbose_mode, verbose_path, "0.1-processing-grayscale.png", maskpt);
+    verbose_save(verbose_mode, verbose_path, "0.1-mask-grayscale.png", maskpt);
 
     filter_gamma(maskpt, 255);
 
-    verbose_save(
-        verbose_mode, verbose_path, "0.2-processing-gamma.png", maskpt);
-
-    // Gaussian blur for noise removal
-    gaussian_blur_image(maskpt, 11, 1, 1);
-
-    verbose_save(
-        verbose_mode, verbose_path, "0.2-processing-blur.png", maskpt);
+    verbose_save(verbose_mode, verbose_path, "0.2-mask-gamma.png", maskpt);
 
     if (verbose_mode)
-        printf("   🎨 Average Color: %i\n", (int)maskpt->average_color);
-    else
-        fprintf(stderr, "\33[2K\r[===--------------------------]");
+        printf("   🖌  Filtering noise.\n");
 
-    verbose_save(
-        verbose_mode, verbose_path, "1.0-processing-color-blur.png", maskpt);
+    // Gaussian blur for noise removal
+    double *kernel = get_gaussian_smoothing_kernel(adaptive_range, 1.5);
+    convolution(kernel, adaptive_range, maskpt, maskpt, false);
 
-    if (maskpt->average_color >= 160)
-    {
-        filter_gamma(maskpt, 512);
+    verbose_save(verbose_mode, verbose_path, "1-mask-blur.png", maskpt);
 
-        // Erosion and Dilation for further noise removal and character
-        // enlargement
-        morph(maskpt, Erosion, 3);
-        verbose_save(
-            verbose_mode, verbose_path, "1.1-processing-erode.png", maskpt);
-
-        morph(maskpt, Dilation, 5);
-        verbose_save(
-            verbose_mode, verbose_path, "1.2-processing-dilate.png", maskpt);
-    }
-    else // Too much black = imperfections -> we remove it by bulk
-    {
-        // Erosion and Dilation for further noise removal and character
-        // enlargement
-        morph(maskpt, Erosion, 9);
-        verbose_save(
-            verbose_mode, verbose_path, "1.1-processing-erode.png", maskpt);
-
-        morph(maskpt, Dilation, 9);
-        verbose_save(
-            verbose_mode, verbose_path, "1.2-processing-dilate.png", maskpt);
-    }
+    // Dilate and erode to extract the important features
+    morph(imagept, Erosion, adaptive_range);
+    verbose_save(verbose_mode, verbose_path, "1.1-mask-dilation.png", imagept);
+    morph(imagept, Dilation, adaptive_range);
+    verbose_save(verbose_mode, verbose_path, "1.2-mask-erosion.png", imagept);
 
     if (verbose_mode)
         printf("   🔲 Applying a mask threshold.\n");
-    else
-        fprintf(stderr, "\33[2K\r[=====------------------------]");
 
-    // Mask creation from a dynamic threshold
-    filter_threshold(maskpt);
+    // Sauvola thresholding
+    filter_sauvola(maskpt, maskpt, adaptive_range + adaptive_range, 0.2,
+        verbose_mode, verbose_path);
 
-    verbose_save(verbose_mode, verbose_path, "2-processing-mask.png", maskpt);
+    verbose_save(
+        verbose_mode, verbose_path, "2.3-sauvola-thresholding.png", maskpt);
 
     /*
      * PASS 2 - Apply the mask to a clean version of the image and reapply
      * processing
      */
-
     if (verbose_mode)
         printf("   📥 Applying the mask on the original image.\n");
-    else
-        fprintf(stderr, "\33[2K\r[=======----------------------]");
 
     // Apply the mask onto the clean image
     apply_mask(imagept, maskpt);
 
     // Adjust the colors of the obtained image
     filter_grayscale(imagept, 0);
-    filter_contrast(imagept, 128);
-    filter_gamma(imagept, 512);
+
+    verbose_save(verbose_mode, verbose_path, "3-mask-applied.png", imagept);
+
+    // Grayscale and contrast adjustement
+    filter_grayscale(maskpt, 0);
 
     verbose_save(
-        verbose_mode, verbose_path, "3-processing-mask-applied.png", imagept);
-
-    if (verbose_mode)
-        printf("   🔲 Applying a dynamic threshold.\n");
-    else
-        fprintf(stderr, "\33[2K\r[=========--------------------]");
-
-    // Dynamic treshold to binarize the image
-    filter_adaptive_threshold(imagept, 4);
-
-    verbose_save(verbose_mode, verbose_path,
-        "4-processing-dynamic-threshold.png", imagept);
+        verbose_mode, verbose_path, "4.1-image-grayscale.png", imagept);
 
     if (verbose_mode)
         printf("   🖌  Filtering noise.\n");
-    else
-        fprintf(stderr, "\33[2K\r[===========-----------------]");
+
+    // Gaussian blur for noise removal
+    convolution(kernel, adaptive_range, imagept, imagept, false);
+    free(kernel);
+
+    verbose_save(verbose_mode, verbose_path, "4.2-image-blur.png", imagept);
+
+    filter_gamma(maskpt, 255);
+    filter_contrast(maskpt, 128);
+
+    if (verbose_mode)
+        printf("   🧮  Normalizing colors.\n");
+
+    verbose_save(
+        verbose_mode, verbose_path, "4.3-image-gamma-contrast.png", imagept);
+
+    // Dilate and erode to extract the important features
+    morph(imagept, Erosion, adaptive_range);
+    verbose_save(
+        verbose_mode, verbose_path, "4.4-image-dilation.png", imagept);
+    morph(imagept, Dilation, adaptive_range);
+    verbose_save(verbose_mode, verbose_path, "4.5-image-erosion.png", imagept);
 
     if (verbose_mode)
         printf("   🎨 Average Color: %i\n", (int)imagept->average_color);
 
-    // Special interval to target foggy images -> noise removal
-    if (imagept->average_color >= 230 && imagept->average_color <= 240)
+    if ((int)imagept->average_color == 237)
     {
-        morph(imagept, Erosion, 8);
-
+        filter_grayscale(imagept, -adaptive_range);
+        filter_normalize(imagept);
         verbose_save(
-            verbose_mode, verbose_path, "4.1-processing-erode.png", imagept);
-
-        morph(imagept, Dilation, 8);
-
-        verbose_save(
-            verbose_mode, verbose_path, "4.2-processing-dilate.png", imagept);
+            verbose_mode, verbose_path, "4.6-image-normalized.png", imagept);
+    }
+    else if ((int)imagept->average_color == 170)
+    {
+        filter_gamma(maskpt, 512);
+        filter_contrast(maskpt, 255);
     }
 
     if (verbose_mode)
-        printf("   🔳 Inverting the image.\n");
-    else
-        fprintf(stderr, "\33[2K\r[===========------------------]");
+        printf("   🔲  Binarizing the image.\n");
 
-    // Invert the binarization
-    filter_invert(imagept, 0);
+    // Adaptive threshold to binarise
+    filter_threshold(imagept);
 
-    if (!verbose_mode)
-        fprintf(stderr, "\33[2K\r[=============----------------]");
-
-    verbose_save(verbose_mode, verbose_path, "5-processing-final-inverted.png",
-        imagept);
+    verbose_save(verbose_mode, verbose_path, "5-binarized.png", imagept);
 }

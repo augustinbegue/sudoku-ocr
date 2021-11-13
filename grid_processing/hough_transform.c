@@ -6,7 +6,7 @@
 #include "int_list.h"
 
 #define EDGE_COLOR 255
-#define LINES_THRESHOLD_PERCENTAGE 40
+#define LINES_THRESHOLD_PERCENTAGE 30
 
 static void find_edges(int **accumulator, int diag, int rho_num, int theta_num,
     double *rhos, double *thetas, int_list *edges_x, int_list *edges_y,
@@ -14,8 +14,6 @@ static void find_edges(int **accumulator, int diag, int rho_num, int theta_num,
 {
     if (verbose_mode)
         printf("   📍 Fiding edges...\n");
-    else
-        fprintf(stderr, "\33[2K\r[========================----]");
 
     // 1. Fiding the maximum
     double max = 0;
@@ -41,8 +39,6 @@ static void find_edges(int **accumulator, int diag, int rho_num, int theta_num,
 
     if (verbose_mode)
         printf("   👈 Threshold: %i\n", line_threshold);
-    else
-        fprintf(stderr, "\33[2K\r[=========================---]");
 
     // 3. Fiding coordinates of the edges in the accumulator using the
     // threshold
@@ -136,8 +132,6 @@ static void find_edges(int **accumulator, int diag, int rho_num, int theta_num,
 
     if (verbose_mode)
         fprintf(stderr, "\n");
-    else
-        fprintf(stderr, "\33[2K\r[===========================-]");
 }
 
 int **hough_transform(Image *in, Image *clean, int_list *edges_x,
@@ -145,8 +139,6 @@ int **hough_transform(Image *in, Image *clean, int_list *edges_x,
 {
     if (verbose_mode)
         printf("   🧭 Hough Transform...\n");
-    else
-        fprintf(stderr, "\33[2K\r[=======================-----]");
 
     if (verbose_mode)
         printf("   🧮 Computing Edges...\n");

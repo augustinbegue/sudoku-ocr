@@ -19,4 +19,6 @@ void filter_gamma(Image *image, double value);
 
 void filter_invert(Image *image, double value);
 
+void filter_normalize(Image *image);
+
 #endif

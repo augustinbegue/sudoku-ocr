@@ -3,7 +3,7 @@
 
 #include "image.h"
 
-void process_image(
+void image_processing_extract_grid(
     Image *maskpt, Image *imagept, bool verbose, char *verbose_path);
 
 #endif
