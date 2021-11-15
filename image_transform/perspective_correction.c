@@ -87,19 +87,19 @@ Image correct_perspective(Image *rotated_imagept, square *selected_square,
      */
 
     // Translation matrix
-    double x_displacement = destination[0][0] - source[0][0];
-    double y_displacement = destination[0][1] - source[0][1];
+    int x_displacement = destination[0][0] - source[0][0];
+    int y_displacement = destination[0][1] - source[0][1];
     double translation_matrix[3][3]
-        = {{1, 0, 0}, {0, 1, 0}, {x_displacement, y_displacement, 1}};
+        = {{1, 0, x_displacement}, {0, 1, y_displacement}, {0, 0, 1}};
     if (verbose_mode)
-        printf("    Translation factors - x: %f, y: %f\n", x_displacement,
+        printf("    Translation factors - x: %d, y: %d\n", x_displacement,
             y_displacement);
 
     // Scale matrix
     // Computing scale factors :
     // Average between the factors for each edge
-    double x_scale_factor = 1;
-    double y_scale_factor = 1;
+    double x_scale_factor = edge_1_length / (double)edge_3_length;
+    double y_scale_factor = edge_2_length / (double)edge_4_length;
     double scale_matrix[3][3]
         = {{x_scale_factor, 0, 0}, {0, y_scale_factor, 0}, {0, 0, 1}};
     if (verbose_mode)
@@ -110,24 +110,30 @@ Image correct_perspective(Image *rotated_imagept, square *selected_square,
     // Computing shear factors :
     // Difference between the coordinates of the edges that are supposed to be
     // parallel
-    double x_shear_factor = 0;
-    //= (source[0][0] - source[3][0] + source[1][0] - source[2][0]) / 2;
-    double y_shear_factor = 0;
-    //= (source[0][1] - source[1][1] + source[2][1] - source[3][1]) / 2;
+    double x_shear_factor = (source[0][0] - source[3][0]) / max_edge_length;
+    double y_shear_factor = (source[0][1] - source[1][1]) / max_edge_length;
     double shear_matrix[3][3]
-        = {{1, x_shear_factor, 0}, {y_shear_factor, 1, 0}, {0, 0, 1}};
+        = {{1, y_shear_factor, 0}, {x_shear_factor, 1, 0}, {0, 0, 1}};
     if (verbose_mode)
         printf("    Shear factors - x: %f, y: %f\n", x_shear_factor,
             y_shear_factor);
+
+    // Perspective Transform
+    // Computing perspective factors :
+    double perspective_factor_1 = 0;
+    double perspective_factor_2 = 0;
+    double perspective_matrix[3][3] = {
+        {1, 0, 0}, {0, 1, 0}, {perspective_factor_1, perspective_factor_2, 1}};
 
     // Final Transformation Matrix
     double transformation_matrix[3][3] = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
 
     double transformation_matrix_inv[3][3] = {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}};
 
-    multiply_matrix(transformation_matrix, translation_matrix);
     multiply_matrix(transformation_matrix, scale_matrix);
+    multiply_matrix(transformation_matrix, translation_matrix);
     multiply_matrix(transformation_matrix, shear_matrix);
+    multiply_matrix(transformation_matrix, perspective_matrix);
 
     inverse_matrix(transformation_matrix, transformation_matrix_inv);
 
@@ -138,25 +144,26 @@ Image correct_perspective(Image *rotated_imagept, square *selected_square,
     {
         for (int j = 0; j < corrected_image.width; j++)
         {
-            double x = i;
-            double y = j;
-            double z = 1;
+            double ut = i;
+            double vt = j;
+            double wt = transformation_matrix[2][0] * ut
+                        + transformation_matrix[2][1] * vt
+                        + transformation_matrix[2][2];
 
-            double old_coordinates[3] = {x, y, z};
-            double new_coordinates[3] = {0, 0, 0};
-            multiply_matrix_vector(
-                transformation_matrix_inv, old_coordinates, new_coordinates);
+            double old_coordinates[3] = {ut / wt, vt / wt, 1};
 
-            new_coordinates[0] = new_coordinates[0] / new_coordinates[2];
-            new_coordinates[1] = new_coordinates[1] / new_coordinates[2];
-            new_coordinates[2] = 1;
+            int x = transformation_matrix_inv[0][0] * old_coordinates[0]
+                    + transformation_matrix_inv[0][1] * old_coordinates[1]
+                    + transformation_matrix_inv[0][2] * old_coordinates[2];
 
-            if (new_coordinates[0] >= 0 && new_coordinates[1] >= 0
-                && new_coordinates[0] < rotated_imagept->width
-                && new_coordinates[1] < rotated_imagept->height)
+            int y = transformation_matrix_inv[1][0] * old_coordinates[0]
+                    + transformation_matrix_inv[1][1] * old_coordinates[1]
+                    + transformation_matrix_inv[1][2] * old_coordinates[2];
+
+            if (x >= 0 && y >= 0 && x < rotated_imagept->width
+                && y < rotated_imagept->height)
             {
-                corrected_image.pixels[i][j] = rotated_imagept->pixels[(
-                    int)new_coordinates[0]][(int)new_coordinates[1]];
+                corrected_image.pixels[i][j] = rotated_imagept->pixels[x][y];
             }
             else
             {
