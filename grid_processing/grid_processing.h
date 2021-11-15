@@ -4,7 +4,7 @@
 #include "image.h"
 #include <stdbool.h>
 
-void grid_processing_split_image(
+square *grid_processing_detect_grid(
     Image *rotated_imagept, bool verbose_mode, char *verbose_path);
 
 #endif

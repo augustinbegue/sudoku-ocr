@@ -11,7 +11,7 @@
 #include "square_detection.h"
 #include "square_selection.h"
 
-void grid_processing_split_image(
+square *grid_processing_detect_grid(
     Image *rotated_imagept, bool verbose_mode, char *verbose_path)
 {
     Image edge_image
@@ -41,27 +41,20 @@ void grid_processing_split_image(
     Image autorotated_image = automatic_rotation(
         hough_accumulator, selected_square, rotated_imagept, verbose_mode);
 
-    verbose_save(
-        verbose_mode, verbose_path, "8-autorotated.png", &autorotated_image);
+    free_Image(rotated_imagept);
+    *rotated_imagept = autorotated_image;
 
-    // Image **image_cells = split_grid(
-    //     &autorotated_image, selected_square, verbose_mode, verbose_path);
+    verbose_save(
+        verbose_mode, verbose_path, "8-autorotated.png", rotated_imagept);
+
+    normalize_square(selected_square);
 
     free_Image(&edge_image);
-    free_Image(&autorotated_image);
     free_Image(lines_imagept);
-    // for (int i = 0; i < 9; i++)
-    // {
-    //     for (int j = 0; j < 9; j++)
-    //     {
-    //         free_Image(image_cells[i * 9 + j]);
-    //         free(image_cells[i * 9 + j]);
-    //     }
-    // }
-    // free(image_cells);
     free_2d_arr(edges, edge_num);
     l_free_values(squares);
     li_free(edges_x);
     li_free(edges_y);
-    free(selected_square);
+
+    return selected_square;
 }

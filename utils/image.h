@@ -32,7 +32,7 @@ Image SDL_Surface_to_Image(SDL_Surface *image_surface);
 
 SDL_Surface *Image_to_SDL_Surface(Image *image);
 
-Image *create_image(int height, int width);
+Image create_image(int height, int width);
 
 void free_Image(Image *image);
 

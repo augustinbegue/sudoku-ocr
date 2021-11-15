@@ -6,7 +6,7 @@
 #include "int_list.h"
 
 #define EDGE_COLOR 255
-#define LINES_THRESHOLD_PERCENTAGE 30
+#define LINES_THRESHOLD_PERCENTAGE 50
 
 static void find_edges(int **accumulator, int diag, int rho_num, int theta_num,
     double *rhos, double *thetas, int_list *edges_x, int_list *edges_y,
@@ -43,39 +43,38 @@ static void find_edges(int **accumulator, int diag, int rho_num, int theta_num,
     // 3. Fiding coordinates of the edges in the accumulator using the
     // threshold
 
-    int prev = accumulator[0][0];
     int prev_t = 0, prev_r = 0;
-    bool increasing = true;
+    int step = rho_num / 60;
 
     int r_c = 255, g_c = 0, b_c = 255;
     int edges = 0;
 
-    for (int r = 0; r <= rho_num; r++)
+    for (int r = 0; r <= rho_num; r += step)
     {
-        for (int t = 0; t <= theta_num; t++)
+        for (int t = 0; t <= theta_num; t += step)
         {
             int val = accumulator[r][t];
+            prev_r = r;
+            prev_t = t;
 
-            // Check if the current value is a local maximum. If so, we can
-            // treat it, otherwise, we continue the iteration
-            if (val >= prev)
+            // Looking for the maximum in a 10*10 window
+            for (int i = 0; i < step; i++)
             {
-                prev = val;
-                prev_r = r;
-                prev_t = t;
-                increasing = true;
-                continue;
-            }
-            else if (val < prev && increasing)
-            {
-                increasing = false;
-            }
-            else if (val < prev)
-            {
-                prev = val;
-                prev_r = r;
-                prev_t = t;
-                continue;
+                for (int j = 0; j < step; j++)
+                {
+                    int x = r + i;
+                    int y = t + j;
+
+                    if (x > rho_num || y > theta_num)
+                        continue;
+
+                    if (accumulator[x][y] > val)
+                    {
+                        val = accumulator[x][y];
+                        prev_r = x;
+                        prev_t = y;
+                    }
+                }
             }
 
             if (val < line_threshold)

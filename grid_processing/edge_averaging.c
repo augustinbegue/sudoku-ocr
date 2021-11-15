@@ -3,7 +3,7 @@
 #include "image.h"
 #include "int_list.h"
 // Amount we divide the biggest side of the image by to get the error factor
-static const int ERR_FACTOR = 100;
+static const int ERR_FACTOR = 300;
 
 /**
  * @brief Reduces the number of lines contained image edges_[xy] by averaging

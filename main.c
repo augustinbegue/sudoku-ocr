@@ -12,6 +12,7 @@
 #include "helpers.h"
 #include "image.h"
 #include "image_processing.h"
+#include "perspective_correction.h"
 #include "rotation.h"
 
 static void print_help(const char *exec_name)
@@ -144,21 +145,31 @@ int main(int argc, char const *argv[])
         }
 
         /*
-         * Edge detection
+         * Grid detection
          */
-        grid_processing_split_image(
+        square *grid_square = grid_processing_detect_grid(
             rotated_imagept, verbose_mode, verbose_path);
 
+        /*
+         * Perspective Correction
+         */
+        Image perspective_corrected_image = correct_perspective(
+            rotated_imagept, grid_square, verbose_mode, verbose_path);
+        Image *perspective_corrected_imagept = &perspective_corrected_image;
+
+        free_Image(imagept);
+        if (image_rotation)
+            free_Image(rotated_imagept);
+
         // Saves the final image in the output_path file
-        save_image(Image_to_SDL_Surface(rotated_imagept), output_path);
+        save_image(
+            Image_to_SDL_Surface(perspective_corrected_imagept), output_path);
 
         /*
          * FREEING SHIT
          */
-        free_Image(imagept); // Also frees rotated_imagept if there has been no
-                             // rotation (they are the same)
-        if (image_rotation)
-            free_Image(rotated_imagept);
+        free_Image(perspective_corrected_imagept);
+        free(grid_square);
     }
     else
     {
