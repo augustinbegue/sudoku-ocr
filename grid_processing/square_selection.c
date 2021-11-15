@@ -186,17 +186,14 @@ square *select_square(
             biggest = side4_length;
         }
 
-        double ideal_area = pow(smallest, 2);
-        double actual_area = pow(biggest, 2);
+        double smallest_area = pow(smallest, 2);
+        double biggest_area = pow(biggest, 2);
 
-        double diff = actual_area - ideal_area;
+        double diff = biggest_area - smallest_area;
         // diff between biggest and smallest possible area / biggest area)
-        double diff_factor = (diff / actual_area) * ideal_area;
+        double diff_factor = (diff / biggest_area) * smallest_area;
 
-        // Parameters Weight for selection:
-        // ideal_area * 1
-        // diff_factor * 100
-        double selection_factor = ideal_area - (diff_factor);
+        double selection_factor = smallest_area * 3 - diff_factor * 10;
 
         if (selection_factor >= best_selection_factor)
         {

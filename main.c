@@ -110,6 +110,8 @@ int main(int argc, char const *argv[])
         Image *imagept = &image;
         Image mask = clone_image(imagept);
         Image *maskpt = &mask;
+        Image clean_image = clone_image(imagept);
+        Image *clean_imagept = &clean_image;
 
         if (!verbose_mode)
             fprintf(stderr, "\33[2K\r[=----------------------------]");
@@ -135,6 +137,10 @@ int main(int argc, char const *argv[])
             rotated_image = rotate_image(imagept, rotation_amount);
             rotated_imagept = &rotated_image;
 
+            // TODO: Fix leak
+            clean_image = rotate_image(clean_imagept, rotation_amount);
+            clean_imagept = &clean_image;
+
             if (verbose_mode)
                 verbose_save(verbose_mode, verbose_path, "5.1-rotated.png",
                     rotated_imagept);
@@ -147,28 +153,34 @@ int main(int argc, char const *argv[])
         /*
          * Grid detection
          */
+        double rotation_amount = 0;
         square *grid_square = grid_processing_detect_grid(
-            rotated_imagept, verbose_mode, verbose_path);
+            rotated_imagept, &rotation_amount, verbose_mode, verbose_path);
+
+        // TODO: fix leak
+        // Rotate clean image as well if automatic rotation as been preformed
+        rotate_image(clean_imagept, rotation_amount);
+        clean_imagept = &clean_image;
 
         /*
          * Perspective Correction
          */
-        Image perspective_corrected_image = correct_perspective(
-            rotated_imagept, grid_square, verbose_mode, verbose_path);
-        Image *perspective_corrected_imagept = &perspective_corrected_image;
+        Image final_full_image = correct_perspective(
+            clean_imagept, grid_square, verbose_mode, verbose_path);
+        Image *final_full_imagept = &final_full_image;
 
         free_Image(imagept);
         if (image_rotation)
             free_Image(rotated_imagept);
 
         // Saves the final image in the output_path file
-        save_image(
-            Image_to_SDL_Surface(perspective_corrected_imagept), output_path);
+        save_image(Image_to_SDL_Surface(final_full_imagept), output_path);
 
         /*
          * FREEING SHIT
          */
-        free_Image(perspective_corrected_imagept);
+        free_Image(final_full_imagept);
+        free_Image(clean_imagept);
         free(grid_square);
     }
     else

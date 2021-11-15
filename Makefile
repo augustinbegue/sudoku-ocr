@@ -1,6 +1,6 @@
 # Makefile
 
-CC=gcc -I./image_processing -I./grid_processing -I./utils -I./image_rotation 
+CC=gcc -I./image_processing -I./grid_processing -I./utils -I./image_transform
 
 # do not change
 CPPFLAGS=`pkg-config --cflags sdl2` -D__NO_INLINE__

@@ -11,8 +11,8 @@
 #include "square_detection.h"
 #include "square_selection.h"
 
-square *grid_processing_detect_grid(
-    Image *rotated_imagept, bool verbose_mode, char *verbose_path)
+square *grid_processing_detect_grid(Image *rotated_imagept,
+    double *rotation_amount, bool verbose_mode, char *verbose_path)
 {
     Image edge_image
         = canny_edge_filtering(rotated_imagept, verbose_mode, verbose_path);
@@ -38,8 +38,8 @@ square *grid_processing_detect_grid(
     square *selected_square
         = select_square(squares, lines_imagept, verbose_mode, verbose_path);
 
-    Image autorotated_image = automatic_rotation(
-        hough_accumulator, selected_square, rotated_imagept, verbose_mode);
+    Image autorotated_image = automatic_rotation(hough_accumulator,
+        selected_square, rotated_imagept, rotation_amount, verbose_mode);
 
     free_Image(rotated_imagept);
     *rotated_imagept = autorotated_image;

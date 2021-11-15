@@ -53,7 +53,7 @@ void multiply_matrix_vector(double M[][3], double v[3], double v_out[3])
         v_out[i] = M[i][0] * v[0] + M[i][1] * v[1] + M[i][2] * v[2];
 }
 
-Image correct_perspective(Image *rotated_imagept, square *selected_square,
+Image correct_perspective(Image *image, square *selected_square,
     bool verbose_mode, char *verbose_path)
 {
     if (verbose_mode)
@@ -160,10 +160,9 @@ Image correct_perspective(Image *rotated_imagept, square *selected_square,
                     + transformation_matrix_inv[1][1] * old_coordinates[1]
                     + transformation_matrix_inv[1][2] * old_coordinates[2];
 
-            if (x >= 0 && y >= 0 && x < rotated_imagept->width
-                && y < rotated_imagept->height)
+            if (x >= 0 && y >= 0 && x < image->width && y < image->height)
             {
-                corrected_image.pixels[i][j] = rotated_imagept->pixels[x][y];
+                corrected_image.pixels[i][j] = image->pixels[x][y];
             }
             else
             {
