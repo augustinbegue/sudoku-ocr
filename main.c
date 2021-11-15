@@ -137,10 +137,6 @@ int main(int argc, char const *argv[])
             rotated_image = rotate_image(imagept, rotation_amount);
             rotated_imagept = &rotated_image;
 
-            // TODO: Fix leak
-            clean_image = rotate_image(clean_imagept, rotation_amount);
-            clean_imagept = &clean_image;
-
             if (verbose_mode)
                 verbose_save(verbose_mode, verbose_path, "5.1-rotated.png",
                     rotated_imagept);
@@ -153,20 +149,22 @@ int main(int argc, char const *argv[])
         /*
          * Grid detection
          */
-        double rotation_amount = 0;
+        double autorotation_amount = 0;
         square *grid_square = grid_processing_detect_grid(
-            rotated_imagept, &rotation_amount, verbose_mode, verbose_path);
+            rotated_imagept, &autorotation_amount, verbose_mode, verbose_path);
 
-        // TODO: fix leak
         // Rotate clean image as well if automatic rotation as been preformed
-        rotate_image(clean_imagept, rotation_amount);
-        clean_imagept = &clean_image;
+        Image clean_rotated_image = rotate_image(
+            clean_imagept, rotation_amount + autorotation_amount);
+        Image *clean_rotated_imagept = &clean_rotated_image;
+
+        free_Image(clean_imagept);
 
         /*
          * Perspective Correction
          */
         Image final_full_image = correct_perspective(
-            clean_imagept, grid_square, verbose_mode, verbose_path);
+            clean_rotated_imagept, grid_square, verbose_mode, verbose_path);
         Image *final_full_imagept = &final_full_image;
 
         free_Image(imagept);
@@ -180,7 +178,7 @@ int main(int argc, char const *argv[])
          * FREEING SHIT
          */
         free_Image(final_full_imagept);
-        free_Image(clean_imagept);
+        free_Image(clean_rotated_imagept);
         free(grid_square);
     }
     else
