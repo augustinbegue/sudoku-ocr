@@ -1,5 +1,7 @@
 #include <math.h>
 #include <stdbool.h>
+#include "float.h"
+#include "geometry.h"
 #include "helpers.h"
 #include "image.h"
 
@@ -53,6 +55,21 @@ void multiply_matrix_vector(double M[][3], double v[3], double v_out[3])
         v_out[i] = M[i][0] * v[0] + M[i][1] * v[1] + M[i][2] * v[2];
 }
 
+/**
+ * @brief Cross product of two vectors array
+ *
+ * @param vect_A
+ * @param vect_B
+ * @param cross_P
+ */
+void cross_product(double vect_A[], double vect_B[], double cross_P[])
+{
+
+    cross_P[0] = vect_A[1] * vect_B[2] - vect_A[2] * vect_B[1];
+    cross_P[1] = vect_A[2] * vect_B[0] - vect_A[0] * vect_B[2];
+    cross_P[2] = vect_A[0] * vect_B[1] - vect_A[1] * vect_B[0];
+}
+
 Image correct_perspective(Image *image, square *selected_square,
     bool verbose_mode, char *verbose_path)
 {
@@ -95,17 +112,6 @@ Image correct_perspective(Image *image, square *selected_square,
         printf("    Translation factors - x: %d, y: %d\n", x_displacement,
             y_displacement);
 
-    // Scale matrix
-    // Computing scale factors :
-    // Average between the factors for each edge
-    double x_scale_factor = edge_1_length / (double)edge_3_length;
-    double y_scale_factor = edge_2_length / (double)edge_4_length;
-    double scale_matrix[3][3]
-        = {{x_scale_factor, 0, 0}, {0, y_scale_factor, 0}, {0, 0, 1}};
-    if (verbose_mode)
-        printf("    Scale factors - x: %f, y: %f\n", x_scale_factor,
-            y_scale_factor);
-
     // Shear Matrix
     // Computing shear factors :
     // Difference between the coordinates of the edges that are supposed to be
@@ -120,8 +126,80 @@ Image correct_perspective(Image *image, square *selected_square,
 
     // Perspective Transform
     // Computing perspective factors :
+    // We select two sets of lines that are supposed to be parallel.
+    // In our case, theses are the edges of the square
+    // We compute the intersection of these lines
+    line horizontal_1
+        = {source[0][0], source[0][1], source[1][0], source[1][1]};
+    line horizontal_2
+        = {source[2][0], source[2][1], source[3][0], source[3][1]};
+
+    // Line 1 represented as a1 + b1 = c1
+    double h1_eq[3] = {horizontal_1.y1 - horizontal_1.y0,
+        horizontal_1.x0 - horizontal_1.x1, 1};
+    h1_eq[2] = h1_eq[0] * horizontal_1.x0 + h1_eq[1] * horizontal_1.y0;
+
+    // Line 2 represented as a2 + b2 = c2
+    double h2_eq[3] = {horizontal_2.y1 - horizontal_2.y0,
+        horizontal_2.x0 - horizontal_2.x1, 1};
+    h2_eq[2] = h2_eq[0] * horizontal_2.x0 + h2_eq[1] * horizontal_2.y0;
+
+    double h_intersection[3] = {0, 0, 0};
+
+    cross_product(h1_eq, h2_eq, h_intersection);
+
+    line vertical_1 = {source[0][0], source[0][1], source[3][0], source[3][1]};
+    line vertical_2 = {source[1][0], source[1][1], source[2][0], source[2][1]};
+
+    // Line 1 represented as a1 + b1 = c1
+    double v1_eq[3]
+        = {vertical_1.y1 - vertical_1.y0, vertical_1.x0 - vertical_1.x1, 1};
+    v1_eq[2] = v1_eq[0] * vertical_1.x0 + v1_eq[1] * vertical_1.y0;
+
+    // Line 2 represented as a2 + b2 = c2
+    double v2_eq[3]
+        = {vertical_2.y1 - vertical_2.y0, vertical_2.x0 - vertical_2.x1, 1};
+    v2_eq[2] = v2_eq[0] * vertical_2.x0 + v2_eq[1] * vertical_2.y0;
+
+    double v_intersection[3] = {0, 0, 0};
+
+    cross_product(v1_eq, v2_eq, v_intersection);
+
+    if (verbose_mode)
+        printf("    Horizontal Intersection -  (%.2f, %.2f, %.2f)\n",
+            h_intersection[0], h_intersection[1], h_intersection[2]);
+
+    if (verbose_mode)
+        printf("    Vertical Intersection - (%.2f, %.2f, %.2f)\n",
+            v_intersection[0], v_intersection[1], v_intersection[2]);
+
     double perspective_factor_1 = 0;
     double perspective_factor_2 = 0;
+
+    // Then, if there is an intersection, we do the cross product of the two
+    // intersection points to obtain the line at infinity
+    if (h_intersection[2] != 0 && v_intersection[2] != 0
+        && (h_intersection[0] >= max_edge_length
+            || h_intersection[1] >= max_edge_length)
+        && (v_intersection[0] >= max_edge_length
+            || v_intersection[1] >= max_edge_length))
+    {
+
+        double projection[3] = {0, 0, 0};
+        cross_product(v_intersection, h_intersection, projection);
+
+        if (verbose_mode)
+            printf("    Projection - (%.2f, %.2f, %.2f)\n", v_intersection[0],
+                v_intersection[1], v_intersection[2]);
+
+        perspective_factor_1 = projection[0] / projection[2];
+        perspective_factor_2 = projection[1] / projection[2];
+    }
+
+    if (verbose_mode)
+        printf("    Perspective factors - 1: %f, 2: %f\n",
+            perspective_factor_1, perspective_factor_2);
+
     double perspective_matrix[3][3] = {
         {1, 0, 0}, {0, 1, 0}, {perspective_factor_1, perspective_factor_2, 1}};
 
@@ -130,7 +208,6 @@ Image correct_perspective(Image *image, square *selected_square,
 
     double transformation_matrix_inv[3][3] = {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}};
 
-    multiply_matrix(transformation_matrix, scale_matrix);
     multiply_matrix(transformation_matrix, translation_matrix);
     multiply_matrix(transformation_matrix, shear_matrix);
     multiply_matrix(transformation_matrix, perspective_matrix);
