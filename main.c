@@ -163,9 +163,9 @@ int main(int argc, char const *argv[])
         /*
          * Perspective Correction
          */
-        Image final_full_image = correct_perspective(
+        Image *final_full_imagept = correct_perspective(
             clean_rotated_imagept, grid_square, verbose_mode, verbose_path);
-        Image *final_full_imagept = &final_full_image;
+        free_Image(clean_rotated_imagept);
 
         Image **cells
             = split_grid(final_full_imagept, verbose_mode, verbose_path);
@@ -180,18 +180,18 @@ int main(int argc, char const *argv[])
         /*
          * FREEING SHIT
          */
-        for (int i = 0; i < 10; i++)
+        for (int i = 0; i < 9; i++)
         {
-            for (int j = 0; j < 10; j++)
+            for (int j = 0; j < 9; j++)
             {
-                int c = j * 9 + j;
+                int c = i * 9 + j;
                 free_Image(cells[c]);
+                free(cells[c]);
             }
         }
         free(cells);
-
         free_Image(final_full_imagept);
-        free_Image(clean_rotated_imagept);
+        free(final_full_imagept);
         free(grid_square);
     }
     else

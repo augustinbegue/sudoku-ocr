@@ -70,7 +70,7 @@ void cross_product(double vect_A[], double vect_B[], double cross_P[])
     cross_P[2] = vect_A[0] * vect_B[1] - vect_A[1] * vect_B[0];
 }
 
-Image correct_perspective(Image *image, square *selected_square,
+Image *correct_perspective(Image *image, square *selected_square,
     bool verbose_mode, char *verbose_path)
 {
     if (verbose_mode)
@@ -214,12 +214,12 @@ Image correct_perspective(Image *image, square *selected_square,
 
     inverse_matrix(transformation_matrix, transformation_matrix_inv);
 
-    Image corrected_image = create_image(max_edge_length, max_edge_length);
+    Image *corrected_image = create_image(max_edge_length, max_edge_length);
 
     // Applying the transformation matrix to the image
-    for (int i = 0; i < corrected_image.height; i++)
+    for (int i = 0; i < corrected_image->height; i++)
     {
-        for (int j = 0; j < corrected_image.width; j++)
+        for (int j = 0; j < corrected_image->width; j++)
         {
             double ut = i;
             double vt = j;
@@ -239,18 +239,18 @@ Image correct_perspective(Image *image, square *selected_square,
 
             if (x >= 0 && y >= 0 && x < image->width && y < image->height)
             {
-                corrected_image.pixels[i][j] = image->pixels[x][y];
+                corrected_image->pixels[i][j] = image->pixels[x][y];
             }
             else
             {
                 Pixel pix = {.r = 0, .g = 0, .b = 0};
-                corrected_image.pixels[i][j] = pix;
+                corrected_image->pixels[i][j] = pix;
             }
         }
     }
 
     verbose_save(verbose_mode, verbose_path, "9-perspective-corrected.png",
-        &corrected_image);
+        corrected_image);
 
     return corrected_image;
 }
