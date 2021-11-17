@@ -4,15 +4,9 @@
 
 #define CELL_NUMBER_ROW 9
 
-Image **split_grid(Image *input, square *selected_square, bool verbose_mode,
-    char *verbose_path)
+Image **split_grid(Image *input, bool verbose_mode, char *verbose_path)
 {
-    Image cropped_image = crop_image(input, selected_square);
-
-    verbose_save(
-        verbose_mode, verbose_path, "9.0-cropped.png", &cropped_image);
-
-    int cropped_size = cropped_image.width;
+    int cropped_size = input->width;
     int cell_size = cropped_size / 9;
 
     /*
@@ -31,7 +25,8 @@ Image **split_grid(Image *input, square *selected_square, bool verbose_mode,
         for (int cell_y = 0; cell_y < 9; cell_y++)
         {
             int c = cell_x * CELL_NUMBER_ROW + cell_y;
-            image_cells[c] = create_image(cell_size, cell_size);
+            Image cell = create_image(cell_size, cell_size);
+            image_cells[c] = &cell;
 
             int start_x = cell_x * cell_size;
             int start_y = cell_y * cell_size;
@@ -44,7 +39,7 @@ Image **split_grid(Image *input, square *selected_square, bool verbose_mode,
                 for (int y = start_y, out_y = 0;
                      y < end_y && out_y < cell_size; y++, out_y++)
                 {
-                    Pixel in = cropped_image.pixels[x][y];
+                    Pixel in = input->pixels[x][y];
                     image_cells[c]->pixels[out_x][out_y] = in;
                 }
             }
@@ -65,8 +60,6 @@ Image **split_grid(Image *input, square *selected_square, bool verbose_mode,
             }
         }
     }
-
-    free_Image(&cropped_image);
 
     return image_cells;
 }

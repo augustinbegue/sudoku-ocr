@@ -70,6 +70,7 @@ Image clone_image(Image *source)
 
 Image create_image(int height, int width)
 {
+    // TODO : Turn this into a pointer
     Image image;
 
     image.height = height;

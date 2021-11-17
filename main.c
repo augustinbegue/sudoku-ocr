@@ -167,6 +167,9 @@ int main(int argc, char const *argv[])
             clean_rotated_imagept, grid_square, verbose_mode, verbose_path);
         Image *final_full_imagept = &final_full_image;
 
+        Image **cells
+            = split_grid(final_full_imagept, verbose_mode, verbose_path);
+
         free_Image(imagept);
         if (image_rotation)
             free_Image(rotated_imagept);
@@ -177,6 +180,16 @@ int main(int argc, char const *argv[])
         /*
          * FREEING SHIT
          */
+        for (int i = 0; i < 10; i++)
+        {
+            for (int j = 0; j < 10; j++)
+            {
+                int c = j * 9 + j;
+                free_Image(cells[c]);
+            }
+        }
+        free(cells);
+
         free_Image(final_full_imagept);
         free_Image(clean_rotated_imagept);
         free(grid_square);
