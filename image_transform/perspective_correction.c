@@ -249,7 +249,7 @@ Image *correct_perspective(Image *image, square *selected_square,
         }
     }
 
-    verbose_save(verbose_mode, verbose_path, "9-perspective-corrected.png",
+    verbose_save(verbose_mode, verbose_path, "9.1-perspective-corrected.png",
         corrected_image);
 
     return corrected_image;

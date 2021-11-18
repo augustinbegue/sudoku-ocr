@@ -2,6 +2,8 @@
 
 #define GEOMETRY_H
 
+#include <stdbool.h>
+
 struct line
 {
     int x0;
