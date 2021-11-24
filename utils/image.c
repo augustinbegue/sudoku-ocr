@@ -20,13 +20,15 @@ GdkPixbuf *image_to_pixbuf(Image *image)
     {
         for (int y = 0; y < image->height; y++)
         {
-            guchar *pixels = gdk_pixbuf_get_pixels(pixbuf);
+            int n_channels = gdk_pixbuf_get_n_channels(pixbuf);
             int rowstride = gdk_pixbuf_get_rowstride(pixbuf);
-            int offset = y * rowstride + x * 3;
+            guchar *pixels = gdk_pixbuf_get_pixels(pixbuf);
 
-            pixels[offset] = image->pixels[y][x].r;
-            pixels[offset + 1] = image->pixels[y][x].g;
-            pixels[offset + 2] = image->pixels[y][x].b;
+            guchar *p = pixels + y * rowstride + x * n_channels;
+            p[0] = image->pixels[y][x].r;
+            p[1] = image->pixels[y][x].g;
+            p[2] = image->pixels[y][x].b;
+            p[3] = 255;
         }
     }
 
