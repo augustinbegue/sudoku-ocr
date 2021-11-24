@@ -1,10 +1,5 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdbool.h>
-#include <math.h>
-#include "matrix.h"
-#include "maths_extra.h"
-#include "saveLoad.h"
+#include "network.h"
+
 
 static const int num_inputs = 2;
 static const int num_hidden = 5;
@@ -108,7 +103,7 @@ void random_test(Matrix *hw, Matrix *hb, Matrix *ow, Matrix *ob)
     printf("Average error per trial: %f\n", total_error / ((double)(NUMBER_OF_TESTS)));
 }
 
-int main()
+int train()
 {
     //Initializing training sets
     Matrix training_inputs;
@@ -171,7 +166,13 @@ int main()
 
     Matrix output_bias;
     m_init(&output_bias, 1, num_outputs);
-    m_setIndex(&output_bias, 0, 0, rand_weight());
+    for (int i = 0; i < (&output_bias)->rows; i++)
+    {
+        for (int j = 0; j < (&output_bias)->cols; j++)
+        {
+            m_setIndex(&output_bias, i, j, rand_weight());
+        }
+    }
 
     //Iterate through epochs
     for (int n = 0; n < EPOCHS; n++)
@@ -299,5 +300,5 @@ int main()
     m_free(&hidden_bias);
     m_free(&output_weights);
     m_free(&output_bias);
+    return 0;
 }
-
