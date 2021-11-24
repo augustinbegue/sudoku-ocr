@@ -5,6 +5,7 @@
 #include "SDL2/SDL.h"
 #include "SDL2/SDL_image.h"
 #include "geometry.h"
+#include "gtk/gtk.h"
 
 struct Pixel
 {
@@ -21,6 +22,8 @@ struct Image
     double average_color;
 };
 typedef struct Image Image;
+
+GdkPixbuf *image_to_pixbuf(Image *image);
 
 SDL_Surface *load_image(char *path);
 

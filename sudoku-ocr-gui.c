@@ -1,4 +1,5 @@
 #include <gtk/gtk.h>
+#include <image.h>
 
 struct StepIndicators
 {
@@ -89,8 +90,9 @@ void file_selected(GtkWidget *widget, gpointer data)
     GFile *file = gtk_file_chooser_get_file(file_chooser);
     char *path = g_file_get_path(file);
 
-    GdkPixbuf *pixbuf
-        = gdk_pixbuf_new_from_file_at_scale(path, 500, 500, TRUE, NULL);
+    Image image = SDL_Surface_to_Image(load_image(path));
+
+    GdkPixbuf *pixbuf = image_to_pixbuf(&image);
 
     gtk_image_set_from_pixbuf(main_window->pages->page2->image, pixbuf);
 
@@ -130,7 +132,9 @@ int main(int argc, char *argv[])
 
     GtkBuilder *builder = gtk_builder_new();
 
-    if (gtk_builder_add_from_file(builder, "./main.glade", NULL) == 0)
+    if (gtk_builder_add_from_file(
+            builder, "./graphical_interface/main.glade", NULL)
+        == 0)
     {
         g_printerr("Error loading file\n");
         return 1;

@@ -7,8 +7,31 @@
 #include "image.h"
 #include "SDL2/SDL.h"
 #include "SDL2/SDL_image.h"
+#include "gtk/gtk.h"
 #include "helpers.h"
 #include "pixel_operations.h"
+
+GdkPixbuf *image_to_pixbuf(Image *image)
+{
+    GdkPixbuf *pixbuf = gdk_pixbuf_new(
+        GDK_COLORSPACE_RGB, FALSE, 8, image->width, image->height);
+
+    for (int x = 0; x < image->width; x++)
+    {
+        for (int y = 0; y < image->height; y++)
+        {
+            guchar *pixels = gdk_pixbuf_get_pixels(pixbuf);
+            int rowstride = gdk_pixbuf_get_rowstride(pixbuf);
+            int offset = y * rowstride + x * 3;
+
+            pixels[offset] = image->pixels[y][x].r;
+            pixels[offset + 1] = image->pixels[y][x].g;
+            pixels[offset + 2] = image->pixels[y][x].b;
+        }
+    }
+
+    return pixbuf;
+}
 
 SDL_Surface *load_image(char *path)
 {
