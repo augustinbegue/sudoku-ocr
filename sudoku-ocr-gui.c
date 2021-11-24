@@ -1,6 +1,7 @@
 #include <gtk/gtk.h>
 #include <image.h>
 #include "image_processing.h"
+#include "rotation.h"
 
 struct StepIndicators
 {
@@ -13,16 +14,17 @@ struct StepIndicators
 };
 typedef struct StepIndicators StepIndicators;
 
-struct Buttons
+struct Controls
 {
+    GtkScale *rotation_scale;
     GtkButton *save_button;
     GtkButton *open_button;
     GtkButton *prev_button;
-    GtkFileChooserButton *file_chooser_button;
     GtkButton *confirm_image_button;
     GtkButton *cancel_image_button;
+    GtkFileChooserButton *file_chooser_button;
 };
-typedef struct Buttons Buttons;
+typedef struct Controls Controls;
 
 struct Page
 {
@@ -41,15 +43,58 @@ struct Pages
 };
 typedef struct Pages Pages;
 
+struct Images
+{
+    Image *mask;
+    Image *image;
+    Image *image_rotated;
+    Image *image_rotated_cropped;
+    gdouble current_rotation;
+};
+typedef struct Images Images;
+
 struct MainWindow
 {
     GtkWidget *window;
     GtkStack *stack;
     StepIndicators *step_indicators;
-    Buttons *buttons;
+    Controls *controls;
     Pages *pages;
+    Images *images;
 };
 typedef struct MainWindow MainWindow;
+
+void display_image(GtkImage *image_container, Image *image)
+{
+    GdkPixbuf *pixbuf = image_to_pixbuf(image);
+
+    GdkRectangle allocation;
+
+    gdk_monitor_get_workarea(
+        gdk_display_get_primary_monitor(gdk_display_get_default()),
+        &allocation);
+
+    double aspect_ratio = (double)image->width / (double)image->height;
+
+    allocation.width = (allocation.width * 0.6) * aspect_ratio;
+    allocation.height = (allocation.height * 0.6);
+
+    if (allocation.width < 500 || allocation.width > 5000)
+    {
+        allocation.width = 500 * aspect_ratio;
+    }
+    if (allocation.height < 500 || allocation.height > 5000)
+    {
+        allocation.height = 500;
+    }
+
+    GdkPixbuf *resized = gdk_pixbuf_scale_simple(
+        pixbuf, allocation.width, allocation.height, GDK_INTERP_BILINEAR);
+
+    gtk_image_set_from_pixbuf(image_container, resized);
+
+    gdk_pixbuf_unref(pixbuf);
+}
 
 void set_page(MainWindow *main_window, const gchar *page)
 {
@@ -86,6 +131,26 @@ void set_step(StepIndicators *step_indicators, int step_number)
             gtk_widget_set_opacity(step_indicators->step_5_indicator, 1.0);
             break;
     }
+}
+
+void rotation_changed(GtkWidget *widget, gpointer user_data)
+{
+    MainWindow *main_window = (MainWindow *)user_data;
+
+    gdouble value = gtk_range_get_value(
+        GTK_RANGE(main_window->controls->rotation_scale));
+
+    gdouble rotation = value - main_window->images->current_rotation;
+
+    *main_window->images->image_rotated
+        = rotate_image(main_window->images->image, value);
+
+    main_window->images->current_rotation = value;
+
+    display_image(GTK_IMAGE(main_window->pages->page3->image),
+        main_window->images->image_rotated);
+
+    return;
 }
 
 void save_current_image(GtkWidget *widget, gpointer data)
@@ -163,15 +228,19 @@ void file_selected(GtkWidget *widget, gpointer data)
     MainWindow *main_window = (MainWindow *)data;
 
     GtkFileChooser *file_chooser
-        = GTK_FILE_CHOOSER(main_window->buttons->file_chooser_button);
+        = GTK_FILE_CHOOSER(main_window->controls->file_chooser_button);
 
     GFile *file = gtk_file_chooser_get_file(file_chooser);
     char *path = g_file_get_path(file);
 
-    GdkPixbuf *pixbuf
-        = gdk_pixbuf_new_from_file_at_scale(path, 500, 500, TRUE, NULL);
+    main_window->images->image = malloc(sizeof(Image));
+    main_window->images->mask = malloc(sizeof(Image));
 
-    gtk_image_set_from_pixbuf(main_window->pages->page2->image, pixbuf);
+    *main_window->images->image = SDL_Surface_to_Image(load_image(path));
+    *main_window->images->mask = SDL_Surface_to_Image(load_image(path));
+
+    display_image(
+        main_window->pages->page2->image, main_window->images->image);
 
     gchar label[100];
     g_snprintf(label, 100, "Image: %s", path);
@@ -196,7 +265,7 @@ void image_confirmed(GtkWidget *widget, gpointer data)
 
     gchar label[100];
     g_snprintf(label, 100,
-        "<span weight=\"bold\" size=\"large\">Optimizing Image</span>");
+        "<span weight=\"bold\" size=\"large\">Rotating Image</span>");
     gtk_label_set_markup(main_window->pages->page3->label, label);
 
     set_step(main_window->step_indicators, 2);
@@ -235,13 +304,16 @@ int main(int argc, char *argv[])
         = GTK_BUTTON(gtk_builder_get_object(builder, "openbutton"));
     GtkButton *prev_button
         = GTK_BUTTON(gtk_builder_get_object(builder, "prevbutton"));
-    GtkFileChooserButton *file_chooser_button = GTK_FILE_CHOOSER_BUTTON(
-        gtk_builder_get_object(builder, "fileselector"));
-
     GtkButton *confirm_image_button
         = GTK_BUTTON(gtk_builder_get_object(builder, "confirmimagebutton"));
     GtkButton *cancel_image_button
         = GTK_BUTTON(gtk_builder_get_object(builder, "cancelimagebutton"));
+
+    GtkFileChooserButton *file_chooser_button = GTK_FILE_CHOOSER_BUTTON(
+        gtk_builder_get_object(builder, "fileselector"));
+
+    GtkScale *rotation_scale
+        = GTK_SCALE(gtk_builder_get_object(builder, "rotationscale"));
 
     GtkWidget *step_1_indicator
         = GTK_WIDGET(gtk_builder_get_object(builder, "step1indicator"));
@@ -282,13 +354,14 @@ int main(int argc, char *argv[])
         .step_5_indicator = step_5_indicator,
     };
 
-    Buttons buttons = {
+    Controls controls = {
         .save_button = save_button,
         .open_button = open_button,
         .prev_button = prev_button,
         .file_chooser_button = file_chooser_button,
         .confirm_image_button = confirm_image_button,
         .cancel_image_button = cancel_image_button,
+        .rotation_scale = rotation_scale,
     };
 
     Page page1 = {
@@ -314,12 +387,21 @@ int main(int argc, char *argv[])
         .page3 = &page3,
     };
 
+    Images images = {
+        .current_rotation = 0,
+        .mask = malloc(sizeof(Image)),
+        .image = malloc(sizeof(Image)),
+        .image_rotated = malloc(sizeof(Image)),
+        .image_rotated_cropped = malloc(sizeof(Image)),
+    };
+
     MainWindow main_window = {
         .window = window,
         .stack = stack,
         .step_indicators = &step_indicators,
-        .buttons = &buttons,
+        .controls = &controls,
         .pages = &pages,
+        .images = &images,
     };
 
     // Connect signals
@@ -342,6 +424,10 @@ int main(int argc, char *argv[])
     // Previous page
     g_signal_connect(
         prev_button, "clicked", G_CALLBACK(previous_page), &main_window);
+
+    // Rotation Scale
+    g_signal_connect(rotation_scale, "value-changed",
+        G_CALLBACK(rotation_changed), &main_window);
 
     set_step(&step_indicators, 1);
 

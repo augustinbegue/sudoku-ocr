@@ -13,6 +13,12 @@
       <pattern>*.bmp</pattern>
     </patterns>
   </object>
+  <object class="GtkAdjustment" id="image rotation">
+    <property name="lower">-180</property>
+    <property name="upper">180</property>
+    <property name="step-increment">1</property>
+    <property name="page-increment">10</property>
+  </object>
   <object class="GtkApplicationWindow" id="sudokuocr">
     <property name="can-focus">False</property>
     <child>
@@ -205,8 +211,6 @@
                     </child>
                     <child>
                       <object class="GtkImage" id="page3image">
-                        <property name="width-request">400</property>
-                        <property name="height-request">400</property>
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
                         <property name="margin-start">20</property>
@@ -226,17 +230,44 @@
                       <object class="GtkScale" id="rotationscale">
                         <property name="visible">True</property>
                         <property name="can-focus">True</property>
+                        <property name="adjustment">image rotation</property>
                         <property name="show-fill-level">True</property>
-                        <property name="fill-level">100</property>
+                        <property name="fill-level">180</property>
                         <property name="round-digits">1</property>
-                        <property name="draw-value">False</property>
-                        <property name="value-pos">right</property>
                       </object>
                       <packing>
                         <property name="expand">False</property>
                         <property name="fill">True</property>
                         <property name="padding">4</property>
                         <property name="position">2</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkButtonBox">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="orientation">vertical</property>
+                        <property name="layout-style">start</property>
+                        <child>
+                          <object class="GtkButton" id="rotationdonebutton">
+                            <property name="label" translatable="yes">Done</property>
+                            <property name="visible">True</property>
+                            <property name="can-focus">True</property>
+                            <property name="receives-default">True</property>
+                            <property name="margin-top">4</property>
+                            <property name="margin-bottom">4</property>
+                          </object>
+                          <packing>
+                            <property name="expand">True</property>
+                            <property name="fill">True</property>
+                            <property name="position">0</property>
+                          </packing>
+                        </child>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">3</property>
                       </packing>
                     </child>
                   </object>
@@ -258,7 +289,7 @@
                     <property name="can-focus">False</property>
                     <property name="orientation">vertical</property>
                     <child>
-                      <object class="GtkLabel" id="page3label1">
+                      <object class="GtkLabel" id="page4label">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
                         <property name="xpad">0</property>
@@ -275,13 +306,11 @@ Select any wrong digit and edit it.</property>
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkImage" id="page3image1">
+                      <object class="GtkImage" id="page4image">
                         <property name="width-request">500</property>
                         <property name="height-request">500</property>
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
-                        <property name="margin-left">20</property>
-                        <property name="margin-right">20</property>
                         <property name="margin-start">20</property>
                         <property name="margin-end">20</property>
                         <property name="margin-top">20</property>
@@ -316,6 +345,7 @@ Select any wrong digit and edit it.</property>
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <property name="valign">baseline</property>
+            <property name="margin-right">22</property>
             <child>
               <object class="GtkBox" id="step1indicator">
                 <property name="visible">True</property>
@@ -627,10 +657,5 @@ Solve Sudoku</property>
         </child>
       </object>
     </child>
-  </object>
-  <object class="GtkAdjustment" id="image rotation">
-    <property name="upper">360</property>
-    <property name="step-increment">0.5</property>
-    <property name="page-increment">10</property>
   </object>
 </interface>
