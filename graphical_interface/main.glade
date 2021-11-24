@@ -328,8 +328,8 @@ Select any wrong digit and edit it.</property>
                 </child>
               </object>
               <packing>
-                <property name="name">page0</property>
-                <property name="title" translatable="yes">page0</property>
+                <property name="name">page4</property>
+                <property name="title" translatable="yes">page4</property>
                 <property name="position">3</property>
               </packing>
             </child>
