@@ -1,11 +1,11 @@
 #ifndef IMAGE_H
 #define IMAGE_H
 
+#include <gtk/gtk.h>
 #include <stdio.h>
 #include "SDL2/SDL.h"
 #include "SDL2/SDL_image.h"
 #include "geometry.h"
-#include "gtk/gtk.h"
 
 struct Pixel
 {
@@ -24,6 +24,8 @@ struct Image
 typedef struct Image Image;
 
 GdkPixbuf *image_to_pixbuf(Image *image);
+
+Image *pixbuf_to_image(GdkPixbuf *pixbuf);
 
 SDL_Surface *load_image(char *path);
 

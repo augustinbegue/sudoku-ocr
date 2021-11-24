@@ -1,5 +1,6 @@
 #include <err.h>
 #include <float.h>
+#include <gtk/gtk.h>
 #include <limits.h>
 #include <math.h>
 #include <stdbool.h>
@@ -7,32 +8,87 @@
 #include "image.h"
 #include "SDL2/SDL.h"
 #include "SDL2/SDL_image.h"
-#include "gtk/gtk.h"
 #include "helpers.h"
 #include "pixel_operations.h"
+
+Image *create_image(int height, int width)
+{
+    Image *image = malloc(sizeof(Image));
+
+    image->height = height;
+    image->width = width;
+    image->pixels = malloc(sizeof(Pixel *) * width + 1);
+
+    if (image->pixels == NULL)
+        errx(1, "Error when allocating memory in create_image.");
+
+    for (int x = 0; x < width; x++)
+        image->pixels[x] = malloc(sizeof(Pixel) * height + 1);
+
+    image->surface = SDL_CreateRGBSurfaceWithFormat(
+        0, width, height, 32, SDL_PIXELFORMAT_RGBA32);
+
+    if (image->surface == NULL)
+    {
+        const char *errm = SDL_GetError();
+        errx(-1, errm);
+    }
+
+    return image;
+}
 
 GdkPixbuf *image_to_pixbuf(Image *image)
 {
     GdkPixbuf *pixbuf = gdk_pixbuf_new(
-        GDK_COLORSPACE_RGB, FALSE, 8, image->width, image->height);
+        GDK_COLORSPACE_RGB, TRUE, 8, image->width, image->height);
 
-    for (int x = 0; x < image->width; x++)
+    int width = gdk_pixbuf_get_width(pixbuf);
+    int height = gdk_pixbuf_get_height(pixbuf);
+
+    int n_channels = gdk_pixbuf_get_n_channels(pixbuf);
+    int rowstride = gdk_pixbuf_get_rowstride(pixbuf);
+    guchar *pixels = gdk_pixbuf_get_pixels(pixbuf);
+
+    for (int x = 0; x < width; x++)
     {
-        for (int y = 0; y < image->height; y++)
+        for (int y = 0; y < height; y++)
         {
-            int n_channels = gdk_pixbuf_get_n_channels(pixbuf);
-            int rowstride = gdk_pixbuf_get_rowstride(pixbuf);
-            guchar *pixels = gdk_pixbuf_get_pixels(pixbuf);
-
             guchar *p = pixels + y * rowstride + x * n_channels;
-            p[0] = image->pixels[y][x].r;
-            p[1] = image->pixels[y][x].g;
-            p[2] = image->pixels[y][x].b;
+            p[0] = image->pixels[x][y].r;
+            p[1] = image->pixels[x][y].g;
+            p[2] = image->pixels[x][y].b;
             p[3] = 255;
         }
     }
 
     return pixbuf;
+}
+
+Image *pixbuf_to_image(GdkPixbuf *pixbuf)
+{
+    int width = gdk_pixbuf_get_width(pixbuf);
+    int height = gdk_pixbuf_get_height(pixbuf);
+
+    int n_channels = gdk_pixbuf_get_n_channels(pixbuf);
+    int rowstride = gdk_pixbuf_get_rowstride(pixbuf);
+    guchar *pixels = gdk_pixbuf_get_pixels(pixbuf);
+
+    Image *image = create_image(height, width);
+    image->width = width;
+    image->height = height;
+
+    for (int x = 0; x < width; x++)
+    {
+        for (int y = 0; y < height; y++)
+        {
+            guchar *p = pixels + y * rowstride + x * n_channels;
+            image->pixels[x][y].r = p[0];
+            image->pixels[x][y].g = p[1];
+            image->pixels[x][y].b = p[2];
+        }
+    }
+
+    return image;
 }
 
 SDL_Surface *load_image(char *path)
@@ -88,32 +144,6 @@ Image clone_image(Image *source)
 
             image.pixels[x][y] = pDest;
         }
-    }
-
-    return image;
-}
-
-Image *create_image(int height, int width)
-{
-    Image *image = malloc(sizeof(Image));
-
-    image->height = height;
-    image->width = width;
-    image->pixels = malloc(sizeof(Pixel *) * width + 1);
-
-    if (image->pixels == NULL)
-        errx(1, "Error when allocating memory in create_image.");
-
-    for (int x = 0; x < width; x++)
-        image->pixels[x] = malloc(sizeof(Pixel) * height + 1);
-
-    image->surface = SDL_CreateRGBSurfaceWithFormat(
-        0, width, height, 32, SDL_PIXELFORMAT_RGBA32);
-
-    if (image->surface == NULL)
-    {
-        const char *errm = SDL_GetError();
-        errx(-1, errm);
     }
 
     return image;

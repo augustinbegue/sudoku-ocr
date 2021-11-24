@@ -192,6 +192,77 @@
                         <property name="can-focus">False</property>
                         <property name="xpad">0</property>
                         <property name="ypad">10</property>
+                        <property name="label" translatable="yes">&lt;span weight="bold"&gt;Rotate Image&lt;/span&gt;
+</property>
+                        <property name="use-markup">True</property>
+                        <property name="justify">center</property>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkImage" id="page3image">
+                        <property name="width-request">400</property>
+                        <property name="height-request">400</property>
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="margin-start">20</property>
+                        <property name="margin-end">20</property>
+                        <property name="margin-top">20</property>
+                        <property name="margin-bottom">20</property>
+                        <property name="icon-name">image-missing</property>
+                        <property name="icon_size">6</property>
+                      </object>
+                      <packing>
+                        <property name="expand">True</property>
+                        <property name="fill">True</property>
+                        <property name="position">1</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkScale" id="rotationscale">
+                        <property name="visible">True</property>
+                        <property name="can-focus">True</property>
+                        <property name="show-fill-level">True</property>
+                        <property name="fill-level">100</property>
+                        <property name="round-digits">1</property>
+                        <property name="draw-value">False</property>
+                        <property name="value-pos">right</property>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="padding">4</property>
+                        <property name="position">2</property>
+                      </packing>
+                    </child>
+                  </object>
+                </child>
+              </object>
+              <packing>
+                <property name="name">page3</property>
+                <property name="title" translatable="yes">Correct Errors</property>
+                <property name="position">2</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkViewport" id="page4">
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <child>
+                  <object class="GtkBox">
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <property name="orientation">vertical</property>
+                    <child>
+                      <object class="GtkLabel" id="page3label1">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="xpad">0</property>
+                        <property name="ypad">10</property>
                         <property name="label" translatable="yes">&lt;span weight="bold"&gt;Correct Errors&lt;/span&gt;
 Select any wrong digit and edit it.</property>
                         <property name="use-markup">True</property>
@@ -204,11 +275,13 @@ Select any wrong digit and edit it.</property>
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkImage" id="page3image">
+                      <object class="GtkImage" id="page3image1">
                         <property name="width-request">500</property>
                         <property name="height-request">500</property>
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
+                        <property name="margin-left">20</property>
+                        <property name="margin-right">20</property>
                         <property name="margin-start">20</property>
                         <property name="margin-end">20</property>
                         <property name="margin-top">20</property>
@@ -226,9 +299,9 @@ Select any wrong digit and edit it.</property>
                 </child>
               </object>
               <packing>
-                <property name="name">page3</property>
-                <property name="title" translatable="yes">Correct Errors</property>
-                <property name="position">2</property>
+                <property name="name">page0</property>
+                <property name="title" translatable="yes">page0</property>
+                <property name="position">3</property>
               </packing>
             </child>
           </object>
@@ -296,7 +369,7 @@ Load Image</property>
                     <property name="can-focus">False</property>
                     <property name="xpad">10</property>
                     <property name="ypad">10</property>
-                    <property name="icon-name">application-x-firmware</property>
+                    <property name="icon-name">view-refresh-symbolic</property>
                     <property name="icon_size">5</property>
                   </object>
                   <packing>
@@ -312,7 +385,7 @@ Load Image</property>
                     <property name="xpad">10</property>
                     <property name="ypad">2</property>
                     <property name="label" translatable="yes">&lt;span weight="bold"&gt;Step 2&lt;/span&gt;
-Optimize Image</property>
+Rotate Image</property>
                     <property name="use-markup">True</property>
                     <property name="justify">center</property>
                   </object>
@@ -472,20 +545,26 @@ Solve Sudoku</property>
       <object class="GtkHeaderBar">
         <property name="visible">True</property>
         <property name="can-focus">False</property>
+        <property name="title" translatable="yes">Sudoku OCR</property>
+        <property name="subtitle" translatable="yes">filename</property>
         <property name="show-close-button">True</property>
-        <property name="decoration-layout">:minimize,maximize,close</property>
+        <property name="decoration-layout">:close</property>
         <child>
-          <object class="GtkButtonBox">
+          <object class="GtkBox">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
-            <property name="spacing">4</property>
-            <property name="layout-style">start</property>
             <child>
-              <object class="GtkButton" id="openbutton">
-                <property name="label" translatable="yes">Open</property>
+              <object class="GtkButton" id="prevbutton">
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
                 <property name="receives-default">True</property>
+                <child>
+                  <object class="GtkImage">
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <property name="icon-name">go-previous-symbolic</property>
+                  </object>
+                </child>
               </object>
               <packing>
                 <property name="expand">True</property>
@@ -494,21 +573,64 @@ Solve Sudoku</property>
               </packing>
             </child>
             <child>
-              <object class="GtkButton" id="savebutton">
-                <property name="label" translatable="yes">Save</property>
+              <object class="GtkSeparator">
                 <property name="visible">True</property>
-                <property name="can-focus">True</property>
-                <property name="receives-default">True</property>
+                <property name="can-focus">False</property>
               </object>
               <packing>
-                <property name="expand">True</property>
+                <property name="expand">False</property>
                 <property name="fill">True</property>
+                <property name="padding">4</property>
                 <property name="position">1</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkButtonBox">
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="spacing">4</property>
+                <property name="layout-style">start</property>
+                <child>
+                  <object class="GtkButton" id="openbutton">
+                    <property name="label" translatable="yes">Open</property>
+                    <property name="visible">True</property>
+                    <property name="can-focus">True</property>
+                    <property name="receives-default">True</property>
+                  </object>
+                  <packing>
+                    <property name="expand">True</property>
+                    <property name="fill">True</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkButton" id="savebutton">
+                    <property name="label" translatable="yes">Save</property>
+                    <property name="visible">True</property>
+                    <property name="can-focus">True</property>
+                    <property name="receives-default">True</property>
+                  </object>
+                  <packing>
+                    <property name="expand">True</property>
+                    <property name="fill">True</property>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">2</property>
               </packing>
             </child>
           </object>
         </child>
       </object>
     </child>
+  </object>
+  <object class="GtkAdjustment" id="image rotation">
+    <property name="upper">360</property>
+    <property name="step-increment">0.5</property>
+    <property name="page-increment">10</property>
   </object>
 </interface>
