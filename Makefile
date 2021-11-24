@@ -12,7 +12,7 @@ SRC=main.c $(wildcard image_processing/*.c) $(wildcard image_transform/*.c) $(wi
 OBJ=$(SRC:.c=.o)
 DEP=$(SRC:.c=.d)
 
-all: main network solver
+all: main network solver interface
 
 main: $(OBJ)
 
@@ -21,6 +21,9 @@ network:
 
 solver:
 	make -C ./sudoku-solver
+
+interface:
+	make -C ./graphical_interface
 
 # unecessary for other projects
 check:
