@@ -150,8 +150,8 @@ int main(int argc, char const *argv[])
          * Grid detection
          */
         double autorotation_amount = 0;
-        square *grid_square = grid_processing_detect_grid(
-            rotated_imagept, &autorotation_amount, verbose_mode, verbose_path);
+        square *grid_square = grid_processing_detect_grid(rotated_imagept,
+            &autorotation_amount, verbose_mode, verbose_path, false);
 
         // Rotate clean image as well if automatic rotation as been preformed
         Image clean_rotated_image = rotate_image(
