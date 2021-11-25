@@ -120,7 +120,7 @@ int main(int argc, char const *argv[])
          * Processing -> Highligting the grid
          */
         image_processing_extract_grid(
-            maskpt, imagept, verbose_mode, verbose_path);
+            maskpt, imagept, verbose_mode, verbose_path, false);
 
         if (save_mask)
             save_image(Image_to_SDL_Surface(maskpt), mask_output_path);

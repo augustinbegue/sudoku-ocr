@@ -4,6 +4,6 @@
 #include "image.h"
 
 void image_processing_extract_grid(
-    Image *maskpt, Image *imagept, bool verbose, char *verbose_path);
+    Image *maskpt, Image *imagept, bool verbose, char *verbose_path, bool gtk);
 
 #endif

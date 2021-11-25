@@ -1,3 +1,4 @@
+#include <gtk/gtk.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include "automatic_rotation.h"
@@ -12,10 +13,18 @@
 #include "square_selection.h"
 
 square *grid_processing_detect_grid(Image *rotated_imagept,
-    double *rotation_amount, bool verbose_mode, char *verbose_path)
+    double *rotation_amount, bool verbose_mode, char *verbose_path, bool gtk)
 {
+    if (gtk)
+        while (gtk_events_pending())
+            gtk_main_iteration();
+
     Image edge_image
         = canny_edge_filtering(rotated_imagept, verbose_mode, verbose_path);
+
+    if (gtk)
+        while (gtk_events_pending())
+            gtk_main_iteration();
 
     int_list *edges_x = li_create();
     int_list *edges_y = li_create();
@@ -26,20 +35,39 @@ square *grid_processing_detect_grid(Image *rotated_imagept,
     int **hough_accumulator = hough_transform(&edge_image, lines_imagept,
         edges_x, edges_y, verbose_mode, verbose_path);
 
+    if (gtk)
+        while (gtk_events_pending())
+            gtk_main_iteration();
+
     int edge_num = 0;
     int **edges = average_edges(edges_x, edges_y, lines_imagept, verbose_mode,
         verbose_path, &edge_num);
 
     if (!verbose_mode)
         printf("   ⏹️ Finding squares...\n");
+    if (gtk)
+        while (gtk_events_pending())
+            gtk_main_iteration();
 
-    list *squares = find_squares(edges, edge_num, lines_imagept);
+    list *squares = find_squares(edges, edge_num, lines_imagept, false);
+
+    if (gtk)
+        while (gtk_events_pending())
+            gtk_main_iteration();
 
     square *selected_square
         = select_square(squares, lines_imagept, verbose_mode, verbose_path);
 
+    if (gtk)
+        while (gtk_events_pending())
+            gtk_main_iteration();
+
     Image autorotated_image = automatic_rotation(hough_accumulator,
         selected_square, rotated_imagept, rotation_amount, verbose_mode);
+
+    if (gtk)
+        while (gtk_events_pending())
+            gtk_main_iteration();
 
     free_Image(rotated_imagept);
     *rotated_imagept = autorotated_image;

@@ -5,6 +5,6 @@
 #include "image.h"
 #include "list.h"
 
-list *find_squares(int **edges, int edge_num, Image *image);
+list *find_squares(int **edges, int edge_num, Image *image, bool gtk);
 
 #endif

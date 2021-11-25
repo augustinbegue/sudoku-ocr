@@ -1,5 +1,6 @@
 #include <err.h>
 #include <float.h>
+#include <gtk/gtk.h>
 #include <stdbool.h>
 #include "square_detection.h"
 #include "geometry.h"
@@ -213,7 +214,7 @@ list *find_line_squares(int **edges, line edge_1, int edge_num, Image *image)
     return squares;
 }
 
-list *find_squares(int **edges, int edge_num, Image *image)
+list *find_squares(int **edges, int edge_num, Image *image, bool gtk)
 {
     int i = 0;
     fprintf(stderr, "\33[2K\r   🖨️ Treated Edges: %i", i);
@@ -223,12 +224,21 @@ list *find_squares(int **edges, int edge_num, Image *image)
     {
         list *found = find_line_squares(
             edges, edge_to_line(edges[i]), edge_num, image);
+
+        if (gtk)
+            while (gtk_events_pending())
+                gtk_main_iteration();
+
         l_merge(found_squares, found);
 
         // only free the container so the merged nodes are not lost
         free(found);
 
         fprintf(stderr, "\33[2K\r   🖨️ Treated Edges: %i", i);
+
+        if (gtk)
+            while (gtk_events_pending())
+                gtk_main_iteration();
     }
     fprintf(stderr, "\33[2K\r   🖨️ Treated Edges: %i\n", i);
 

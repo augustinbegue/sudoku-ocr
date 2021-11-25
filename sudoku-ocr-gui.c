@@ -31,6 +31,7 @@ struct Controls
     GtkButton *cancel_image_button;
     GtkButton *confirm_image_button;
     GtkButton *image_rotation_done_button;
+    GtkButton *correction_done_button;
     GtkFileChooserButton *file_chooser_button;
 };
 typedef struct Controls Controls;
@@ -95,7 +96,7 @@ void display_image(GtkImage *image_container, Image *image)
 
     gtk_image_set_from_pixbuf(image_container, resized);
 
-    gdk_pixbuf_unref(pixbuf);
+    g_object_unref(pixbuf);
 }
 
 void set_page(MainWindow *main_window, const gchar *page)
@@ -133,6 +134,38 @@ void set_step(StepIndicators *step_indicators, int step_number)
             gtk_widget_set_opacity(step_indicators->step_5_indicator, 1.0);
             break;
     }
+}
+
+void set_button_to_load(GtkButton *button)
+{
+    GtkSpinner *spinner = GTK_SPINNER(gtk_spinner_new());
+
+    GtkWidget *child = gtk_bin_get_child(GTK_BIN(button));
+
+    if (child)
+        gtk_container_remove(GTK_CONTAINER(button), child);
+
+    gtk_container_add(GTK_CONTAINER(button), spinner);
+
+    gtk_widget_show(GTK_WIDGET(spinner));
+
+    gtk_spinner_start(spinner);
+}
+
+void set_button_to_label(GtkButton *button, gchar *text)
+{
+    GtkLabel *label = gtk_label_new("");
+
+    gtk_label_set_markup(label, text);
+
+    GtkWidget *child = gtk_bin_get_child(GTK_BIN(button));
+
+    if (child)
+        gtk_container_remove(GTK_CONTAINER(button), child);
+
+    gtk_container_add(GTK_CONTAINER(button), label);
+
+    gtk_widget_show(GTK_WIDGET(label));
 }
 
 void save_current_image(GtkWidget *widget, gpointer data)
@@ -248,6 +281,9 @@ void manual_rotate_image(GtkWidget *widget, gpointer data)
 {
     MainWindow *main_window = (MainWindow *)data;
 
+    set_button_to_load(main_window->controls->confirm_image_button);
+    set_button_to_load(main_window->controls->image_rotation_done_button);
+
     display_image(
         main_window->pages->page3->image, main_window->images->image);
 
@@ -260,10 +296,15 @@ void manual_rotate_image(GtkWidget *widget, gpointer data)
     set_page(main_window, "page3");
 
     image_processing_extract_grid(main_window->images->mask,
-        main_window->images->image, VERBOSE_MODE, VERBOSE_PATH);
+        main_window->images->image, VERBOSE_MODE, VERBOSE_PATH, true);
 
     display_image(
         main_window->pages->page3->image, main_window->images->image);
+
+    set_button_to_label(main_window->controls->confirm_image_button,
+        "<span weight=\"bold\">Use this image</span>");
+    set_button_to_label(
+        main_window->controls->image_rotation_done_button, "Done");
 }
 
 void rotation_changed(GtkWidget *widget, gpointer user_data)
@@ -289,6 +330,9 @@ void process_image(GtkWidget *widget, gpointer data)
 {
     MainWindow *main_window = (MainWindow *)data;
 
+    set_button_to_load(main_window->controls->image_rotation_done_button);
+    set_button_to_load(main_window->controls->correction_done_button);
+
     gchar label[100];
     g_snprintf(label, 100,
         "<span weight=\"bold\" size=\"large\">Processing Image</span>");
@@ -307,10 +351,13 @@ void process_image(GtkWidget *widget, gpointer data)
 
     set_page(main_window, "page4");
 
+    while (gtk_events_pending())
+        gtk_main_iteration();
+
     double rotation_amount = 0;
     main_window->images->grid_square
         = grid_processing_detect_grid(main_window->images->image_rotated,
-            &rotation_amount, VERBOSE_MODE, VERBOSE_PATH);
+            &rotation_amount, VERBOSE_MODE, VERBOSE_PATH, false);
 
     *main_window->images->image_rotated_clean
         = rotate_image(main_window->images->clean,
@@ -333,6 +380,10 @@ void process_image(GtkWidget *widget, gpointer data)
         main_window->images->image_rotated_cropped);
 
     set_step(main_window->step_indicators, 4);
+
+    set_button_to_label(main_window->controls->correction_done_button, "Done");
+    set_button_to_label(
+        main_window->controls->image_rotation_done_button, "Done");
 }
 
 int main(int argc, char *argv[])
@@ -365,6 +416,8 @@ int main(int argc, char *argv[])
         = GTK_BUTTON(gtk_builder_get_object(builder, "cancelimagebutton"));
     GtkButton *rotation_done_button
         = GTK_BUTTON(gtk_builder_get_object(builder, "rotationdonebutton"));
+    GtkButton *correction_done_button
+        = GTK_BUTTON(gtk_builder_get_object(builder, "correctiondonebutton"));
 
     GtkFileChooserButton *file_chooser_button = GTK_FILE_CHOOSER_BUTTON(
         gtk_builder_get_object(builder, "fileselector"));
@@ -426,6 +479,7 @@ int main(int argc, char *argv[])
         .cancel_image_button = cancel_image_button,
         .rotation_scale = rotation_scale,
         .image_rotation_done_button = rotation_done_button,
+        .correction_done_button = correction_done_button,
     };
 
     Page page1 = {
