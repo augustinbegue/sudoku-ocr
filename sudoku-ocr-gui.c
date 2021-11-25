@@ -1,6 +1,7 @@
 #include <gtk/gtk.h>
-#include <image.h>
+#include <pthread.h>
 #include "grid_processing.h"
+#include "image.h"
 #include "image_processing.h"
 #include "perspective_correction.h"
 #include "rotation.h"
@@ -62,6 +63,7 @@ struct Images
     Image *image_rotated_cropped;
     gdouble current_rotation;
     gboolean rotated;
+    square *grid_square;
 };
 typedef struct Images Images;
 
@@ -306,7 +308,7 @@ void process_image(GtkWidget *widget, gpointer data)
     set_page(main_window, "page4");
 
     double rotation_amount = 0;
-    square *grid_square
+    main_window->images->grid_square
         = grid_processing_detect_grid(main_window->images->image_rotated,
             &rotation_amount, VERBOSE_MODE, VERBOSE_PATH);
 
