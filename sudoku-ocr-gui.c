@@ -5,8 +5,10 @@
 #include "perspective_correction.h"
 #include "rotation.h"
 
-#define IMAGE_WIDTH 500;
-#define IMAGE_HEIGHT 500;
+#define IMAGE_WIDTH 500
+#define IMAGE_HEIGHT 500
+#define VERBOSE_MODE 0
+#define VERBOSE_PATH NULL
 
 struct StepIndicators
 {
@@ -137,21 +139,29 @@ void save_current_image(GtkWidget *widget, gpointer data)
 
     gchar *page = main_window->pages->current_page;
 
-    GdkPixbuf *pixbuf;
-    if (g_str_equal(page, "page2"))
+    Image *image;
+    switch (main_window->step_indicators->current_step)
     {
-        pixbuf = gtk_image_get_pixbuf(main_window->pages->page2->image);
+        case 1:
+            return;
+        case 2:
+            if (main_window->images->rotated)
+                image = main_window->images->image_rotated;
+            else
+                image = main_window->images->image;
+            break;
+        case 3:
+            image = main_window->images->image_rotated;
+            break;
+        case 4:
+            image = main_window->images->image_rotated_cropped;
+            break;
+        case 5:
+            image = main_window->images->image_rotated_cropped;
+            break;
+        default:
+            return;
     }
-    else if (g_str_equal(page, "page3"))
-    {
-        pixbuf = gtk_image_get_pixbuf(main_window->pages->page3->image);
-    }
-    else
-    {
-        return;
-    }
-
-    Image *image = pixbuf_to_image(pixbuf);
 
     GtkWidget *dialog;
     GtkFileChooser *chooser;
@@ -247,8 +257,8 @@ void manual_rotate_image(GtkWidget *widget, gpointer data)
     set_step(main_window->step_indicators, 2);
     set_page(main_window, "page3");
 
-    image_processing_extract_grid(
-        main_window->images->mask, main_window->images->image, false, NULL);
+    image_processing_extract_grid(main_window->images->mask,
+        main_window->images->image, VERBOSE_MODE, VERBOSE_PATH);
 
     display_image(
         main_window->pages->page3->image, main_window->images->image);
@@ -296,27 +306,26 @@ void process_image(GtkWidget *widget, gpointer data)
     set_page(main_window, "page4");
 
     double rotation_amount = 0;
-    square *grid_square = grid_processing_detect_grid(
-        main_window->images->image_rotated, &rotation_amount, FALSE, NULL);
+    square *grid_square
+        = grid_processing_detect_grid(main_window->images->image_rotated,
+            &rotation_amount, VERBOSE_MODE, VERBOSE_PATH);
 
     *main_window->images->image_rotated_clean
         = rotate_image(main_window->images->clean,
             rotation_amount + main_window->images->current_rotation);
 
-    draw_square(
-        main_window->images->image_rotated_clean, grid_square, 128, 255, 0);
-
     display_image(main_window->pages->page4->image,
         main_window->images->image_rotated_clean);
 
-    main_window->images->image_rotated_cropped = correct_perspective(
-        main_window->images->image_rotated_clean, grid_square, false, NULL);
+    main_window->images->image_rotated_cropped
+        = correct_perspective(main_window->images->image_rotated_clean,
+            grid_square, VERBOSE_MODE, VERBOSE_PATH);
 
     display_image(main_window->pages->page4->image,
         main_window->images->image_rotated_cropped);
 
-    Image **cells
-        = split_grid(main_window->images->image_rotated_cropped, false, NULL);
+    Image **cells = split_grid(main_window->images->image_rotated_cropped,
+        VERBOSE_MODE, VERBOSE_PATH);
 
     display_image(main_window->pages->page4->image,
         main_window->images->image_rotated_cropped);
