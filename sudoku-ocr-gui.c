@@ -321,7 +321,7 @@ void process_image(GtkWidget *widget, gpointer data)
 
     main_window->images->image_rotated_cropped
         = correct_perspective(main_window->images->image_rotated_clean,
-            grid_square, VERBOSE_MODE, VERBOSE_PATH);
+            main_window->images->grid_square, VERBOSE_MODE, VERBOSE_PATH);
 
     display_image(main_window->pages->page4->image,
         main_window->images->image_rotated_cropped);
