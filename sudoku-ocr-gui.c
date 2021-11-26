@@ -284,6 +284,7 @@ void manual_rotate_image(GtkWidget *widget, gpointer data)
 {
     MainWindow *main_window = (MainWindow *)data;
 
+    gtk_widget_hide(main_window->controls->rotation_scale);
     set_button_to_load(main_window->controls->confirm_image_button);
     set_button_to_load(main_window->controls->image_rotation_done_button);
 
@@ -308,6 +309,7 @@ void manual_rotate_image(GtkWidget *widget, gpointer data)
         "<span weight=\"bold\">Use this image</span>");
     set_button_to_label(
         main_window->controls->image_rotation_done_button, "Done");
+    gtk_widget_show(main_window->controls->rotation_scale);
 }
 
 void rotation_changed(GtkWidget *widget, gpointer user_data)
@@ -340,6 +342,8 @@ void process_image(GtkWidget *widget, gpointer data)
     g_snprintf(label, 100,
         "<span weight=\"bold\" size=\"large\">Processing Image</span>");
     gtk_label_set_markup(main_window->pages->page3->label, label);
+
+    gtk_widget_hide(main_window->controls->rotation_scale);
 
     set_step(main_window->step_indicators, 3);
 
@@ -387,6 +391,7 @@ void process_image(GtkWidget *widget, gpointer data)
     set_button_to_label(main_window->controls->correction_done_button, "Done");
     set_button_to_label(
         main_window->controls->image_rotation_done_button, "Done");
+    gtk_widget_show(main_window->controls->rotation_scale);
 }
 
 int main(int argc, char *argv[])
