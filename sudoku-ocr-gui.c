@@ -243,6 +243,9 @@ void previous_page(GtkWidget *widget, gpointer data)
     {
         set_page(main_window, "page3");
         set_step(main_window->step_indicators, 2);
+        gtk_range_set_value(
+            GTK_RANGE(main_window->controls->rotation_scale), 0);
+        main_window->images->current_rotation = 0;
     }
 }
 
