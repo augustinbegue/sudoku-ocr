@@ -47,9 +47,6 @@ void image_processing_extract_grid(Image *maskpt, Image *imagept,
 
     if (verbose_mode)
         printf("   🖌  Filtering noise.\n");
-    if (gtk)
-        while (gtk_events_pending())
-            gtk_main_iteration();
 
     // Gaussian blur for noise removal
     double *kernel = get_gaussian_smoothing_kernel(adaptive_range, 1.5);
@@ -65,9 +62,6 @@ void image_processing_extract_grid(Image *maskpt, Image *imagept,
 
     if (verbose_mode)
         printf("   🔲 Applying a mask threshold.\n");
-    if (gtk)
-        while (gtk_events_pending())
-            gtk_main_iteration();
 
     // Sauvola thresholding
     filter_sauvola(maskpt, maskpt, adaptive_range + adaptive_range, 0.2,
@@ -82,9 +76,6 @@ void image_processing_extract_grid(Image *maskpt, Image *imagept,
      */
     if (verbose_mode)
         printf("   📥 Applying the mask on the original image.\n");
-    if (gtk)
-        while (gtk_events_pending())
-            gtk_main_iteration();
 
     // Apply the mask onto the clean image
     apply_mask(imagept, maskpt);
@@ -102,9 +93,6 @@ void image_processing_extract_grid(Image *maskpt, Image *imagept,
 
     if (verbose_mode)
         printf("   🖌  Filtering noise.\n");
-    if (gtk)
-        while (gtk_events_pending())
-            gtk_main_iteration();
 
     // Gaussian blur for noise removal
     convolution(kernel, adaptive_range, imagept, imagept, false);
@@ -117,9 +105,6 @@ void image_processing_extract_grid(Image *maskpt, Image *imagept,
 
     if (verbose_mode)
         printf("   🧮  Normalizing colors.\n");
-    if (gtk)
-        while (gtk_events_pending())
-            gtk_main_iteration();
 
     verbose_save(
         verbose_mode, verbose_path, "4.3-image-gamma-contrast.png", imagept);
@@ -133,9 +118,6 @@ void image_processing_extract_grid(Image *maskpt, Image *imagept,
 
     if (verbose_mode)
         printf("   🎨 Average Color: %i\n", (int)imagept->average_color);
-    if (gtk)
-        while (gtk_events_pending())
-            gtk_main_iteration();
 
     if ((int)imagept->average_color == 237)
     {
@@ -152,9 +134,6 @@ void image_processing_extract_grid(Image *maskpt, Image *imagept,
 
     if (verbose_mode)
         printf("   🔲  Binarizing the image.\n");
-    if (gtk)
-        while (gtk_events_pending())
-            gtk_main_iteration();
 
     // Adaptive threshold to binarise
     filter_threshold(imagept);

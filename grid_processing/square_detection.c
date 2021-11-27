@@ -225,20 +225,12 @@ list *find_squares(int **edges, int edge_num, Image *image, bool gtk)
         list *found = find_line_squares(
             edges, edge_to_line(edges[i]), edge_num, image);
 
-        if (gtk)
-            while (gtk_events_pending())
-                gtk_main_iteration();
-
         l_merge(found_squares, found);
 
         // only free the container so the merged nodes are not lost
         free(found);
 
         fprintf(stderr, "\33[2K\r   🖨️ Treated Edges: %i", i);
-
-        if (gtk)
-            while (gtk_events_pending())
-                gtk_main_iteration();
     }
     fprintf(stderr, "\33[2K\r   🖨️ Treated Edges: %i\n", i);
 
