@@ -244,6 +244,7 @@ void previous_page(GtkWidget *widget, gpointer data)
         gtk_range_set_value(
             GTK_RANGE(main_window->controls->rotation_scale), 0);
         main_window->images->current_rotation = 0;
+        main_window->images->rotated = false;
     }
 }
 
@@ -265,6 +266,11 @@ void file_selected(GtkWidget *widget, gpointer data)
     *main_window->images->image = SDL_Surface_to_Image(load_image(path));
     *main_window->images->mask = SDL_Surface_to_Image(load_image(path));
     *main_window->images->clean = SDL_Surface_to_Image(load_image(path));
+
+    // Reset values
+    main_window->images->current_rotation = 0;
+    main_window->images->rotated = false;
+    gtk_range_set_value(GTK_RANGE(main_window->controls->rotation_scale), 0);
 
     display_image(
         main_window->pages->page2->image, main_window->images->clean);
