@@ -172,8 +172,6 @@ void save_current_image(GtkWidget *widget, gpointer data)
 {
     MainWindow *main_window = (MainWindow *)data;
 
-    gchar *page = main_window->pages->current_page;
-
     Image *image;
     switch (main_window->step_indicators->current_step)
     {
@@ -253,8 +251,13 @@ void file_selected(GtkWidget *widget, gpointer data)
 {
     MainWindow *main_window = (MainWindow *)data;
 
-    GtkFileChooser *file_chooser
-        = GTK_FILE_CHOOSER(main_window->controls->file_chooser_button);
+    GtkFileChooser *file_chooser;
+
+    if (GTK_IS_FILE_CHOOSER(widget))
+        file_chooser = GTK_FILE_CHOOSER(widget);
+    else
+        file_chooser
+            = GTK_FILE_CHOOSER(main_window->controls->file_chooser_button);
 
     GFile *file = gtk_file_chooser_get_file(file_chooser);
     char *path = g_file_get_path(file);
@@ -271,6 +274,28 @@ void file_selected(GtkWidget *widget, gpointer data)
     gtk_label_set_text(main_window->pages->page2->label, label);
 
     set_page(main_window, "page2");
+}
+
+void open_image(GtkWidget *widget, gpointer data)
+{
+    MainWindow *main_window = (MainWindow *)data;
+
+    GtkWidget *dialog;
+    GtkFileChooser *chooser;
+    GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_OPEN;
+    gint res;
+
+    dialog = gtk_file_chooser_dialog_new("Open File",
+        GTK_WINDOW(main_window->window), action, "Cancel", GTK_RESPONSE_CANCEL,
+        "Open", GTK_RESPONSE_ACCEPT, NULL);
+    chooser = GTK_FILE_CHOOSER(dialog);
+
+    res = gtk_dialog_run(GTK_DIALOG(dialog));
+
+    if (res == GTK_RESPONSE_ACCEPT)
+        file_selected(chooser, main_window);
+
+    gtk_widget_destroy(dialog);
 }
 
 void cancel_image_selection(GtkWidget *widget, gpointer data)
@@ -549,7 +574,9 @@ int main(int argc, char *argv[])
     // Save dialog
     g_signal_connect(
         save_button, "clicked", G_CALLBACK(save_current_image), &main_window);
-
+    // Open dialog
+    g_signal_connect(
+        open_button, "clicked", G_CALLBACK(open_image), &main_window);
     // Previous page
     g_signal_connect(
         prev_button, "clicked", G_CALLBACK(previous_page), &main_window);
