@@ -275,13 +275,6 @@ void file_selected(GtkWidget *widget, gpointer data)
     GFile *file = gtk_file_chooser_get_file(file_chooser);
     char *path = g_file_get_path(file);
 
-    if (main_window->images->is_loaded)
-    {
-        free_Image(main_window->images->image);
-        free_Image(main_window->images->mask);
-        free_Image(main_window->images->clean);
-    }
-
     *main_window->images->image = SDL_Surface_to_Image(load_image(path));
     *main_window->images->mask = SDL_Surface_to_Image(load_image(path));
     *main_window->images->clean = SDL_Surface_to_Image(load_image(path));
