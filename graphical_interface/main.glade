@@ -381,7 +381,8 @@ Select any wrong digit and edit it.</property>
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <property name="double-buffered">False</property>
-            <property name="valign">baseline</property>
+            <property name="halign">center</property>
+            <property name="valign">center</property>
             <child>
               <object class="GtkBox" id="step1indicator">
                 <property name="visible">True</property>
