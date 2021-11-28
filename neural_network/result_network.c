@@ -3,23 +3,21 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "../network.h"
+#include "image.h"
 #include "maths_extra.h"
 #include "matrix.h"
-#include "image.h"
-
 
 /*
  return the result of the network for a XOR (have to be modified for the real
  network) hw -> hidden weights , hb -> hidden bias , ow -> output weights , ob
  -> ourpur bias
 */
-int result_network(
-    char *path, Matrix *hw, Matrix *hb, Matrix *ow, Matrix *ob)
+int result_network(char *path, Matrix *hw, Matrix *hb, Matrix *ow, Matrix *ob)
 {
     // matrix with the inputs
     Matrix input;
     m_init(&input, 1, __num_inputs);
-    
+
     Image image = SDL_Surface_to_Image(load_image(path));
 
     int count = 0;
@@ -62,6 +60,10 @@ int result_network(
 
     int res = max_mat(&result_output);
 
+    // m_full_print(&input);
+    // m_full_print(&result_hidden);
+    m_full_print(&result_output);
+
     // free all memory
     m_free(&input);
     m_free(&result_hidden);
@@ -70,7 +72,7 @@ int result_network(
     return res;
 }
 
-int neural_network_execute(char* path)
+int neural_network_execute(char *path)
 {
     int retur = 0;
     char *filename = "save";
@@ -155,7 +157,7 @@ int neural_network_execute(char* path)
 
     fclose(fp);
 
-    int res = result_network(path,hw,hb,ow,ob) + retur * 0;
+    int res = result_network(path, hw, hb, ow, ob) + retur * 0;
 
     m_free(hw);
     m_free(hb);

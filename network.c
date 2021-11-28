@@ -1,27 +1,28 @@
+#include <dirent.h>
+#include <stdio.h>
+#include <string.h>
 #include "network.h"
 #include "image.h"
 #include "result_network.h"
-#include <stdio.h>
-#include <dirent.h>
-#include <string.h>
 
-char* concat(const char *s1, const char *s2)
+char *concat(const char *s1, const char *s2)
 {
-    char *result = malloc(strlen(s1)+strlen(s2)+1);//+1 for the null-terminator
-    //in real code you would check for errors in malloc here
+    char *result
+        = malloc(strlen(s1) + strlen(s2) + 1); //+1 for the null-terminator
+    // in real code you would check for errors in malloc here
     strcpy(result, s1);
     strcat(result, s2);
     return result;
-}  
+}
 
 // number of "generation" of AI
-static const int EPOCHS = 1000;
+static const int EPOCHS = 2000;
 
 // learning rate
 static const double LR = 0.1;
 
-static const int num_training = 63;
-//static const int NUMBER_OF_TESTS = 2;
+static const int num_training = 567;
+// static const int NUMBER_OF_TESTS = 2;
 
 // cost function
 double cost(double expected_output, double predicted_output)
@@ -133,17 +134,16 @@ void train()
     Matrix training_outputs;
     m_init(&training_outputs, num_training, __num_outputs);
 
-    struct dirent *de;  // Pointer for directory entry
-  
-    // opendir() returns a pointer of DIR type. 
+    struct dirent *de; // Pointer for directory entry
+
+    // opendir() returns a pointer of DIR type.
     DIR *dr = opendir("./assets/training_set");
-  
-    if (dr == NULL)  // opendir returns NULL if couldn't open directory
+
+    if (dr == NULL) // opendir returns NULL if couldn't open directory
     {
-        printf("Could not open current directory" );
-        
+        printf("Could not open current directory");
     }
-  
+
     int count = 0;
     // for readdir()
     while ((de = readdir(dr)) != NULL && count < num_training)
@@ -154,15 +154,14 @@ void train()
         if (s[0] != '.')
         {
             char *oui = "./assets/training_set/";
-            char *s1 = concat(oui,s);
-        
+            char *s1 = concat(oui, s);
+
             trainingInput(&training_inputs, count, s1);
-           
-            trainingOutput(&training_outputs, count, (int) (s[0] - '0'));
-            count+=1;
+
+            trainingOutput(&training_outputs, count, (int)(s[0] - '0'));
+            count += 1;
             free(s1);
         }
-
     }
     closedir(dr);
 
@@ -240,6 +239,9 @@ void train()
     // Iterate through epochs
     for (int n = 0; n < EPOCHS; n++)
     {
+        printf("\rEpoch: %d", n);
+        fflush(stdout);
+
         // Forward pass
         Matrix inputs;
         m_copy(&training_inputs, &inputs);
@@ -370,13 +372,42 @@ void train()
     m_free(&hidden_bias);
     m_free(&output_weights);
     m_free(&output_bias);
-    
 }
 
+int main(int argc, char *argv[])
+{
+    if (argc < 2)
+    {
+        printf("Usage: %s <train/test> <filename>\n", argv[0]);
+        return 1;
+    }
 
-int main(){
-     //train();
-     int res = neural_network_execute("./assets/training_set/1-0000.png");
-     printf("%d\n",res);
-     return res;
+    if (strcmp(argv[1], "train") == 0)
+    {
+        if (argc != 2)
+        {
+            printf("Usage: %s <train/test> <filename>\n", argv[0]);
+            return 1;
+        }
+
+        train();
+        return 0;
+    }
+    else if (strcmp(argv[1], "test") == 0)
+    {
+        if (argc != 3)
+        {
+            printf("Usage: %s <train/test> <filename>\n", argv[0]);
+            return 1;
+        }
+
+        int res = neural_network_execute(argv[2]);
+        printf("%d\n", res);
+        return 0;
+    }
+    else
+    {
+        printf("Usage: %s <save/train> <filename>\n", argv[0]);
+        return 1;
+    }
 }

@@ -6,6 +6,7 @@
 *.bmp
 *.csv
 assets/output/*
+assets/training_set/*
 *.result
 save
 
