@@ -140,8 +140,8 @@ int main()
     m_init(&training_outputs, num_training, __num_outputs);
 
     trainingOutput(&training_outputs, 0, 6);
-    trainingOutput(&training_outputs, 0, 7);
-    trainingOutput(&training_outputs, 0, 8);
+    trainingOutput(&training_outputs, 1, 7);
+    trainingOutput(&training_outputs, 2, 8);
 
     /*m_setIndex(&training_outputs, 0, 0, 0.0);
 
@@ -318,6 +318,8 @@ int main()
     // random_test(&hidden_weights, &hidden_bias, &output_weights,
     // &output_bias);
 
+    m_free(&training_outputs);
+    m_free(&training_inputs);
     m_free(&hidden_weights);
     m_free(&hidden_bias);
     m_free(&output_weights);
