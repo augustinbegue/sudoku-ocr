@@ -7,8 +7,7 @@
 #include "perspective_correction.h"
 #include "rotation.h"
 
-#define IMAGE_WIDTH 500
-#define IMAGE_HEIGHT 500
+#define IMAGE_SIZE 500
 #define VERBOSE_MODE 0
 #define VERBOSE_PATH NULL
 
@@ -40,13 +39,14 @@ typedef struct Controls Controls;
 struct Page
 {
     GtkViewport *container;
-    GtkImage *image;
+    GtkDrawingArea *image;
     GtkLabel *label;
 };
 typedef struct Page Page;
 
 struct Pages
 {
+
     gchar *current_page;
     Page *page1;
     Page *page2;
@@ -66,6 +66,9 @@ struct Images
     gdouble current_rotation;
     gboolean rotated;
     square *grid_square;
+    gint display_size;
+    GtkDrawingArea *current_container;
+    Image *current_image;
 };
 typedef struct Images Images;
 
@@ -80,24 +83,53 @@ struct MainWindow
 };
 typedef struct MainWindow MainWindow;
 
-void display_image(GtkImage *image_container, Image *image)
+void draw_image(GtkDrawingArea *drawing_area, cairo_t *cr, gpointer data)
 {
-    GdkPixbuf *pixbuf = image_to_pixbuf(image);
+    MainWindow *main_window = (MainWindow *)data;
 
-    GdkRectangle allocation;
+    GdkPixbuf *pixbuf = image_to_pixbuf(main_window->images->current_image);
 
-    double aspect_ratio = (double)image->width / (double)image->height;
+    gint width = gtk_widget_get_allocated_width(GTK_WIDGET(drawing_area));
+    gint height = gtk_widget_get_allocated_height(GTK_WIDGET(drawing_area));
 
-    allocation.width = IMAGE_WIDTH;
-    allocation.width *= aspect_ratio;
-    allocation.height = IMAGE_HEIGHT;
+    gint image_width = main_window->images->current_image->width;
+    gint image_height = main_window->images->current_image->height;
 
-    GdkPixbuf *resized = gdk_pixbuf_scale_simple(
-        pixbuf, allocation.width, allocation.height, GDK_INTERP_BILINEAR);
+    gdouble scale_x = (gdouble)width / image_width;
+    gdouble scale_y = (gdouble)height / image_height;
+    gdouble scale = MIN(scale_x, scale_y);
 
-    gtk_image_set_from_pixbuf(image_container, resized);
+    gint scaled_width = image_width * scale;
+    gint scaled_height = image_height * scale;
+    gint scaled_x = (width - scaled_width) / 2;
+    gint scaled_y = (height - scaled_height) / 2;
 
-    g_object_unref(pixbuf);
+    pixbuf = gdk_pixbuf_scale_simple(
+        pixbuf, scaled_width, scaled_height, GDK_INTERP_BILINEAR);
+
+    cairo_surface_t *surface
+        = gdk_cairo_surface_create_from_pixbuf(pixbuf, 1, NULL);
+
+    cairo_set_source_surface(cr, surface, scaled_x, scaled_y);
+    cairo_rectangle(cr, scaled_x, scaled_y, scaled_width, scaled_height);
+
+    cairo_fill(cr);
+
+    gdk_pixbuf_unref(pixbuf);
+}
+
+void display_image(
+    GtkDrawingArea *image_container, Image *image, MainWindow *main_window)
+{
+    main_window->images->current_container = image_container;
+
+    if (main_window->images->display_size != 0)
+        free_Image(main_window->images->current_image);
+    main_window->images->display_size = IMAGE_SIZE;
+
+    *main_window->images->current_image = clone_image(image);
+
+    gtk_widget_queue_draw(image_container);
 }
 
 void set_page(MainWindow *main_window, const gchar *page)
@@ -274,8 +306,8 @@ void file_selected(GtkWidget *widget, gpointer data)
     main_window->images->rotated = false;
     gtk_range_set_value(GTK_RANGE(main_window->controls->rotation_scale), 0);
 
-    display_image(
-        main_window->pages->page2->image, main_window->images->clean);
+    display_image(main_window->pages->page2->image, main_window->images->clean,
+        main_window);
 
     gchar label[100];
     g_snprintf(label, 100, "Image: %s", path);
@@ -318,8 +350,8 @@ gboolean grid_extraction_finished(gpointer data)
 {
     MainWindow *main_window = (MainWindow *)data;
 
-    display_image(
-        main_window->pages->page3->image, main_window->images->image);
+    display_image(main_window->pages->page3->image, main_window->images->image,
+        main_window);
 
     set_button_to_label(main_window->controls->confirm_image_button,
         "<span weight=\"bold\">Use this image</span>");
@@ -351,8 +383,8 @@ void manual_rotate_image(GtkWidget *widget, gpointer data)
     set_button_to_load(main_window->controls->confirm_image_button);
     set_button_to_load(main_window->controls->image_rotation_done_button);
 
-    display_image(
-        main_window->pages->page3->image, main_window->images->image);
+    display_image(main_window->pages->page3->image, main_window->images->image,
+        main_window);
 
     gchar label[100];
     g_snprintf(label, 100,
@@ -378,8 +410,8 @@ void rotation_changed(GtkWidget *widget, gpointer user_data)
     main_window->images->rotated = TRUE;
     main_window->images->current_rotation = value;
 
-    display_image(GTK_IMAGE(main_window->pages->page3->image),
-        main_window->images->image_rotated);
+    display_image(GTK_DRAWING_AREA(main_window->pages->page3->image),
+        main_window->images->image_rotated, main_window);
 
     return;
 }
@@ -389,18 +421,18 @@ gboolean grid_detection_finished(gpointer data)
     MainWindow *main_window = (MainWindow *)data;
 
     display_image(main_window->pages->page3->image,
-        main_window->images->image_rotated_clean);
+        main_window->images->image_rotated_clean, main_window);
 
     Image **cells = split_grid(main_window->images->image_rotated_cropped,
         VERBOSE_MODE, VERBOSE_PATH);
 
     // Display elements in page 3
     display_image(main_window->pages->page3->image,
-        main_window->images->image_rotated_cropped);
+        main_window->images->image_rotated_cropped, main_window);
 
     // Display elements in page 4 and show it
     display_image(main_window->pages->page4->image,
-        main_window->images->image_rotated_cropped);
+        main_window->images->image_rotated_cropped, main_window);
     set_step(main_window->step_indicators, 4);
     set_page(main_window, "page4");
 
@@ -450,11 +482,31 @@ void process_image(GtkWidget *widget, gpointer data)
     gtk_label_set_markup(main_window->pages->page3->label, label);
     gtk_widget_hide(main_window->controls->rotation_scale);
     set_step(main_window->step_indicators, 3);
-    display_image(
-        main_window->pages->page3->image, main_window->images->image_rotated);
+    display_image(main_window->pages->page3->image,
+        main_window->images->image_rotated, main_window);
 
     g_thread_new(
         "grid_detection_handler", grid_detection_handler, main_window);
+}
+
+void window_destroy(GtkWidget *widget, gpointer data)
+{
+    MainWindow *main_window = (MainWindow *)data;
+
+    free_Image(main_window->images->image);
+    free_Image(main_window->images->image_rotated);
+    free_Image(main_window->images->image_rotated_clean);
+    free_Image(main_window->images->image_rotated_cropped);
+    free_Image(main_window->images->clean);
+    free_Image(main_window->images->mask);
+    free(main_window->images->image);
+    free(main_window->images->image_rotated);
+    free(main_window->images->image_rotated_clean);
+    free(main_window->images->image_rotated_cropped);
+    free(main_window->images->clean);
+    free(main_window->images->mask);
+
+    gtk_main_quit();
 }
 
 int main()
@@ -518,12 +570,12 @@ int main()
     GtkViewport *page4_container
         = GTK_VIEWPORT(gtk_builder_get_object(builder, "page4"));
 
-    GtkImage *page2_image
-        = GTK_IMAGE(gtk_builder_get_object(builder, "page2image"));
-    GtkImage *page3_image
-        = GTK_IMAGE(gtk_builder_get_object(builder, "page3image"));
-    GtkImage *page4_image
-        = GTK_IMAGE(gtk_builder_get_object(builder, "page4image"));
+    GtkDrawingArea *page2_image
+        = GTK_DRAWING_AREA(gtk_builder_get_object(builder, "page2image"));
+    GtkDrawingArea *page3_image
+        = GTK_DRAWING_AREA(gtk_builder_get_object(builder, "page3image"));
+    GtkDrawingArea *page4_image
+        = GTK_DRAWING_AREA(gtk_builder_get_object(builder, "page4image"));
 
     GtkLabel *page2_label
         = GTK_LABEL(gtk_builder_get_object(builder, "page2label"));
@@ -568,7 +620,6 @@ int main()
         .image = page3_image,
         .label = page3_label,
     };
-
     Page page4 = {
         .container = page4_container,
         .image = page4_image,
@@ -592,6 +643,9 @@ int main()
         .image_rotated = malloc(sizeof(Image)),
         .image_rotated_clean = malloc(sizeof(Image)),
         .image_rotated_cropped = malloc(sizeof(Image)),
+        .display_size = 0,
+        .current_container = malloc(sizeof(GtkDrawingArea)),
+        .current_image = malloc(sizeof(Image)),
     };
 
     MainWindow main_window = {
@@ -604,7 +658,8 @@ int main()
     };
 
     // Connect signals
-    g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
+    g_signal_connect(
+        window, "destroy", G_CALLBACK(window_destroy), &main_window);
 
     // File selection
     g_signal_connect(file_chooser_button, "selection-changed",
@@ -629,10 +684,17 @@ int main()
     // Rotation done
     g_signal_connect(rotation_done_button, "clicked",
         G_CALLBACK(process_image), &main_window);
-
     // Rotation Scale
     g_signal_connect(rotation_scale, "value-changed",
         G_CALLBACK(rotation_changed), &main_window);
+
+    // Images Drawing Area
+    g_signal_connect(
+        page2_image, "draw", G_CALLBACK(draw_image), &main_window);
+    g_signal_connect(
+        page3_image, "draw", G_CALLBACK(draw_image), &main_window);
+    g_signal_connect(
+        page4_image, "draw", G_CALLBACK(draw_image), &main_window);
 
     set_step(&step_indicators, 1);
 
