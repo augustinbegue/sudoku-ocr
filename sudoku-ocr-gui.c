@@ -238,17 +238,15 @@ void previous_page(GtkWidget *widget, gpointer data)
     }
     else if (g_str_equal(main_window->pages->current_page, "page3"))
     {
-        set_page(main_window, "page2");
         set_step(main_window->step_indicators, 1);
+        file_selected(NULL, main_window);
+        set_page(main_window, "page2");
     }
     else if (g_str_equal(main_window->pages->current_page, "page4"))
     {
+        file_selected(NULL, main_window);
+        manual_rotate_image(NULL, main_window);
         set_page(main_window, "page3");
-        set_step(main_window->step_indicators, 2);
-        gtk_range_set_value(
-            GTK_RANGE(main_window->controls->rotation_scale), 0);
-        main_window->images->current_rotation = 0;
-        main_window->images->rotated = false;
     }
 }
 
@@ -283,7 +281,8 @@ void file_selected(GtkWidget *widget, gpointer data)
     g_snprintf(label, 100, "Image: %s", path);
     gtk_label_set_text(main_window->pages->page2->label, label);
 
-    set_page(main_window, "page2");
+    if (widget != NULL)
+        set_page(main_window, "page2");
 }
 
 void open_image(GtkWidget *widget, gpointer data)
@@ -361,7 +360,9 @@ void manual_rotate_image(GtkWidget *widget, gpointer data)
     gtk_label_set_markup(main_window->pages->page3->label, label);
 
     set_step(main_window->step_indicators, 2);
-    set_page(main_window, "page3");
+
+    if (widget != NULL)
+        set_page(main_window, "page3");
 }
 
 void rotation_changed(GtkWidget *widget, gpointer user_data)
