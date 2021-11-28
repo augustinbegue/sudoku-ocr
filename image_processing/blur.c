@@ -1,7 +1,7 @@
 #include <math.h>
 #include <stdio.h>
-#include "../utils/helpers.h"
-#include "../utils/image.h"
+#include "helpers.h"
+#include "image.h"
 
 static double **get_gaussian_filter_kernel(int range, double sigma, int K)
 {
@@ -88,4 +88,44 @@ void gaussian_blur_image(Image *image, int range, double sigma, int K)
     for (int i = 0; i < range; i++)
         free(kernel[i]);
     free(kernel);
+}
+
+double *get_gaussian_smoothing_kernel(int range, double sigma)
+{
+    if (range % 2 == 0)
+        range++;
+
+    double sum = 0;
+    double *gauss = malloc(sizeof(double) * range * range);
+
+    double r, s = 2.0 * sigma * sigma;
+
+    int start = -(range / 2);
+    int end = range / 2;
+
+    // generating the Kernel
+    int c = 0;
+    for (int x = start; x <= end; x++)
+    {
+        for (int y = start; y <= end; y++)
+        {
+            r = sqrt(x * x + y * y);
+            gauss[c] = (exp(-(r * r) / s)) / (M_PI * s);
+            sum += gauss[c];
+            c++;
+        }
+    }
+
+    // normalising the Kernel
+    c = 0;
+    for (int i = 0; i < range; ++i)
+    {
+        for (int j = 0; j < range; ++j)
+        {
+            gauss[c] /= sum;
+            c++;
+        }
+    }
+
+    return gauss;
 }

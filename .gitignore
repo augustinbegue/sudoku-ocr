@@ -3,3 +3,6 @@
 *.bmp
 *.csv
 main
+assets/output/*
+*.result
+

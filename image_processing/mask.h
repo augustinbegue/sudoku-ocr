@@ -1,7 +1,7 @@
 #ifndef MASK_H
 #define MASK_H
 
-#include "../utils/image.h"
+#include "image.h"
 
 void apply_mask(Image *image, Image *mask);
 
