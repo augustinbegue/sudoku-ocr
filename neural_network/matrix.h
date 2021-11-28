@@ -51,6 +51,8 @@ Matrix *m_scalar_mult(Matrix *a, double x);
 // add a double to each value of the matrix
 Matrix *m_scalar_add(Matrix *a, double x);
 
+int max_mat(Matrix *a);
+
 // return a new matrix being the product of a and b 
 Matrix *m_mult(Matrix *a, Matrix *b, Matrix *dest);
 

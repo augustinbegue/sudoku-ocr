@@ -5,20 +5,48 @@
 #include "../network.h"
 #include "maths_extra.h"
 #include "matrix.h"
+#include "image.h"
+
 
 /*
  return the result of the network for a XOR (have to be modified for the real
  network) hw -> hidden weights , hb -> hidden bias , ow -> output weights , ob
  -> ourpur bias
 */
-double result_network(
-    double i1, double i2, Matrix *hw, Matrix *hb, Matrix *ow, Matrix *ob)
+int result_network(
+    char *path, Matrix *hw, Matrix *hb, Matrix *ow, Matrix *ob)
 {
     // matrix with the inputs
     Matrix input;
     m_init(&input, 1, __num_inputs);
-    m_setIndex(&input, 0, 0, i1);
-    m_setIndex(&input, 0, 1, i2);
+    
+    Image image = SDL_Surface_to_Image(load_image(path));
+
+    int count = 0;
+    int width = image.width;
+    int height = image.height;
+
+    for (int x = 0; x < width; x++)
+    {
+        for (int y = 0; y < height; y++)
+        {
+            Pixel pix = image.pixels[x][y];
+
+            // color 0 or 255
+            int color = pix.r;
+            if (color == 0)
+            {
+                m_setIndex(&input, 0, count, 0.0);
+            }
+            else
+            {
+                m_setIndex(&input, 0, count, 1.0);
+            }
+            count++;
+        }
+    }
+
+    free_Image(&image);
 
     // result of the hidden layer
     Matrix result_hidden;
@@ -32,7 +60,7 @@ double result_network(
     m_add(&result_output, ob);
     m_map(&result_output, sigmoid);
 
-    double res = m_get(&result_output, 0, 0);
+    int res = max_mat(&result_output);
 
     // free all memory
     m_free(&input);
@@ -42,7 +70,7 @@ double result_network(
     return res;
 }
 
-int mainn()
+int neural_network_execute(char* path)
 {
     int retur = 0;
     char *filename = "save";
@@ -127,16 +155,11 @@ int mainn()
 
     fclose(fp);
 
-    printf("Result of tests after training\n");
-    printf("Result for (0, 0) (Expected: 0): %f\n",
-        result_network(0.0, 0.0, hw, hb, ow, ob));
-    printf("Result for (0, 1) (Expected: 1): %f\n",
-        result_network(0.0, 1.0, hw, hb, ow, ob));
-    printf("Result for (1, 0) (Expected: 1): %f\n",
-        result_network(1.0, 0.0, hw, hb, ow, ob));
-    printf("Result for (1, 1) (Expected: 0): %f\n",
-        result_network(1.0, 1.0, hw, hb, ow, ob));
-    printf("\n");
+    int res = result_network(path,hw,hb,ow,ob) + retur * 0;
 
-    return retur;
+    m_free(hw);
+    m_free(hb);
+    m_free(ow);
+    m_free(ob);
+    return res;
 }

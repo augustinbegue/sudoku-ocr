@@ -4,6 +4,8 @@
 #include "maths_extra.h"
 #include "matrix.h"
 
-double result_network(double i1, double i2, Matrix *hw, Matrix *hb, Matrix *ow, Matrix *ob);
+int result_network(
+    char *path, Matrix *hw, Matrix *hb, Matrix *ow, Matrix *ob);
+int neural_network_execute(char* path);
 
 #endif

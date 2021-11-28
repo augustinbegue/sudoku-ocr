@@ -196,6 +196,24 @@ Matrix *m_scalar_mult(Matrix *a, double x)
     return a;
 }
 
+int max_mat(Matrix *a){
+    double max = m_get(a, 0, 0);
+    int max_ind = 0;
+    for (int i = 0; i < a->rows; i++)
+    {
+        for (int j = 0; j < a->cols; j++)
+        {
+            double val = m_get(a, i, j);
+            if (val > max)
+            {
+                max = val;
+                max_ind = j;
+            }
+        }
+    }
+    return max_ind;
+}
+
 Matrix *m_scalar_add(Matrix *a, double x)
 {
     for (int i = 0; i < a->rows; i++)

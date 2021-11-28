@@ -1,6 +1,18 @@
 #include "network.h"
 #include "image.h"
 #include "result_network.h"
+#include <stdio.h>
+#include <dirent.h>
+#include <string.h>
+
+char* concat(const char *s1, const char *s2)
+{
+    char *result = malloc(strlen(s1)+strlen(s2)+1);//+1 for the null-terminator
+    //in real code you would check for errors in malloc here
+    strcpy(result, s1);
+    strcat(result, s2);
+    return result;
+}  
 
 // number of "generation" of AI
 static const int EPOCHS = 1000;
@@ -8,8 +20,8 @@ static const int EPOCHS = 1000;
 // learning rate
 static const double LR = 0.1;
 
-static const int num_training = 4;
-static const int NUMBER_OF_TESTS = 2;
+static const int num_training = 63;
+//static const int NUMBER_OF_TESTS = 2;
 
 // cost function
 double cost(double expected_output, double predicted_output)
@@ -60,6 +72,7 @@ void trainingOutput(Matrix *training_outputs, size_t numTest, int res)
 
 // Execute random test on a trained network and display the accuracy of the
 // network
+/*
 void random_test(Matrix *hw, Matrix *hb, Matrix *ow, Matrix *ob)
 {
     int correct_predictions = 0;
@@ -109,20 +122,56 @@ void random_test(Matrix *hw, Matrix *hb, Matrix *ow, Matrix *ob)
         total_error);
     printf("Average error per trial: %f\n",
         total_error / ((double)(NUMBER_OF_TESTS)));
-}
+}*/
 
-int main()
+void train()
 {
     // Initializing training sets
     Matrix training_inputs;
     m_init(&training_inputs, num_training, __num_inputs);
 
-    trainingInput(
+    Matrix training_outputs;
+    m_init(&training_outputs, num_training, __num_outputs);
+
+    struct dirent *de;  // Pointer for directory entry
+  
+    // opendir() returns a pointer of DIR type. 
+    DIR *dr = opendir("./assets/training_set");
+  
+    if (dr == NULL)  // opendir returns NULL if couldn't open directory
+    {
+        printf("Could not open current directory" );
+        
+    }
+  
+    int count = 0;
+    // for readdir()
+    while ((de = readdir(dr)) != NULL && count < num_training)
+    {
+
+        char *s = de->d_name;
+
+        if (s[0] != '.')
+        {
+            char *oui = "./assets/training_set/";
+            char *s1 = concat(oui,s);
+        
+            trainingInput(&training_inputs, count, s1);
+           
+            trainingOutput(&training_outputs, count, (int) (s[0] - '0'));
+            count+=1;
+            free(s1);
+        }
+
+    }
+    closedir(dr);
+
+    /*trainingInput(
         &training_inputs, 0, "./neural_network/train_set/grid-6.png");
     trainingInput(
         &training_inputs, 1, "./neural_network/train_set/grid-7.png");
     trainingInput(
-        &training_inputs, 2, "./neural_network/train_set/grid-8.png");
+        &training_inputs, 2, "./neural_network/train_set/grid-8.png");*/
 
     /*m_setIndex(&training_inputs, 0, 0, 1.0);
     m_setIndex(&training_inputs, 0, 1, 1.0);
@@ -136,12 +185,9 @@ int main()
     m_setIndex(&training_inputs, 3, 0, 0.0);
     m_setIndex(&training_inputs, 3, 1, 0.0);*/
 
-    Matrix training_outputs;
-    m_init(&training_outputs, num_training, __num_outputs);
-
-    trainingOutput(&training_outputs, 0, 6);
+    /*trainingOutput(&training_outputs, 0, 6);
     trainingOutput(&training_outputs, 1, 7);
-    trainingOutput(&training_outputs, 2, 8);
+    trainingOutput(&training_outputs, 2, 8);*/
 
     /*m_setIndex(&training_outputs, 0, 0, 0.0);
 
@@ -324,5 +370,13 @@ int main()
     m_free(&hidden_bias);
     m_free(&output_weights);
     m_free(&output_bias);
-    return 0;
+    
+}
+
+
+int main(){
+     //train();
+     int res = neural_network_execute("./assets/training_set/1-0000.png");
+     printf("%d\n",res);
+     return res;
 }
