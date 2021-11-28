@@ -47,7 +47,7 @@ typedef struct Page Page;
 struct Pages
 {
 
-    gchar *current_page;
+    char *current_page;
     Page *page1;
     Page *page2;
     Page *page3;
@@ -64,7 +64,8 @@ struct Images
     Image *image_rotated_clean;
     Image *image_rotated_cropped;
     gdouble current_rotation;
-    gboolean rotated;
+    gboolean is_rotated;
+    gboolean is_loaded;
     square *grid_square;
     gint display_size;
     GtkDrawingArea *current_container;
@@ -115,7 +116,7 @@ void draw_image(GtkDrawingArea *drawing_area, cairo_t *cr, gpointer data)
 
     cairo_fill(cr);
 
-    gdk_pixbuf_unref(pixbuf);
+    g_object_unref(pixbuf);
 }
 
 void display_image(
@@ -129,10 +130,10 @@ void display_image(
 
     *main_window->images->current_image = clone_image(image);
 
-    gtk_widget_queue_draw(image_container);
+    gtk_widget_queue_draw(GTK_WIDGET(image_container));
 }
 
-void set_page(MainWindow *main_window, const gchar *page)
+void set_page(MainWindow *main_window, gchar *page)
 {
     main_window->pages->current_page = page;
 
@@ -179,7 +180,7 @@ void set_button_to_load(GtkButton *button)
     if (child)
         gtk_container_remove(GTK_CONTAINER(button), child);
 
-    gtk_container_add(GTK_CONTAINER(button), spinner);
+    gtk_container_add(GTK_CONTAINER(button), GTK_WIDGET(spinner));
 
     gtk_widget_show(GTK_WIDGET(spinner));
 
@@ -188,7 +189,7 @@ void set_button_to_load(GtkButton *button)
 
 void set_button_to_label(GtkButton *button, gchar *text)
 {
-    GtkLabel *label = gtk_label_new("");
+    GtkLabel *label = GTK_LABEL(gtk_label_new(""));
 
     gtk_label_set_markup(label, text);
 
@@ -197,14 +198,14 @@ void set_button_to_label(GtkButton *button, gchar *text)
     if (child)
         gtk_container_remove(GTK_CONTAINER(button), child);
 
-    gtk_container_add(GTK_CONTAINER(button), label);
+    gtk_container_add(GTK_CONTAINER(button), GTK_WIDGET(label));
 
     gtk_widget_show(GTK_WIDGET(label));
 
     gtk_widget_set_sensitive(GTK_WIDGET(button), TRUE);
 }
 
-void save_current_image(GtkWidget *widget, gpointer data)
+void save_current_image(GtkWidget *_, gpointer data)
 {
     MainWindow *main_window = (MainWindow *)data;
 
@@ -214,7 +215,7 @@ void save_current_image(GtkWidget *widget, gpointer data)
         case 1:
             return;
         case 2:
-            if (main_window->images->rotated)
+            if (main_window->images->is_rotated)
                 image = main_window->images->image_rotated;
             else
                 image = main_window->images->image;
@@ -237,9 +238,9 @@ void save_current_image(GtkWidget *widget, gpointer data)
     GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_SAVE;
     gint res;
 
-    dialog
-        = gtk_file_chooser_dialog_new("Save File", main_window->window, action,
-            "Cancel", GTK_RESPONSE_CANCEL, "Save", GTK_RESPONSE_ACCEPT, NULL);
+    dialog = gtk_file_chooser_dialog_new("Save File",
+        GTK_WINDOW(main_window->window), action, "Cancel", GTK_RESPONSE_CANCEL,
+        "Save", GTK_RESPONSE_ACCEPT, NULL);
     chooser = GTK_FILE_CHOOSER(dialog);
 
     gtk_file_chooser_set_do_overwrite_confirmation(chooser, TRUE);
@@ -257,6 +258,102 @@ void save_current_image(GtkWidget *widget, gpointer data)
     }
 
     gtk_widget_destroy(dialog);
+}
+
+void file_selected(GtkWidget *widget, gpointer data)
+{
+    MainWindow *main_window = (MainWindow *)data;
+
+    GtkFileChooser *file_chooser;
+
+    if (GTK_IS_FILE_CHOOSER(widget))
+        file_chooser = GTK_FILE_CHOOSER(widget);
+    else
+        file_chooser
+            = GTK_FILE_CHOOSER(main_window->controls->file_chooser_button);
+
+    GFile *file = gtk_file_chooser_get_file(file_chooser);
+    char *path = g_file_get_path(file);
+
+    if (main_window->images->is_loaded)
+    {
+        free_Image(main_window->images->image);
+        free_Image(main_window->images->mask);
+        free_Image(main_window->images->clean);
+    }
+
+    *main_window->images->image = SDL_Surface_to_Image(load_image(path));
+    *main_window->images->mask = SDL_Surface_to_Image(load_image(path));
+    *main_window->images->clean = SDL_Surface_to_Image(load_image(path));
+    main_window->images->is_loaded = TRUE;
+
+    // Reset values
+    main_window->images->current_rotation = 0;
+    main_window->images->is_rotated = false;
+    gtk_range_set_value(GTK_RANGE(main_window->controls->rotation_scale), 0);
+
+    display_image(main_window->pages->page2->image, main_window->images->clean,
+        main_window);
+
+    gchar label[100];
+    g_snprintf(label, 100, "Image: %s", path);
+    gtk_label_set_text(main_window->pages->page2->label, label);
+
+    if (widget != NULL)
+        set_page(main_window, "page2");
+}
+
+gboolean grid_extraction_finished(gpointer data)
+{
+    MainWindow *main_window = (MainWindow *)data;
+
+    display_image(main_window->pages->page3->image, main_window->images->image,
+        main_window);
+
+    set_button_to_label(main_window->controls->confirm_image_button,
+        "<span weight=\"bold\">Use this image</span>");
+    set_button_to_label(
+        main_window->controls->image_rotation_done_button, "Done");
+    gtk_widget_show(GTK_WIDGET(main_window->controls->rotation_scale));
+
+    return FALSE;
+}
+
+void *grid_extraction_handler(gpointer data)
+{
+    MainWindow *main_window = (MainWindow *)data;
+
+    image_processing_extract_grid(main_window->images->mask,
+        main_window->images->image, VERBOSE_MODE, VERBOSE_PATH);
+
+    g_idle_add(grid_extraction_finished, main_window);
+
+    return NULL;
+}
+
+void manual_rotate_image(GtkWidget *widget, gpointer data)
+{
+    MainWindow *main_window = (MainWindow *)data;
+
+    g_thread_new("grid_extraction_handler",
+        (GThreadFunc)grid_extraction_handler, main_window);
+
+    gtk_widget_hide(GTK_WIDGET(main_window->controls->rotation_scale));
+    set_button_to_load(main_window->controls->confirm_image_button);
+    set_button_to_load(main_window->controls->image_rotation_done_button);
+
+    display_image(main_window->pages->page3->image, main_window->images->image,
+        main_window);
+
+    gchar label[100];
+    g_snprintf(label, 100,
+        "<span weight=\"bold\" size=\"large\">Rotating Image</span>");
+    gtk_label_set_markup(main_window->pages->page3->label, label);
+
+    set_step(main_window->step_indicators, 2);
+
+    if (widget != NULL)
+        set_page(main_window, "page3");
 }
 
 void previous_page(GtkWidget *widget, gpointer data)
@@ -282,41 +379,6 @@ void previous_page(GtkWidget *widget, gpointer data)
     }
 }
 
-void file_selected(GtkWidget *widget, gpointer data)
-{
-    MainWindow *main_window = (MainWindow *)data;
-
-    GtkFileChooser *file_chooser;
-
-    if (GTK_IS_FILE_CHOOSER(widget))
-        file_chooser = GTK_FILE_CHOOSER(widget);
-    else
-        file_chooser
-            = GTK_FILE_CHOOSER(main_window->controls->file_chooser_button);
-
-    GFile *file = gtk_file_chooser_get_file(file_chooser);
-    char *path = g_file_get_path(file);
-
-    *main_window->images->image = SDL_Surface_to_Image(load_image(path));
-    *main_window->images->mask = SDL_Surface_to_Image(load_image(path));
-    *main_window->images->clean = SDL_Surface_to_Image(load_image(path));
-
-    // Reset values
-    main_window->images->current_rotation = 0;
-    main_window->images->rotated = false;
-    gtk_range_set_value(GTK_RANGE(main_window->controls->rotation_scale), 0);
-
-    display_image(main_window->pages->page2->image, main_window->images->clean,
-        main_window);
-
-    gchar label[100];
-    g_snprintf(label, 100, "Image: %s", path);
-    gtk_label_set_text(main_window->pages->page2->label, label);
-
-    if (widget != NULL)
-        set_page(main_window, "page2");
-}
-
 void open_image(GtkWidget *widget, gpointer data)
 {
     MainWindow *main_window = (MainWindow *)data;
@@ -334,70 +396,19 @@ void open_image(GtkWidget *widget, gpointer data)
     res = gtk_dialog_run(GTK_DIALOG(dialog));
 
     if (res == GTK_RESPONSE_ACCEPT)
-        file_selected(chooser, main_window);
+        file_selected(GTK_WIDGET(chooser), main_window);
 
     gtk_widget_destroy(dialog);
 }
 
-void cancel_image_selection(GtkWidget *widget, gpointer data)
+void cancel_image_selection(GtkWidget *_, gpointer data)
 {
     MainWindow *main_window = (MainWindow *)data;
 
     set_page(main_window, "page1");
 }
 
-gboolean grid_extraction_finished(gpointer data)
-{
-    MainWindow *main_window = (MainWindow *)data;
-
-    display_image(main_window->pages->page3->image, main_window->images->image,
-        main_window);
-
-    set_button_to_label(main_window->controls->confirm_image_button,
-        "<span weight=\"bold\">Use this image</span>");
-    set_button_to_label(
-        main_window->controls->image_rotation_done_button, "Done");
-    gtk_widget_show(main_window->controls->rotation_scale);
-
-    return FALSE;
-}
-
-void grid_extraction_handler(gpointer data)
-{
-    MainWindow *main_window = (MainWindow *)data;
-
-    image_processing_extract_grid(main_window->images->mask,
-        main_window->images->image, VERBOSE_MODE, VERBOSE_PATH, true);
-
-    g_idle_add(grid_extraction_finished, main_window);
-}
-
-void manual_rotate_image(GtkWidget *widget, gpointer data)
-{
-    MainWindow *main_window = (MainWindow *)data;
-
-    GThread *grid_extraction_thread = g_thread_new(
-        "grid_extraction_handler", grid_extraction_handler, main_window);
-
-    gtk_widget_hide(main_window->controls->rotation_scale);
-    set_button_to_load(main_window->controls->confirm_image_button);
-    set_button_to_load(main_window->controls->image_rotation_done_button);
-
-    display_image(main_window->pages->page3->image, main_window->images->image,
-        main_window);
-
-    gchar label[100];
-    g_snprintf(label, 100,
-        "<span weight=\"bold\" size=\"large\">Rotating Image</span>");
-    gtk_label_set_markup(main_window->pages->page3->label, label);
-
-    set_step(main_window->step_indicators, 2);
-
-    if (widget != NULL)
-        set_page(main_window, "page3");
-}
-
-void rotation_changed(GtkWidget *widget, gpointer user_data)
+void rotation_changed(GtkWidget *_, gpointer user_data)
 {
     MainWindow *main_window = (MainWindow *)user_data;
 
@@ -407,7 +418,7 @@ void rotation_changed(GtkWidget *widget, gpointer user_data)
     *main_window->images->image_rotated
         = rotate_image(main_window->images->image, value);
 
-    main_window->images->rotated = TRUE;
+    main_window->images->is_rotated = TRUE;
     main_window->images->current_rotation = value;
 
     display_image(GTK_DRAWING_AREA(main_window->pages->page3->image),
@@ -441,17 +452,25 @@ gboolean grid_detection_finished(gpointer data)
         main_window->controls->image_rotation_done_button, "Done");
     gtk_widget_show(GTK_WIDGET(main_window->controls->rotation_scale));
 
+    for (int i = 0; i < 9; i++)
+        for (int j = 0; j < 9; j++)
+        {
+            int c = i * 9 + j;
+            free_Image(cells[c]);
+            free(cells[c]);
+        }
+
     return FALSE;
 }
 
-void grid_detection_handler(gpointer data)
+void *grid_detection_handler(gpointer data)
 {
     MainWindow *main_window = (MainWindow *)data;
 
     double rotation = 0;
     main_window->images->grid_square
         = grid_processing_detect_grid(main_window->images->image_rotated,
-            &rotation, VERBOSE_MODE, VERBOSE_PATH, false);
+            &rotation, VERBOSE_MODE, VERBOSE_PATH);
 
     main_window->images->current_rotation += rotation;
     *main_window->images->image_rotated_clean = rotate_image(
@@ -462,16 +481,18 @@ void grid_detection_handler(gpointer data)
             main_window->images->grid_square, VERBOSE_MODE, VERBOSE_PATH);
 
     g_idle_add(grid_detection_finished, main_window);
+
+    return NULL;
 }
 
-void process_image(GtkWidget *widget, gpointer data)
+void process_image(GtkWidget *_, gpointer data)
 {
     MainWindow *main_window = (MainWindow *)data;
 
     set_button_to_load(main_window->controls->image_rotation_done_button);
 
     // If the image is not rotated, populate the image_rotated pointer
-    if (!main_window->images->rotated)
+    if (!main_window->images->is_rotated)
         *main_window->images->image_rotated
             = clone_image(main_window->images->image);
 
@@ -480,31 +501,18 @@ void process_image(GtkWidget *widget, gpointer data)
     g_snprintf(label, 100,
         "<span weight=\"bold\" size=\"large\">Processing Image</span>");
     gtk_label_set_markup(main_window->pages->page3->label, label);
-    gtk_widget_hide(main_window->controls->rotation_scale);
+    gtk_widget_hide(GTK_WIDGET(main_window->controls->rotation_scale));
     set_step(main_window->step_indicators, 3);
     display_image(main_window->pages->page3->image,
         main_window->images->image_rotated, main_window);
 
-    g_thread_new(
-        "grid_detection_handler", grid_detection_handler, main_window);
+    g_thread_new("grid_detection_handler", (GThreadFunc)grid_detection_handler,
+        main_window);
 }
 
-void window_destroy(GtkWidget *widget, gpointer data)
+void window_destroy(GtkWidget *_, gpointer data)
 {
     MainWindow *main_window = (MainWindow *)data;
-
-    free_Image(main_window->images->image);
-    free_Image(main_window->images->image_rotated);
-    free_Image(main_window->images->image_rotated_clean);
-    free_Image(main_window->images->image_rotated_cropped);
-    free_Image(main_window->images->clean);
-    free_Image(main_window->images->mask);
-    free(main_window->images->image);
-    free(main_window->images->image_rotated);
-    free(main_window->images->image_rotated_clean);
-    free(main_window->images->image_rotated_cropped);
-    free(main_window->images->clean);
-    free(main_window->images->mask);
 
     gtk_main_quit();
 }
@@ -635,7 +643,8 @@ int main()
     };
 
     Images images = {
-        .rotated = FALSE,
+        .is_rotated = FALSE,
+        .is_loaded = FALSE,
         .current_rotation = 0,
         .mask = malloc(sizeof(Image)),
         .image = malloc(sizeof(Image)),

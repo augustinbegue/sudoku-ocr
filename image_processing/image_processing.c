@@ -18,8 +18,8 @@
  * @param verbose_mode
  * @param verbose_path
  */
-void image_processing_extract_grid(Image *maskpt, Image *imagept,
-    bool verbose_mode, char *verbose_path, bool gtk)
+void image_processing_extract_grid(
+    Image *maskpt, Image *imagept, bool verbose_mode, char *verbose_path)
 {
     int adaptive_range
         = (maskpt->width > maskpt->height ? maskpt->height : maskpt->width)

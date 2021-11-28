@@ -13,7 +13,7 @@
 #include "square_selection.h"
 
 square *grid_processing_detect_grid(Image *rotated_imagept,
-    double *rotation_amount, bool verbose_mode, char *verbose_path, bool gtk)
+    double *rotation_amount, bool verbose_mode, char *verbose_path)
 {
     Image edge_image
         = canny_edge_filtering(rotated_imagept, verbose_mode, verbose_path);
@@ -34,7 +34,7 @@ square *grid_processing_detect_grid(Image *rotated_imagept,
     if (!verbose_mode)
         printf("   ⏹️ Finding squares...\n");
 
-    list *squares = find_squares(edges, edge_num, lines_imagept, false);
+    list *squares = find_squares(edges, edge_num, lines_imagept);
 
     square *selected_square
         = select_square(squares, lines_imagept, verbose_mode, verbose_path);
