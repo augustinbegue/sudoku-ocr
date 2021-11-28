@@ -2,6 +2,8 @@
 
 #define GEOMETRY_H
 
+#include <stdbool.h>
+
 struct line
 {
     int x0;
@@ -34,6 +36,11 @@ struct square
     point c4;
 };
 typedef struct square square;
+
+line edge_to_line(int *edge);
+bool lines_equal(line l1, line l2);
+bool points_equal(point p1, point p2);
+point line_intersect(line line1, line line2);
 
 #endif
 

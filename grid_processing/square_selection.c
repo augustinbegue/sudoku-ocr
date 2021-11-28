@@ -3,6 +3,124 @@
 #include "helpers.h"
 #include "list.h"
 
+static void swap_points(point *points, int i, int j)
+{
+    point tmp = points[i];
+    points[i] = points[j];
+    points[j] = tmp;
+}
+
+static int get_biggest_side(square *sq)
+{
+    int biggest;
+
+    point c1 = sq->c1;
+    point c2 = sq->c2;
+    point c3 = sq->c3;
+    point c4 = sq->c4;
+
+    double side1_length
+        = sqrt((c2.x - c1.x) * (c2.x - c1.x) + (c2.y - c1.y) * (c2.y - c1.y));
+    double side2_length
+        = sqrt((c3.x - c2.x) * (c3.x - c2.x) + (c3.y - c2.y) * (c3.y - c2.y));
+    double side3_length
+        = sqrt((c4.x - c3.x) * (c4.x - c3.x) + (c4.y - c3.y) * (c4.y - c3.y));
+    double side4_length
+        = sqrt((c4.x - c1.x) * (c4.x - c1.x) + (c4.y - c1.y) * (c4.y - c1.y));
+
+    if (side1_length < side2_length)
+    {
+        biggest = side2_length;
+    }
+    else
+    {
+        biggest = side1_length;
+    }
+    if (side3_length > biggest)
+    {
+        biggest = side3_length;
+    }
+    if (side4_length > biggest)
+    {
+        biggest = side4_length;
+    }
+
+    return biggest;
+}
+
+/**
+ * @brief Set the square's coordinates in the correct order.
+ *
+ * @param selected square to normalize
+ */
+void normalize_square(square *selected)
+{
+    printf("    Previous square: (%i, %i), (%i, %i), (%i, %i), (%i, %i).\n",
+        selected->c1.x, selected->c1.y, selected->c2.x, selected->c2.y,
+        selected->c3.x, selected->c3.y, selected->c4.x, selected->c4.y);
+
+    point points[4] = {selected->c1, selected->c2, selected->c3, selected->c4};
+
+    int delta = get_biggest_side(selected) / 10;
+
+    int smallest_x = selected->c1.x;
+    int smallest_y = selected->c1.y;
+    int biggest_x = selected->c1.x;
+    int biggest_y = selected->c1.y;
+
+    for (int i = 0; i < 4; i++)
+    {
+        if (points[i].x < smallest_x)
+        {
+            smallest_x = points[i].x;
+        }
+        if (points[i].y < smallest_y)
+        {
+            smallest_y = points[i].y;
+        }
+        if (points[i].x > biggest_x)
+        {
+            biggest_x = points[i].x;
+        }
+        if (points[i].y > biggest_y)
+        {
+            biggest_y = points[i].y;
+        }
+    }
+
+    for (int i = 0; i < 4; i++)
+    {
+        if (points[i].x - smallest_x < delta
+            && points[i].y - smallest_y < delta)
+        {
+            swap_points(points, i, 0);
+        }
+        if (biggest_x - points[i].x < delta
+            && points[i].y - smallest_y < delta)
+        {
+            swap_points(points, i, 1);
+        }
+        if (biggest_x - points[i].x < delta && biggest_y - points[i].y < delta)
+        {
+            swap_points(points, i, 2);
+        }
+        if (points[i].x - smallest_x < delta
+            && biggest_y - points[i].y < delta)
+        {
+            swap_points(points, i, 3);
+        }
+    }
+
+    selected->c1 = points[0];
+    selected->c2 = points[1];
+    selected->c3 = points[2];
+    selected->c4 = points[3];
+
+    printf("    Normalized square: (%i, %i), (%i, %i), (%i, %i), (%i, %i).\n",
+        selected->c1.x, selected->c1.y, selected->c2.x, selected->c2.y,
+        selected->c3.x, selected->c3.y, selected->c4.x, selected->c4.y);
+}
+
 square *select_square(
     list *squares, Image *image, bool verbose_mode, char *verbose_path)
 {
@@ -68,17 +186,14 @@ square *select_square(
             biggest = side4_length;
         }
 
-        double ideal_area = pow(smallest, 2);
-        double actual_area = pow(biggest, 2);
+        double smallest_area = pow(smallest, 2);
+        double biggest_area = pow(biggest, 2);
 
-        double diff = actual_area - ideal_area;
+        double diff = biggest_area - smallest_area;
         // diff between biggest and smallest possible area / biggest area)
-        double diff_factor = (diff / actual_area) * ideal_area;
+        double diff_factor = (diff / biggest_area) * smallest_area;
 
-        // Parameters Weight for selection:
-        // ideal_area * 1
-        // diff_factor * 100
-        double selection_factor = ideal_area - (diff_factor);
+        double selection_factor = smallest_area * 3 - diff_factor * 10;
 
         if (selection_factor >= best_selection_factor)
         {

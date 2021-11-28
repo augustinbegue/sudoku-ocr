@@ -7,20 +7,13 @@
 #include <sys/sysinfo.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include "automatic_rotation.h"
-#include "edge_averaging.h"
-#include "edge_detection.h"
-#include "geometry.h"
+#include "grid_processing.h"
 #include "grid_splitting.h"
 #include "helpers.h"
-#include "hough_transform.h"
 #include "image.h"
 #include "image_processing.h"
-#include "int_list.h"
-#include "list.h"
+#include "perspective_correction.h"
 #include "rotation.h"
-#include "square_detection.h"
-#include "square_selection.h"
 
 static void print_help(const char *exec_name)
 {
@@ -117,23 +110,24 @@ int main(int argc, char const *argv[])
         Image *imagept = &image;
         Image mask = clone_image(imagept);
         Image *maskpt = &mask;
+        Image clean_image = clone_image(imagept);
+        Image *clean_imagept = &clean_image;
 
         if (!verbose_mode)
             fprintf(stderr, "\33[2K\r[=----------------------------]");
 
         /*
-         * Processing
+         * Processing -> Highligting the grid
          */
-
-        process_image(maskpt, imagept, verbose_mode, verbose_path);
+        image_processing_extract_grid(
+            maskpt, imagept, verbose_mode, verbose_path, false);
 
         if (save_mask)
             save_image(Image_to_SDL_Surface(maskpt), mask_output_path);
-
         free_Image(maskpt);
 
         /*
-         * Rotation
+         * Manual Rotation Rotation
          */
         Image rotated_image;
         Image *rotated_imagept;
@@ -144,7 +138,7 @@ int main(int argc, char const *argv[])
             rotated_imagept = &rotated_image;
 
             if (verbose_mode)
-                verbose_save(verbose_mode, verbose_path, "5-rotated.png",
+                verbose_save(verbose_mode, verbose_path, "5.1-rotated.png",
                     rotated_imagept);
         }
         else
@@ -152,81 +146,53 @@ int main(int argc, char const *argv[])
             rotated_imagept = imagept;
         }
 
-        if (!verbose_mode)
-            fprintf(stderr, "\33[2K\r[===============-------------]");
+        /*
+         * Grid detection
+         */
+        double autorotation_amount = 0;
+        square *grid_square = grid_processing_detect_grid(rotated_imagept,
+            &autorotation_amount, verbose_mode, verbose_path, false);
+
+        // Rotate clean image as well if automatic rotation as been preformed
+        Image clean_rotated_image = rotate_image(
+            clean_imagept, rotation_amount + autorotation_amount);
+        Image *clean_rotated_imagept = &clean_rotated_image;
+
+        free_Image(clean_imagept);
 
         /*
-         * Edge detection
+         * Perspective Correction
          */
-        Image edge_image = canny_edge_filtering(
-            rotated_imagept, verbose_mode, verbose_path);
+        Image *final_full_imagept = correct_perspective(
+            clean_rotated_imagept, grid_square, verbose_mode, verbose_path);
+        free_Image(clean_rotated_imagept);
 
-        int_list *edges_x = li_create();
-        int_list *edges_y = li_create();
+        Image **cells
+            = split_grid(final_full_imagept, verbose_mode, verbose_path);
 
-        Image lines_image = clone_image(rotated_imagept);
-        Image *lines_imagept = &lines_image;
-
-        int **hough_accumulator = hough_transform(&edge_image, lines_imagept,
-            edges_x, edges_y, verbose_mode, verbose_path);
-
-        if (!verbose_mode)
-            fprintf(stderr, "\33[2K\r[==========================--]");
-
-        int edge_num = 0;
-        int **edges = average_edges(edges_x, edges_y, lines_imagept,
-            verbose_mode, verbose_path, &edge_num);
-
-        if (!verbose_mode)
-            fprintf(stderr, "\33[2K\r");
-        else
-            printf("   ⏹️ Finding squares...\n");
-
-        list *squares = find_squares(edges, edge_num, lines_imagept);
-
-        square *selected_square = select_square(
-            squares, lines_imagept, verbose_mode, verbose_path);
-
-        Image autorotated_image = automatic_rotation(hough_accumulator,
-            selected_square, rotated_imagept, verbose_mode, verbose_path);
-
-        verbose_save(verbose_mode, verbose_path, "8-autorotated.png",
-            &autorotated_image);
-
-        Image **image_cells = split_grid(
-            &autorotated_image, selected_square, verbose_mode, verbose_path);
+        free_Image(imagept);
+        if (image_rotation)
+            free_Image(rotated_imagept);
 
         // Saves the final image in the output_path file
-        save_image(Image_to_SDL_Surface(rotated_imagept), output_path);
+        save_image(Image_to_SDL_Surface(final_full_imagept), output_path);
 
         /*
          * FREEING SHIT
          */
-        free_Image(imagept); // Also frees rotated_imagept if there has been no
-                             // rotation (they are the same)
-        if (image_rotation)
-            free_Image(rotated_imagept);
-        free_Image(&edge_image);
-        free_Image(&autorotated_image);
-        free_Image(lines_imagept);
         for (int i = 0; i < 9; i++)
         {
             for (int j = 0; j < 9; j++)
             {
-                free_Image(image_cells[i * 9 + j]);
-                free(image_cells[i * 9 + j]);
+                int c = i * 9 + j;
+                free_Image(cells[c]);
+                free(cells[c]);
             }
         }
-        free(image_cells);
-
-        free_2d_arr(edges, edge_num);
-
-        l_free_values(squares);
-
-        li_free(edges_x);
-        li_free(edges_y);
-
-        free(selected_square);
+        free(cells);
+        free_Image(final_full_imagept);
+        free(final_full_imagept);
+        free(grid_square);
     }
     else
     {

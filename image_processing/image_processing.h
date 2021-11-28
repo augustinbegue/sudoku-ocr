@@ -3,7 +3,12 @@
 
 #include "image.h"
 
-void process_image(
-    Image *maskpt, Image *imagept, bool verbose, char *verbose_path);
+void image_processing_extract_grid(
+    Image *maskpt, Image *imagept, bool verbose, char *verbose_path, bool gtk);
+
+void image_processing_extract_digits(
+    Image *input, bool verbose_mode, char *verbose_path);
+
+square image_processing_detect_digit_boundaries(Image *input);
 
 #endif

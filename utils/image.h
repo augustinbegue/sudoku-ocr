@@ -1,6 +1,7 @@
 #ifndef IMAGE_H
 #define IMAGE_H
 
+#include <gtk/gtk.h>
 #include <stdio.h>
 #include "SDL2/SDL.h"
 #include "SDL2/SDL_image.h"
@@ -21,6 +22,10 @@ struct Image
     double average_color;
 };
 typedef struct Image Image;
+
+GdkPixbuf *image_to_pixbuf(Image *image);
+
+Image *pixbuf_to_image(GdkPixbuf *pixbuf);
 
 SDL_Surface *load_image(char *path);
 
@@ -44,6 +49,10 @@ void image_partial_filter(Image *image, void (*filter)(Pixel *, int),
 int *image_grayscale_histogram(
     Image *image, int startx, int endx, int starty, int endy);
 
+int get_histogram_min(int *hist);
+
+int get_histogram_max(int *hist);
+
 int *Image_to_Array(Image *source);
 
 void Array_to_Image(int *array, Image *container);
@@ -55,6 +64,8 @@ int *draw_line(Image *image, int w, int h, int x0, int y0, int x1, int y1,
 
 void draw_square(Image *image, square *sqr, int r, int g, int b);
 
-Image crop_image(Image *input, square *crop);
+Image *crop_image(Image *input, square *crop);
+
+Image *downscale_image(Image *input, int size);
 
 #endif

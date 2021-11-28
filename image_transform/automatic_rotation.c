@@ -4,7 +4,7 @@
 #include "rotation.h"
 
 Image automatic_rotation(int **hough_accumulator, square *found_grid_square,
-    Image *in, bool verbose_mode)
+    Image *in, double *rotation_amount, bool verbose_mode)
 {
     double w = in->width, h = in->height;
     double diag = sqrt(w * w + h * h);
@@ -89,7 +89,13 @@ Image automatic_rotation(int **hough_accumulator, square *found_grid_square,
         found_grid_square->c4.x = x;
         found_grid_square->c4.y = y;
 
+        *rotation_amount = most_freq_theta;
+
         return rotate_image(in, most_freq_theta);
+    }
+    else
+    {
+        *rotation_amount = 0;
     }
 
     return clone_image(in);
