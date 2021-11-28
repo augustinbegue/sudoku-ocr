@@ -18,7 +18,7 @@ int main(int argc, char **argv)
     {
         errx(1, "Not enough arguments entered.");
     }
-    else if (solveSuduko(grid, 0, 0) == 1)
+    else if (solverSudoku(grid) == 1)
     {
         char *c = ".result";
         char *extension = argv[1];
@@ -27,7 +27,7 @@ int main(int argc, char **argv)
     }
     else
     {
-        printf("No solution exists");
+        printf("No solution exists\n");
     }
  
     return 0;
