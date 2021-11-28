@@ -1,6 +1,7 @@
 #include <gtk/gtk.h>
 #include <stdbool.h>
 #include "blur.h"
+#include "borders.h"
 #include "filters.h"
 #include "helpers.h"
 #include "image.h"
@@ -14,8 +15,8 @@
  *
  * @param maskpt image mask to extract pixel from
  * @param imagept image to process
- * @param save_mask save the mask to a separate file
- * @param mask_output_path path where the mask is to be saved
+ * @param verbose_mode
+ * @param verbose_path
  */
 void image_processing_extract_grid(Image *maskpt, Image *imagept,
     bool verbose_mode, char *verbose_path, bool gtk)
@@ -139,4 +140,148 @@ void image_processing_extract_grid(Image *maskpt, Image *imagept,
     filter_threshold(imagept);
 
     verbose_save(verbose_mode, verbose_path, "5-binarized.png", imagept);
+}
+
+/**
+ * @brief Processes the images contained in input and extracts the digits
+ * contained in the grid
+ *
+ * @param input
+ * @param verbose_mode
+ * @param verbose_path
+ */
+void image_processing_extract_digits(
+    Image *input, bool verbose_mode, char *verbose_path)
+{
+    int image_size = input->width;
+
+    // Grayscaling the image
+    filter_grayscale(input, 0);
+
+    // Blurring the image
+    double *kernel = get_gaussian_smoothing_kernel(image_size / 100, 1.5);
+    convolution(kernel, image_size / 100, input, input, false);
+    free(kernel);
+
+    verbose_save(verbose_mode, verbose_path, "9.2-blurred.png", input);
+
+    // Dilation and Erosion
+    morph(input, Dilation, image_size / 250);
+    morph(input, Erosion, image_size / 250);
+
+    verbose_save(
+        verbose_mode, verbose_path, "9.3-erosion-dilation.png", input);
+
+    // Adjusting colors
+    filter_contrast(input, 64);
+    filter_gamma(input, 255);
+
+    filter_threshold(input);
+
+    verbose_save(verbose_mode, verbose_path, "9.4-colors-adjusted.png", input);
+}
+
+/**
+ * @brief Detects the boundaries of the digit countained in the black and white
+ * image
+ *
+ * @ref Algorithm description:
+ * We start by removing the white borders on the image.
+ * Then, we go trough the image and look for the most extreme coordinates of
+ * the remaining white pixels
+ *
+ *
+ * @param input input image where the digit is located
+ * @returns the boundaries of the digit
+ */
+square image_processing_detect_digit_boundaries(Image *input)
+{
+    int image_size = input->width;
+    int center = image_size / 2;
+    int min_x = image_size;
+    int max_x = 0;
+    int min_y = image_size;
+    int max_y = 0;
+
+    // Detecting the white borders of the cells
+    remove_cell_borders(input);
+
+    // Searching for the most extreme coordinates of the remaining white
+    // pixels
+    bool changed = true;
+
+    // Searching in a defined range
+    int range = image_size / 8;
+
+    // While the coordinates change, we continue to search
+    // If the coordinates did not change between two iterations, this means
+    // that we have detected the whole digit
+    while (changed)
+    {
+        changed = false;
+
+        int start_x = center - range;
+        int end_x = center + range;
+        int start_y = center - range;
+        int end_y = center + range;
+
+        if (start_x < 0)
+            start_x = 0;
+        if (end_x >= image_size)
+            end_x = image_size - 1;
+
+        if (start_y < 0)
+            start_y = 0;
+        if (end_y >= image_size)
+            end_y = image_size - 1;
+
+        for (int x = start_x; x <= end_x; x++)
+        {
+            for (int y = start_y; y <= end_y; y++)
+            {
+                if (input->pixels[x][y].g == 255)
+                {
+                    if (x < min_x)
+                    {
+                        min_x = x;
+                        changed = true;
+                    }
+                    if (x > max_x)
+                    {
+                        max_x = x;
+                        changed = true;
+                    }
+                    if (y < min_y)
+                    {
+                        min_y = y;
+                        changed = true;
+                    }
+                    if (y > max_y)
+                    {
+                        max_y = y;
+                        changed = true;
+                    }
+                }
+            }
+        }
+
+        // Increasing the range of the search to gradually get the whole digit
+        range += image_size / 50;
+    }
+
+    square boundaries;
+
+    boundaries.c1.x = min_x;
+    boundaries.c1.y = min_y;
+
+    boundaries.c2.x = max_x;
+    boundaries.c2.y = min_y;
+
+    boundaries.c3.x = max_x;
+    boundaries.c3.y = max_y;
+
+    boundaries.c4.x = min_x;
+    boundaries.c4.y = max_y;
+
+    return boundaries;
 }
