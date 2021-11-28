@@ -6,7 +6,7 @@ LIBS   = -lm
 EXE    = network
 
 # Compiler, Linker Defines
-CC      = gcc
+CC=gcc -I../image_processing -I../grid_processing -I../utils -I../image_transform
 CFLAGS  = -std=c99 -Wall -O2 -D__NO_INLINE__
 LIBPATH = -L.
 LDFLAGS = -o $(EXE) $(LIBPATH) $(LIBS)

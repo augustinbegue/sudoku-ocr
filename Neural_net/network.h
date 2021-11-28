@@ -9,6 +9,7 @@
 #include "maths_extra.h"
 #include "saveLoad.h"
 
+
 int train();
 double result_network(double i1, double i2, Matrix *hw, Matrix *hb, Matrix *ow, Matrix *ob);
 

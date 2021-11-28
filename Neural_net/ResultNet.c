@@ -8,7 +8,7 @@
 
 
 
-int main()
+int mainn()
 {
 int retur = 0;
 char* filename = "save";
