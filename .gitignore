@@ -2,7 +2,8 @@
 *.[do]
 *.bmp
 *.csv
-main
+sudoku-ocr-gui
+sudoku-ocr
 assets/output/*
 *.result
 

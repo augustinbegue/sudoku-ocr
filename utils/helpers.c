@@ -20,6 +20,9 @@
 void convolution(
     double *kernel, int ksize, Image *image, Image *out, bool normalize)
 {
+    if (ksize % 2 == 0)
+        ksize++;
+
     const int khalf = ksize / 2;
 
     int w = image->width;

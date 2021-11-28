@@ -1,5 +1,7 @@
 #include <err.h>
 #include <float.h>
+#include <gtk/gtk.h>
+#include <limits.h>
 #include <math.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -8,6 +10,86 @@
 #include "SDL2/SDL_image.h"
 #include "helpers.h"
 #include "pixel_operations.h"
+
+Image *create_image(int height, int width)
+{
+    Image *image = malloc(sizeof(Image));
+
+    image->height = height;
+    image->width = width;
+    image->pixels = malloc(sizeof(Pixel *) * width + 1);
+
+    if (image->pixels == NULL)
+        errx(1, "Error when allocating memory in create_image.");
+
+    for (int x = 0; x < width; x++)
+        image->pixels[x] = malloc(sizeof(Pixel) * height + 1);
+
+    image->surface = SDL_CreateRGBSurfaceWithFormat(
+        0, width, height, 32, SDL_PIXELFORMAT_RGBA32);
+
+    if (image->surface == NULL)
+    {
+        const char *errm = SDL_GetError();
+        errx(-1, errm);
+    }
+
+    return image;
+}
+
+GdkPixbuf *image_to_pixbuf(Image *image)
+{
+    GdkPixbuf *pixbuf = gdk_pixbuf_new(
+        GDK_COLORSPACE_RGB, TRUE, 8, image->width, image->height);
+
+    int width = gdk_pixbuf_get_width(pixbuf);
+    int height = gdk_pixbuf_get_height(pixbuf);
+
+    int n_channels = gdk_pixbuf_get_n_channels(pixbuf);
+    int rowstride = gdk_pixbuf_get_rowstride(pixbuf);
+    guchar *pixels = gdk_pixbuf_get_pixels(pixbuf);
+
+    for (int x = 0; x < width; x++)
+    {
+        for (int y = 0; y < height; y++)
+        {
+            guchar *p = pixels + y * rowstride + x * n_channels;
+            p[0] = image->pixels[x][y].r;
+            p[1] = image->pixels[x][y].g;
+            p[2] = image->pixels[x][y].b;
+            p[3] = 255;
+        }
+    }
+
+    return pixbuf;
+}
+
+Image *pixbuf_to_image(GdkPixbuf *pixbuf)
+{
+    int width = gdk_pixbuf_get_width(pixbuf);
+    int height = gdk_pixbuf_get_height(pixbuf);
+
+    int n_channels = gdk_pixbuf_get_n_channels(pixbuf);
+    int rowstride = gdk_pixbuf_get_rowstride(pixbuf);
+    guchar *pixels = gdk_pixbuf_get_pixels(pixbuf);
+
+    Image *image = create_image(height, width);
+    image->width = width;
+    image->height = height;
+
+    for (int x = 0; x < width; x++)
+    {
+        for (int y = 0; y < height; y++)
+        {
+            guchar *p = pixels + y * rowstride + x * n_channels;
+            image->pixels[x][y].r = p[0];
+            image->pixels[x][y].g = p[1];
+            image->pixels[x][y].b = p[2];
+        }
+    }
+
+    return image;
+}
 
 SDL_Surface *load_image(char *path)
 {
@@ -67,33 +149,7 @@ Image clone_image(Image *source)
     return image;
 }
 
-Image *create_image(int height, int width)
-{
-    Image *image = malloc(sizeof(Image));
-
-    image->height = height;
-    image->width = width;
-    image->pixels = malloc(sizeof(Pixel *) * width + 1);
-
-    if (image->pixels == NULL)
-        errx(1, "Error when allocating memory in create_image.");
-
-    for (int x = 0; x < width; x++)
-        image->pixels[x] = malloc(sizeof(Pixel) * height + 1);
-
-    image->surface = SDL_CreateRGBSurfaceWithFormat(
-        0, width, height, 32, SDL_PIXELFORMAT_RGBA32);
-
-    if (image->surface == NULL)
-    {
-        const char *errm = SDL_GetError();
-        errx(-1, errm);
-    }
-
-    return image;
-}
-
-Image crop_image(Image *input, square *crop)
+Image *crop_image(Image *input, square *crop)
 {
     point c1 = crop->c1;
     point c2 = crop->c2;
@@ -110,60 +166,99 @@ Image crop_image(Image *input, square *crop)
         = sqrt((c4.x - c1.x) * (c4.x - c1.x) + (c4.y - c1.y) * (c4.y - c1.y));
 
     int size;
+    int smallest = 0;
     if (side1_length < side2_length)
+    {
         size = side2_length;
+        smallest = side1_length;
+    }
     else
+    {
         size = side1_length;
+        smallest = side2_length;
+    }
 
     if (side3_length > size)
         size = side3_length;
-
     if (side4_length > size)
         size = side4_length;
 
-    point start;
-    if (c1.x < c2.x)
-        start.x = c1.x;
-    else
-        start.x = c2.x;
-    if (c3.x < start.x)
-        start.x = c3.x;
-    if (c4.x < start.x)
-        start.x = c4.x;
+    int offset = (int)(size - smallest) / 2;
 
-    if (c1.y < c2.y)
-        start.y = c1.y;
-    else
-        start.y = c2.y;
-    if (c3.y < start.y)
-        start.y = c3.y;
-    if (c4.y < start.y)
-        start.y = c4.y;
+    if (offset > 0)
+        c1.x -= offset;
+
+    point start = c1;
 
     printf("   ✂️ Cropping Image - Start: (%i, %i), Size: %i\n", start.x,
         start.y, size);
 
-    Image cropped;
-    cropped.height = size;
-    cropped.width = size;
-    cropped.surface = SDL_CreateRGBSurfaceWithFormat(
-        0, size, size, 32, SDL_PIXELFORMAT_RGBA32);
-    cropped.pixels = malloc(sizeof(Pixel *) * size + 1);
-
+    Image *cropped = create_image(size, size);
     int old_x = start.x;
     for (int x = 0; x < size && old_x < input->width; x++, old_x++)
     {
-        cropped.pixels[x] = malloc(sizeof(Pixel) * size + 1);
-
         int old_y = start.y;
         for (int y = 0; y < size && old_y < input->height; y++, old_y++)
         {
             Pixel old = input->pixels[old_x][old_y];
-            cropped.pixels[x][y] = old;
+            cropped->pixels[x][y] = old;
         }
     }
 
     return cropped;
+}
+
+/**
+ * @brief Downscales the input square image to the given size.
+ *
+ * @param input
+ * @param size
+ * @return Image*
+ */
+Image *downscale_image(Image *input, int size)
+{
+    Image *downscaled = create_image(size, size);
+
+    int original_size = input->width;
+    double downscale_factor = (double)original_size / (double)size;
+
+    double x = 0;
+    for (int sx = 0; sx < size && x < original_size; sx++)
+    {
+        double y = 0;
+        for (int sy = 0; sy < size && y < original_size; sy++)
+        {
+            int color = 0;
+
+            double pnum = 0;
+            for (int f = 0; f < downscale_factor && (x + f) < original_size;
+                 f++)
+            {
+                for (int g = 0;
+                     g < downscale_factor && (y + g) < original_size; g++)
+                {
+                    int xx = x + f;
+                    int yy = y + g;
+
+                    color += input->pixels[xx][yy].r;
+
+                    pnum++;
+                }
+            }
+
+            color /= pnum;
+
+            Pixel pix = {color, color, color};
+
+            downscaled->pixels[sx][sy] = pix;
+
+            y += downscale_factor;
+        }
+
+        x += downscale_factor;
+    }
+
+    return downscaled;
 }
 
 Image SDL_Surface_to_Image(SDL_Surface *image_surface)
@@ -412,6 +507,52 @@ int *image_grayscale_histogram(
     }
 
     return hist;
+}
+
+/**
+ * @brief Get the histogram minimum value's index
+ *
+ * @param hist
+ * @return int
+ */
+int get_histogram_min(int *hist)
+{
+    int min = INT_MAX;
+    int minColor = 0;
+
+    for (int i = 0; i < 256; i++)
+    {
+        if (hist[i] < min)
+        {
+            min = hist[i];
+            minColor = i;
+        }
+    }
+
+    return minColor;
+}
+
+/**
+ * @brief Get the histogram maximum value's index
+ *
+ * @param hist
+ * @return int
+ */
+int get_histogram_max(int *hist)
+{
+    int max = INT_MIN;
+    int maxColor = 0;
+
+    for (int i = 0; i < 256; i++)
+    {
+        if (hist[i] > max)
+        {
+            max = hist[i];
+            maxColor = i;
+        }
+    }
+
+    return maxColor;
 }
 
 /**
