@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
 #include "solver.h"
  
 // N is the size of the 2D matrix   N*N
@@ -158,4 +157,17 @@ int solverSudoku(int puzzle[][N])
         }
     }
     return 0;
+}
+
+/* Function that returns a the solved grid */
+int **solvedGrid(int grid[][N])
+{
+    if (solverSudoku(grid))
+    {
+        return grid;
+    }
+    else
+    {
+        return NULL;
+    }
 }
