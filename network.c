@@ -1,8 +1,6 @@
 #include "network.h"
-
-static const int num_inputs = 28*28;
-static const int num_hidden = 15;
-static const int num_outputs = 10;
+#include "image.h"
+#include "result_network.h"
 
 // number of "generation" of AI
 static const int EPOCHS = 1000;
@@ -19,56 +17,24 @@ double cost(double expected_output, double predicted_output)
     return 0.5 * pow((expected_output - predicted_output), 2);
 }
 
-/*
- return the result of the network for a XOR (have to be modified for the real network)
- hw -> hidden weights , hb -> hidden bias , ow -> output weights , ob -> ourpur bias
-*/
-double result_network(double i1, double i2, Matrix *hw, Matrix *hb, Matrix *ow, Matrix *ob)
+void trainingInput(Matrix *training_inputs, size_t numTest, char *path)
 {
-    // matrix with the inputs 
-    Matrix input;
-    m_init(&input, 1, num_inputs);
-    m_setIndex(&input, 0, 0, i1);
-    m_setIndex(&input, 0, 1, i2);
-
-    // result of the hidden layer
-    Matrix result_hidden;
-    m_mult(&input, hw, &result_hidden);
-    m_add(&result_hidden, hb);
-    m_map(&result_hidden, sigmoid);
-
-    // output layer
-    Matrix result_output;
-    m_mult(&result_hidden, ow, &result_output);
-    m_add(&result_output, ob);
-    m_map(&result_output, sigmoid);
-
-    double res = m_get(&result_output, 0, 0);
-
-    // free all memory 
-    m_free(&input);
-    m_free(&result_hidden);
-    m_free(&result_output);
-
-    return res;
-}
-
-void trainingInput(Matrix *training_inputs, size_t numTest,char* path){
 
     Image image = SDL_Surface_to_Image(load_image(path));
 
     int count = 0;
-    int width = image->width;
-    int height = image->height;
+    int width = image.width;
+    int height = image.height;
 
-    for (int x = 0; x < width; x++) {
-        for (int y = 0; y < height; y++) 
+    for (int x = 0; x < width; x++)
+    {
+        for (int y = 0; y < height; y++)
         {
-            Pixel pix = image->pixels[x][y];
+            Pixel pix = image.pixels[x][y];
 
             // color 0 or 255
             int color = pix.r;
-            if(color == 0)
+            if (color == 0)
             {
                 m_setIndex(training_inputs, numTest, count, 0.0);
             }
@@ -79,19 +45,21 @@ void trainingInput(Matrix *training_inputs, size_t numTest,char* path){
             count++;
         }
     }
+
+    free_Image(&image);
 }
 
-void trainingOutput(Matrix *training_outputs, size_t numTest, int res){
+void trainingOutput(Matrix *training_outputs, size_t numTest, int res)
+{
     for (size_t i = 0; i < 10; i++)
     {
         m_setIndex(training_outputs, numTest, i, 0.0);
     }
     m_setIndex(training_outputs, numTest, res, 1.0);
-    
-    
 }
 
-// Execute random test on a trained network and display the accuracy of the network
+// Execute random test on a trained network and display the accuracy of the
+// network
 void random_test(Matrix *hw, Matrix *hb, Matrix *ow, Matrix *ob)
 {
     int correct_predictions = 0;
@@ -131,24 +99,30 @@ void random_test(Matrix *hw, Matrix *hb, Matrix *ow, Matrix *ob)
         {
             correct_predictions++;
         }
-
     }
 
-    double accuracy = ((double)(correct_predictions)) / ((double)(NUMBER_OF_TESTS));
-    printf("Passed %d out of %d tests. (Accuracy = %f)\n", correct_predictions, NUMBER_OF_TESTS, accuracy);
-    printf("Total error over %d random tests: %f\n", NUMBER_OF_TESTS, total_error);
-    printf("Average error per trial: %f\n", total_error / ((double)(NUMBER_OF_TESTS)));
+    double accuracy
+        = ((double)(correct_predictions)) / ((double)(NUMBER_OF_TESTS));
+    printf("Passed %d out of %d tests. (Accuracy = %f)\n", correct_predictions,
+        NUMBER_OF_TESTS, accuracy);
+    printf("Total error over %d random tests: %f\n", NUMBER_OF_TESTS,
+        total_error);
+    printf("Average error per trial: %f\n",
+        total_error / ((double)(NUMBER_OF_TESTS)));
 }
 
 int main()
 {
-    //Initializing training sets
+    // Initializing training sets
     Matrix training_inputs;
-    m_init(&training_inputs, num_training, num_inputs);
+    m_init(&training_inputs, num_training, __num_inputs);
 
-    trainingInput(&training_inputs, 0, "./trainSet/grid-6.png");
-    trainingInput(&training_inputs, 1, "./trainSet/grid-7.png");
-    trainingInput(&training_inputs, 2, "./trainSet/grid-8.png");
+    trainingInput(
+        &training_inputs, 0, "./neural_network/train_set/grid-6.png");
+    trainingInput(
+        &training_inputs, 1, "./neural_network/train_set/grid-7.png");
+    trainingInput(
+        &training_inputs, 2, "./neural_network/train_set/grid-8.png");
 
     /*m_setIndex(&training_inputs, 0, 0, 1.0);
     m_setIndex(&training_inputs, 0, 1, 1.0);
@@ -162,9 +136,8 @@ int main()
     m_setIndex(&training_inputs, 3, 0, 0.0);
     m_setIndex(&training_inputs, 3, 1, 0.0);*/
 
-    
     Matrix training_outputs;
-    m_init(&training_outputs, num_training, num_outputs);
+    m_init(&training_outputs, num_training, __num_outputs);
 
     trainingOutput(&training_outputs, 0, 6);
     trainingOutput(&training_outputs, 0, 7);
@@ -177,10 +150,9 @@ int main()
     m_setIndex(&training_outputs, 2, 0, 1.0);
 
     m_setIndex(&training_outputs, 3, 0, 0.0);*/
-    
 
     Matrix hidden_weights;
-    m_init(&hidden_weights, num_inputs, num_hidden);
+    m_init(&hidden_weights, __num_inputs, __num_hidden);
     for (int i = 0; i < (&hidden_weights)->rows; i++)
     {
         for (int j = 0; j < (&hidden_weights)->cols; j++)
@@ -190,7 +162,7 @@ int main()
     }
 
     Matrix hidden_bias;
-    m_init(&hidden_bias, 1, num_hidden);
+    m_init(&hidden_bias, 1, __num_hidden);
     for (int i = 0; i < (&hidden_bias)->rows; i++)
     {
         for (int j = 0; j < (&hidden_bias)->cols; j++)
@@ -200,7 +172,7 @@ int main()
     }
 
     Matrix output_weights;
-    m_init(&output_weights, num_hidden, num_outputs);
+    m_init(&output_weights, __num_hidden, __num_outputs);
     for (int i = 0; i < (&output_weights)->rows; i++)
     {
         for (int j = 0; j < (&output_weights)->cols; j++)
@@ -210,7 +182,7 @@ int main()
     }
 
     Matrix output_bias;
-    m_init(&output_bias, 1, num_outputs);
+    m_init(&output_bias, 1, __num_outputs);
     for (int i = 0; i < (&output_bias)->rows; i++)
     {
         for (int j = 0; j < (&output_bias)->cols; j++)
@@ -219,10 +191,10 @@ int main()
         }
     }
 
-    //Iterate through epochs
+    // Iterate through epochs
     for (int n = 0; n < EPOCHS; n++)
     {
-        //Forward pass
+        // Forward pass
         Matrix inputs;
         m_copy(&training_inputs, &inputs);
 
@@ -242,7 +214,7 @@ int main()
         m_copy(&in_o, &out_o);
         m_map(&out_o, sigmoid);
 
-        //Back Propagation
+        // Back Propagation
 
         // Error of the output
         Matrix error;
@@ -286,7 +258,7 @@ int main()
         Matrix d_output_layer;
         m_mult(&out_h_trans, &derr_dino, &d_output_layer);
 
-        //Updating weights and biases
+        // Updating weights and biases
         m_scalar_mult(&d_output_layer, LR);
         m_subtract(&output_weights, &d_output_layer);
 
@@ -327,19 +299,24 @@ int main()
 
     // Saving the final weigths and bias
 
-    save(&hidden_weights, &hidden_bias, &output_weights, &output_bias,"save");
+    save(&hidden_weights, &hidden_bias, &output_weights, &output_bias, "save");
 
     // Printing the different result of the tests
     /*printf("Result of tests after training\n");
-    printf("Result for (0, 0) (Expected: 0): %f\n", result_network(0.0, 0.0, &hidden_weights, &hidden_bias, &output_weights, &output_bias));
-    printf("Result for (0, 1) (Expected: 1): %f\n", result_network(0.0, 1.0, &hidden_weights, &hidden_bias, &output_weights, &output_bias));
-    printf("Result for (1, 0) (Expected: 1): %f\n", result_network(1.0, 0.0, &hidden_weights, &hidden_bias, &output_weights, &output_bias));
-    printf("Result for (1, 1) (Expected: 0): %f\n", result_network(1.0, 1.0, &hidden_weights, &hidden_bias, &output_weights, &output_bias));
+    printf("Result for (0, 0) (Expected: 0): %f\n", result_network(0.0, 0.0,
+    &hidden_weights, &hidden_bias, &output_weights, &output_bias));
+    printf("Result for (0, 1) (Expected: 1): %f\n", result_network(0.0, 1.0,
+    &hidden_weights, &hidden_bias, &output_weights, &output_bias));
+    printf("Result for (1, 0) (Expected: 1): %f\n", result_network(1.0, 0.0,
+    &hidden_weights, &hidden_bias, &output_weights, &output_bias));
+    printf("Result for (1, 1) (Expected: 0): %f\n", result_network(1.0, 1.0,
+    &hidden_weights, &hidden_bias, &output_weights, &output_bias));
     printf("\n");*/
-    
+
     printf("\nAccuracy of the network:\n");
 
-    //random_test(&hidden_weights, &hidden_bias, &output_weights, &output_bias);
+    // random_test(&hidden_weights, &hidden_bias, &output_weights,
+    // &output_bias);
 
     m_free(&hidden_weights);
     m_free(&hidden_bias);

@@ -1,9 +1,16 @@
+# Trash files
 .vscode
 *.[do]
+
+# Output files
 *.bmp
 *.csv
-sudoku-ocr-gui
-sudoku-ocr
 assets/output/*
 *.result
+save
+
+# Executable files
+sudoku-ocr-gui
+sudoku-ocr
+network
 
