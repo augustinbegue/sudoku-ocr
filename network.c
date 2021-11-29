@@ -16,12 +16,16 @@ char *concat(const char *s1, const char *s2)
 }
 
 // number of "generation" of AI
-static const int EPOCHS = 10000;
+static const int EPOCHS = 300;
 
 // learning rate
-static const double LR = 0.1;
+// 0.01 with 1000/100 hidden layers => 1.000 on every output
+// Same with 0.05
+// Same with 0.1
+// 0.01 with 100/10 hidden layers => 1.000 on every output
+static const double LR = 0.05;
 
-static const int num_training = 3270;
+static const int num_training = 1000;
 // static const int NUMBER_OF_TESTS = 2;
 
 // cost function

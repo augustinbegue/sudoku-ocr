@@ -1,7 +1,7 @@
 if make; then
     echo "Test network"
     
-    ./network train
+    # ./network train
 
     for i in {0..9}; do
         echo ""
