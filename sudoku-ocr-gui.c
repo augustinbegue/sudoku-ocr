@@ -5,6 +5,7 @@
 #include "image.h"
 #include "image_processing.h"
 #include "perspective_correction.h"
+#include "result_network.h"
 #include "rotation.h"
 
 #define IMAGE_SIZE 500
@@ -427,8 +428,34 @@ gboolean grid_detection_finished(gpointer data)
     display_image(main_window->pages->page3->image,
         main_window->images->image_rotated_clean, main_window);
 
+    set_step(main_window->step_indicators, 4);
+
     Image **cells = split_grid(main_window->images->image_rotated_cropped,
         VERBOSE_MODE, VERBOSE_PATH);
+
+    int **grid = malloc(sizeof(int *) * 9);
+    for (int i = 0; i < 9; i++)
+    {
+        grid[i] = malloc(sizeof(int) * 9);
+        for (int j = 0; j < 9; j++)
+        {
+            int c = i * 9 + j;
+            int digit = neural_network_execute(cells[c]);
+            free_Image(cells[c]);
+            free(cells[c]);
+
+            grid[i][j] = digit;
+        }
+    }
+    free(cells);
+
+    for (int i = 0; i < 9; i++)
+    {
+        for (int j = 0; j < 9; j++)
+            printf("%d ", grid[i][j]);
+
+        printf("\n");
+    }
 
     // Display elements in page 3
     display_image(main_window->pages->page3->image,
@@ -437,21 +464,12 @@ gboolean grid_detection_finished(gpointer data)
     // Display elements in page 4 and show it
     display_image(main_window->pages->page4->image,
         main_window->images->image_rotated_cropped, main_window);
-    set_step(main_window->step_indicators, 4);
     set_page(main_window, "page4");
 
     // Reset page 3 state
     set_button_to_label(
         main_window->controls->image_rotation_done_button, "Done");
     gtk_widget_show(GTK_WIDGET(main_window->controls->rotation_scale));
-
-    for (int i = 0; i < 9; i++)
-        for (int j = 0; j < 9; j++)
-        {
-            int c = i * 9 + j;
-            free_Image(cells[c]);
-            free(cells[c]);
-        }
 
     return FALSE;
 }
