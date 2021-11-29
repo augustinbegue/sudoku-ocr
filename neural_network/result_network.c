@@ -12,23 +12,22 @@
  network) hw -> hidden weights , hb -> hidden bias , ow -> output weights , ob
  -> ourpur bias
 */
-int result_network(char *path, Matrix *hw, Matrix *hb, Matrix *ow, Matrix *ob)
+int result_network(
+    Image *image, Matrix *hw, Matrix *hb, Matrix *ow, Matrix *ob)
 {
     // matrix with the inputs
     Matrix input;
     m_init(&input, 1, __num_inputs);
 
-    Image image = SDL_Surface_to_Image(load_image(path));
-
     int count = 0;
-    int width = image.width;
-    int height = image.height;
+    int width = image->width;
+    int height = image->height;
 
     for (int x = 0; x < width; x++)
     {
         for (int y = 0; y < height; y++)
         {
-            Pixel pix = image.pixels[x][y];
+            Pixel pix = image->pixels[x][y];
 
             // color 0 or 255
             int color = pix.r;
@@ -43,8 +42,6 @@ int result_network(char *path, Matrix *hw, Matrix *hb, Matrix *ow, Matrix *ob)
             count++;
         }
     }
-
-    free_Image(&image);
 
     // result of the hidden layer
     Matrix result_hidden;
@@ -72,7 +69,13 @@ int result_network(char *path, Matrix *hw, Matrix *hb, Matrix *ow, Matrix *ob)
     return res;
 }
 
-int neural_network_execute(char *path)
+/**
+ * @brief Executes the neural network on the given image
+ *
+ * @param image image to test
+ * @return int
+ */
+int neural_network_execute(Image *image)
 {
     int retur = 0;
     char *filename = "save";
@@ -157,7 +160,7 @@ int neural_network_execute(char *path)
 
     fclose(fp);
 
-    int res = result_network(path, hw, hb, ow, ob) + retur * 0;
+    int res = result_network(image, hw, hb, ow, ob) + retur * 0;
 
     m_free(hw);
     m_free(hb);

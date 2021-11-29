@@ -5,7 +5,7 @@
 #include "matrix.h"
 
 int result_network(
-    char *path, Matrix *hw, Matrix *hb, Matrix *ow, Matrix *ob);
-int neural_network_execute(char* path);
+    Image *image, Matrix *hw, Matrix *hb, Matrix *ow, Matrix *ob);
+int neural_network_execute(Image *image);
 
 #endif

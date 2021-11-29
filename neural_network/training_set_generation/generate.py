@@ -138,15 +138,15 @@ fonts = [
     "https://github.com/OdedEzer/heebo/blob/master/fonts/ttf/Heebo-Medium.ttf",
     "https://github.com/OdedEzer/heebo/blob/master/fonts/ttf/Heebo-Regular.ttf",
     "https://github.com/OdedEzer/heebo/blob/master/fonts/ttf/Heebo-Thin.ttf",
-    "https://github.com/impallari/Libre-Franklin/blob/master/fonts/TTF/LibreFranklin-Black.ttf",
-    "https://github.com/impallari/Libre-Franklin/blob/master/fonts/TTF/LibreFranklin-Bold.ttf",
-    "https://github.com/impallari/Libre-Franklin/blob/master/fonts/TTF/LibreFranklin-ExtraBold.ttf",
-    "https://github.com/impallari/Libre-Franklin/blob/master/fonts/TTF/LibreFranklin-ExtraLight.ttf",
-    "https://github.com/impallari/Libre-Franklin/blob/master/fonts/TTF/LibreFranklin-Light.ttf",
-    "https://github.com/impallari/Libre-Franklin/blob/master/fonts/TTF/LibreFranklin-Medium.ttf",
-    "https://github.com/impallari/Libre-Franklin/blob/master/fonts/TTF/LibreFranklin-Regular.ttf",
-    "https://github.com/impallari/Libre-Franklin/blob/master/fonts/TTF/LibreFranklin-SemiBold.ttf",
-    "https://github.com/impallari/Libre-Franklin/blob/master/fonts/TTF/LibreFranklin-Thin.ttf"
+    # "https://github.com/impallari/Libre-Franklin/blob/master/fonts/TTF/LibreFranklin-Black.ttf",
+    # "https://github.com/impallari/Libre-Franklin/blob/master/fonts/TTF/LibreFranklin-Bold.ttf",
+    # "https://github.com/impallari/Libre-Franklin/blob/master/fonts/TTF/LibreFranklin-ExtraBold.ttf",
+    # "https://github.com/impallari/Libre-Franklin/blob/master/fonts/TTF/LibreFranklin-ExtraLight.ttf",
+    # "https://github.com/impallari/Libre-Franklin/blob/master/fonts/TTF/LibreFranklin-Light.ttf",
+    # "https://github.com/impallari/Libre-Franklin/blob/master/fonts/TTF/LibreFranklin-Medium.ttf",
+    # "https://github.com/impallari/Libre-Franklin/blob/master/fonts/TTF/LibreFranklin-Regular.ttf",
+    # "https://github.com/impallari/Libre-Franklin/blob/master/fonts/TTF/LibreFranklin-SemiBold.ttf",
+    # "https://github.com/impallari/Libre-Franklin/blob/master/fonts/TTF/LibreFranklin-Thin.ttf"
 ]
 
 fonts.reverse()
@@ -154,7 +154,8 @@ fontnum = len(fonts)
 variationnum = fontnum * 3
 
 for fonturl in fonts:
-    for fontsize in [38, 34, 30]:
+    for prop in [(38, -10), (34, -8), (30, -6)]:
+        (fontsize, ypos) = prop
         with webfont(fonturl + "?raw=true") as f:
             font = ImageFont.truetype(f, size=fontsize)
 
@@ -163,7 +164,7 @@ for fonturl in fonts:
 
                 if digit != 0:
                     draw = ImageDraw.Draw(img)
-                    draw.text((3, -12), str(digit), font=font, fill=0)
+                    draw.text((3, ypos), str(digit), font=font, fill=0)
 
                 inverted = ImageOps.invert(img)
                 inverted.save('../../assets/training_set/' + str(digit) +

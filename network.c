@@ -16,12 +16,12 @@ char *concat(const char *s1, const char *s2)
 }
 
 // number of "generation" of AI
-static const int EPOCHS = 2000;
+static const int EPOCHS = 10000;
 
 // learning rate
 static const double LR = 0.1;
 
-static const int num_training = 567;
+static const int num_training = 3270;
 // static const int NUMBER_OF_TESTS = 2;
 
 // cost function
@@ -62,13 +62,13 @@ void trainingInput(Matrix *training_inputs, size_t numTest, char *path)
     free_Image(&image);
 }
 
-void trainingOutput(Matrix *training_outputs, size_t numTest, int res)
+void trainingOutput(Matrix *training_outputs, size_t testNumber, int expected)
 {
     for (size_t i = 0; i < 10; i++)
     {
-        m_setIndex(training_outputs, numTest, i, 0.0);
+        m_setIndex(training_outputs, testNumber, i, 0.0);
     }
-    m_setIndex(training_outputs, numTest, res, 1.0);
+    m_setIndex(training_outputs, testNumber, expected, 1.0);
 }
 
 // Execute random test on a trained network and display the accuracy of the
@@ -136,12 +136,13 @@ void train()
 
     struct dirent *de; // Pointer for directory entry
 
+    char *dir = "./assets/training_set/";
     // opendir() returns a pointer of DIR type.
-    DIR *dr = opendir("./assets/training_set");
+    DIR *dr = opendir(dir);
 
     if (dr == NULL) // opendir returns NULL if couldn't open directory
     {
-        printf("Could not open current directory");
+        printf("Could not open directory: %s", dir);
     }
 
     int count = 0;
@@ -153,17 +154,19 @@ void train()
 
         if (s[0] != '.')
         {
-            char *oui = "./assets/training_set/";
-            char *s1 = concat(oui, s);
+            char *s1 = concat(dir, s);
 
             trainingInput(&training_inputs, count, s1);
-
             trainingOutput(&training_outputs, count, (int)(s[0] - '0'));
+
             count += 1;
             free(s1);
         }
     }
     closedir(dr);
+
+    printf("\nTraining set initialized\n");
+    printf("Opened and loaded %d files.\n\n", count);
 
     /*trainingInput(
         &training_inputs, 0, "./neural_network/train_set/grid-6.png");
@@ -401,7 +404,12 @@ int main(int argc, char *argv[])
             return 1;
         }
 
-        int res = neural_network_execute(argv[2]);
+        Image image = SDL_Surface_to_Image(load_image(argv[2]));
+
+        int res = neural_network_execute(&image);
+
+        free_Image(&image);
+
         printf("%d\n", res);
         return 0;
     }
