@@ -78,6 +78,7 @@ struct MainWindow
 {
     GtkWidget *window;
     GtkStack *stack;
+    GtkGrid *sudoku_labels_grid;
     StepIndicators *step_indicators;
     Controls *controls;
     Pages *pages;
@@ -114,6 +115,9 @@ void draw_image(GtkDrawingArea *drawing_area, cairo_t *cr, gpointer data)
 
     cairo_set_source_surface(cr, surface, scaled_x, scaled_y);
     cairo_rectangle(cr, scaled_x, scaled_y, scaled_width, scaled_height);
+
+    main_window->images->display_size
+        = scaled_width > scaled_height ? scaled_height : scaled_width;
 
     cairo_fill(cr);
 
@@ -452,7 +456,21 @@ gboolean grid_detection_finished(gpointer data)
     for (int i = 0; i < 9; i++)
     {
         for (int j = 0; j < 9; j++)
+        {
             printf("%d ", grid[i][j]);
+
+            GtkLabel *label = GTK_LABEL(gtk_grid_get_child_at(
+                GTK_GRID(main_window->sudoku_labels_grid), i, j));
+
+            gchar label_text[100];
+            g_snprintf(label_text, 100, "%d", grid[i][j]);
+
+            gtk_label_set_text(label, label_text);
+
+            gtk_widget_set_size_request(GTK_WIDGET(label),
+                main_window->images->display_size / 9,
+                main_window->images->display_size / 9);
+        }
 
         printf("\n");
     }
@@ -567,6 +585,9 @@ int main()
     GtkScale *rotation_scale
         = GTK_SCALE(gtk_builder_get_object(builder, "rotationscale"));
 
+    GtkGrid *sudoku_labels_grid
+        = GTK_GRID(gtk_builder_get_object(builder, "sudokulabelsgrid"));
+
     GtkWidget *step_1_indicator
         = GTK_WIDGET(gtk_builder_get_object(builder, "step1indicator"));
     GtkWidget *step_2_indicator
@@ -671,6 +692,7 @@ int main()
     MainWindow main_window = {
         .window = GTK_WIDGET(window),
         .stack = stack,
+        .sudoku_labels_grid = sudoku_labels_grid,
         .step_indicators = &step_indicators,
         .controls = &controls,
         .pages = &pages,
