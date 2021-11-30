@@ -33,6 +33,8 @@ struct Controls
     GtkButton *confirm_image_button;
     GtkButton *image_rotation_done_button;
     GtkButton *correction_done_button;
+    GtkToggleButton *hide_grid_button;
+    GtkToggleButton *hide_image_button;
     GtkFileChooserButton *file_chooser_button;
 };
 typedef struct Controls Controls;
@@ -83,8 +85,82 @@ struct MainWindow
     Controls *controls;
     Pages *pages;
     Images *images;
+    int **grid;
 };
 typedef struct MainWindow MainWindow;
+
+void draw_image_and_grid(
+    GtkDrawingArea *drawing_area, cairo_t *cr, gpointer data)
+{
+    MainWindow *main_window = (MainWindow *)data;
+
+    GdkPixbuf *pixbuf = image_to_pixbuf(main_window->images->current_image);
+
+    gint width = gtk_widget_get_allocated_width(GTK_WIDGET(drawing_area));
+    gint height = gtk_widget_get_allocated_height(GTK_WIDGET(drawing_area));
+
+    gint image_width = main_window->images->current_image->width;
+    gint image_height = main_window->images->current_image->height;
+
+    gdouble scale_x = (gdouble)width / image_width;
+    gdouble scale_y = (gdouble)height / image_height;
+    gdouble scale = MIN(scale_x, scale_y);
+
+    gint scaled_width = image_width * scale;
+    gint scaled_height = image_height * scale;
+    gint scaled_x = (width - scaled_width) / 2;
+    gint scaled_y = (height - scaled_height) / 2;
+
+    pixbuf = gdk_pixbuf_scale_simple(
+        pixbuf, scaled_width, scaled_height, GDK_INTERP_BILINEAR);
+
+    cairo_surface_t *surface
+        = gdk_cairo_surface_create_from_pixbuf(pixbuf, 1, NULL);
+
+    cairo_set_source_surface(cr, surface, scaled_x, scaled_y);
+    cairo_rectangle(cr, scaled_x, scaled_y, scaled_width, scaled_height);
+
+    main_window->images->display_size
+        = scaled_width > scaled_height ? scaled_height : scaled_width;
+
+    gtk_widget_set_margin_start(
+        GTK_WIDGET(main_window->sudoku_labels_grid), scaled_x + 20);
+    gtk_widget_set_margin_top(
+        GTK_WIDGET(main_window->sudoku_labels_grid), scaled_y + 20);
+
+    for (int i = 0; i < 9; i++)
+    {
+        for (int j = 0; j < 9; j++)
+        {
+            GtkLabel *label = GTK_LABEL(gtk_grid_get_child_at(
+                GTK_GRID(main_window->sudoku_labels_grid), i, j));
+
+            gtk_widget_set_size_request(GTK_WIDGET(label),
+                main_window->images->display_size / 9,
+                main_window->images->display_size / 9);
+
+            if (main_window->grid[i][j] != 0)
+            {
+                gchar label_text[100];
+
+                g_snprintf(label_text, 100,
+                    "<span font='%d' weight='bold' color='red'>%d</span>",
+                    main_window->images->display_size / 18,
+                    main_window->grid[i][j]);
+
+                gtk_label_set_markup(label, label_text);
+            }
+            else
+            {
+                gtk_label_set_text(label, "");
+            }
+        }
+    }
+
+    cairo_fill(cr);
+
+    g_object_unref(pixbuf);
+}
 
 void draw_image(GtkDrawingArea *drawing_area, cairo_t *cr, gpointer data)
 {
@@ -425,6 +501,36 @@ void rotation_changed(GtkWidget *_, gpointer user_data)
     return;
 }
 
+void hide_grid(GtkWidget *_, gpointer data)
+{
+    MainWindow *main_window = (MainWindow *)data;
+
+    if (gtk_toggle_button_get_active(
+            GTK_TOGGLE_BUTTON(main_window->controls->hide_grid_button)))
+    {
+        gtk_widget_hide(GTK_WIDGET(main_window->sudoku_labels_grid));
+    }
+    else
+    {
+        gtk_widget_show(GTK_WIDGET(main_window->sudoku_labels_grid));
+    }
+}
+
+void hide_image(GtkWidget *_, gpointer data)
+{
+    MainWindow *main_window = (MainWindow *)data;
+
+    if (gtk_toggle_button_get_active(
+            GTK_TOGGLE_BUTTON(main_window->controls->hide_image_button)))
+    {
+        gtk_widget_hide(GTK_WIDGET(main_window->pages->page4->image));
+    }
+    else
+    {
+        gtk_widget_show(GTK_WIDGET(main_window->pages->page4->image));
+    }
+}
+
 gboolean grid_detection_finished(gpointer data)
 {
     MainWindow *main_window = (MainWindow *)data;
@@ -437,10 +543,9 @@ gboolean grid_detection_finished(gpointer data)
     Image **cells = split_grid(main_window->images->image_rotated_cropped,
         VERBOSE_MODE, VERBOSE_PATH);
 
-    int **grid = malloc(sizeof(int *) * 9);
     for (int i = 0; i < 9; i++)
     {
-        grid[i] = malloc(sizeof(int) * 9);
+        main_window->grid[i] = malloc(sizeof(int) * 9);
         for (int j = 0; j < 9; j++)
         {
             int c = i * 9 + j;
@@ -448,7 +553,7 @@ gboolean grid_detection_finished(gpointer data)
             free_Image(cells[c]);
             free(cells[c]);
 
-            grid[i][j] = digit;
+            main_window->grid[i][j] = digit;
         }
     }
     free(cells);
@@ -457,22 +562,16 @@ gboolean grid_detection_finished(gpointer data)
     {
         for (int j = 0; j < 9; j++)
         {
-            printf("%d ", grid[i][j]);
-
             GtkLabel *label = GTK_LABEL(gtk_grid_get_child_at(
                 GTK_GRID(main_window->sudoku_labels_grid), i, j));
 
             gchar label_text[100];
-            g_snprintf(label_text, 100, "%d", grid[i][j]);
+            g_snprintf(label_text, 100,
+                "<span font='12' weight='bold'>%d</span>",
+                main_window->grid[i][j]);
 
-            gtk_label_set_text(label, label_text);
-
-            gtk_widget_set_size_request(GTK_WIDGET(label),
-                main_window->images->display_size / 9,
-                main_window->images->display_size / 9);
+            gtk_label_set_markup(label, label_text);
         }
-
-        printf("\n");
     }
 
     // Display elements in page 3
@@ -579,6 +678,11 @@ int main()
     GtkButton *correction_done_button
         = GTK_BUTTON(gtk_builder_get_object(builder, "correctiondonebutton"));
 
+    GtkToggleButton *hide_grid_button
+        = GTK_BUTTON(gtk_builder_get_object(builder, "hidegridbutton"));
+    GtkToggleButton *hide_image_button
+        = GTK_BUTTON(gtk_builder_get_object(builder, "hideimagebutton"));
+
     GtkFileChooserButton *file_chooser_button = GTK_FILE_CHOOSER_BUTTON(
         gtk_builder_get_object(builder, "fileselector"));
 
@@ -643,6 +747,8 @@ int main()
         .rotation_scale = rotation_scale,
         .image_rotation_done_button = rotation_done_button,
         .correction_done_button = correction_done_button,
+        .hide_grid_button = hide_grid_button,
+        .hide_image_button = hide_image_button,
     };
 
     Page page1 = {
@@ -716,6 +822,11 @@ int main()
     g_signal_connect(
         prev_button, "clicked", G_CALLBACK(previous_page), &main_window);
 
+    g_signal_connect(
+        hide_grid_button, "toggled", G_CALLBACK(hide_grid), &main_window);
+    g_signal_connect(
+        hide_image_button, "toggled", G_CALLBACK(hide_image), &main_window);
+
     // Confirm image
     g_signal_connect(confirm_image_button, "clicked",
         G_CALLBACK(manual_rotate_image), &main_window);
@@ -736,7 +847,11 @@ int main()
     g_signal_connect(
         page3_image, "draw", G_CALLBACK(draw_image), &main_window);
     g_signal_connect(
-        page4_image, "draw", G_CALLBACK(draw_image), &main_window);
+        page4_image, "draw", G_CALLBACK(draw_image_and_grid), &main_window);
+
+    main_window.grid = calloc(9, sizeof(int *));
+    for (int i = 0; i < 9; i++)
+        main_window.grid[i] = calloc(9, sizeof(int));
 
     set_step(&step_indicators, 1);
 

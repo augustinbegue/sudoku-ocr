@@ -14,7 +14,7 @@
 // 100: probability 1 on every output (LR 0.01)
 // 50: probability 1 on every output (LR 0.01)
 // 10: probability 1 on every output (LR 0.01)
-#define __num_hidden 200
+#define __num_hidden 15
 #define __num_outputs 10
 
 #endif

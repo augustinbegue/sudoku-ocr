@@ -16,7 +16,7 @@ char *concat(const char *s1, const char *s2)
 }
 
 // number of "generation" of AI
-static const int EPOCHS = 300;
+static const int EPOCHS = 1000;
 
 // learning rate
 // 0.01 with 1000/100 hidden layers => 1.000 on every output
