@@ -137,7 +137,7 @@ void train()
     struct dirent *de; // Pointer for directory entry
 
     char *dir = "./assets/training_set/";
-    // opendir() returns a pointer of DIR type.
+    
     DIR *dr = opendir(dir);
 
     if (dr == NULL) // opendir returns NULL if couldn't open directory
@@ -146,7 +146,7 @@ void train()
     }
 
     int count = 0;
-    // for readdir()
+    
     while ((de = readdir(dr)) != NULL && count < num_training)
     {
 
@@ -168,36 +168,19 @@ void train()
     printf("\nTraining set initialized\n");
     printf("Opened and loaded %d files.\n\n", count);
 
-    /*trainingInput(
-        &training_inputs, 0, "./neural_network/train_set/grid-6.png");
-    trainingInput(
-        &training_inputs, 1, "./neural_network/train_set/grid-7.png");
-    trainingInput(
-        &training_inputs, 2, "./neural_network/train_set/grid-8.png");*/
 
-    /*m_setIndex(&training_inputs, 0, 0, 1.0);
-    m_setIndex(&training_inputs, 0, 1, 1.0);
-
-    m_setIndex(&training_inputs, 1, 0, 0.0);
-    m_setIndex(&training_inputs, 1, 1, 1.0);
-
-    m_setIndex(&training_inputs, 2, 0, 1.0);
-    m_setIndex(&training_inputs, 2, 1, 0.0);
-
-    m_setIndex(&training_inputs, 3, 0, 0.0);
-    m_setIndex(&training_inputs, 3, 1, 0.0);*/
-
-    /*trainingOutput(&training_outputs, 0, 6);
-    trainingOutput(&training_outputs, 1, 7);
-    trainingOutput(&training_outputs, 2, 8);*/
-
-    /*m_setIndex(&training_outputs, 0, 0, 0.0);
-
-    m_setIndex(&training_outputs, 1, 0, 1.0);
-
-    m_setIndex(&training_outputs, 2, 0, 1.0);
-
-    m_setIndex(&training_outputs, 3, 0, 0.0);*/
+// RANDOMIZE WEIGHTS AND BIAS
+    double scale;
+    for (i=0;i<10;i++) layers[i][layerSizes[i]]=1.0;
+    for (j=1;j<10;j++){
+        // XAVIER-HE INITIALIZATION
+        scale = 2.0 * sqrt(6.0/(layerSizes[j] + layerSizes[j-1]));
+        if (j!=9 && activation==1) scale = scale * 1.41; // RELU
+        else if (j!=9) scale = scale * 4.0; // TANH
+        for (i=0;i<layerSizes[j] * (layerSizes[j-1]+1);i++)
+            weights[j][i] = scale * ( (float)rand()/RAND_MAX - 0.5 );
+        for (i=0;i<layerSizes[j];i++) // BIASES
+            weights[j][(layerSizes[j-1]+1)*(i+1)-1] = 0.0;
 
     Matrix hidden_weights;
     m_init(&hidden_weights, __num_inputs, __num_hidden);
@@ -255,7 +238,7 @@ void train()
 
         Matrix out_h;
         m_copy(&in_h, &out_h);
-        m_map(&out_h, sigmoid);
+        m_map(&out_h, relu);
 
         Matrix in_o;
         m_mult(&out_h, &output_weights, &in_o);
@@ -291,7 +274,7 @@ void train()
 
         Matrix douth_dinh;
         m_copy(&out_h, &douth_dinh);
-        m_map(&douth_dinh, d_sigmoid);
+        m_map(&douth_dinh, d_relu);
 
         Matrix derr_dinh;
         m_copy(&error_hidden_layer, &derr_dinh);
@@ -352,17 +335,7 @@ void train()
 
     save(&hidden_weights, &hidden_bias, &output_weights, &output_bias, "save");
 
-    // Printing the different result of the tests
-    /*printf("Result of tests after training\n");
-    printf("Result for (0, 0) (Expected: 0): %f\n", result_network(0.0, 0.0,
-    &hidden_weights, &hidden_bias, &output_weights, &output_bias));
-    printf("Result for (0, 1) (Expected: 1): %f\n", result_network(0.0, 1.0,
-    &hidden_weights, &hidden_bias, &output_weights, &output_bias));
-    printf("Result for (1, 0) (Expected: 1): %f\n", result_network(1.0, 0.0,
-    &hidden_weights, &hidden_bias, &output_weights, &output_bias));
-    printf("Result for (1, 1) (Expected: 0): %f\n", result_network(1.0, 1.0,
-    &hidden_weights, &hidden_bias, &output_weights, &output_bias));
-    printf("\n");*/
+    
 
     printf("\nAccuracy of the network:\n");
 

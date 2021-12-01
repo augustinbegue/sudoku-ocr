@@ -26,6 +26,26 @@ double d_sigmoid(double x)
     return (x * (1.0 - x));
 }
 
+double relu(double x)
+{
+    if(x >= 0){
+        return 1.0;
+    }
+    else{
+        return 0.0;
+    }
+}
+
+double d_relu(double x)
+{
+    if(x > 0){
+        return x;
+    }
+    else{
+        return -x;
+    }
+}
+
 double rand_weight()
 {
     return ((double)rand()) / ((double)RAND_MAX);
@@ -41,3 +61,4 @@ double rand_input_XOR()
     return 0.0;
     
 }
+

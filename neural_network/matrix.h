@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <math.h>
 #define MATRIX_INITIAL_CAPACITY 4
 
 typedef struct

@@ -47,7 +47,7 @@ int result_network(
     Matrix result_hidden;
     m_mult(&input, hw, &result_hidden);
     m_add(&result_hidden, hb);
-    m_map(&result_hidden, sigmoid);
+    m_map(&result_hidden, relu);
 
     // output layer
     Matrix result_output;

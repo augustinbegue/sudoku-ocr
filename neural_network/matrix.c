@@ -378,3 +378,49 @@ bool m_equals(Matrix *a, Matrix *b)
     }
     return true;
 }
+
+
+
+Matrix *m_copy(Matrix *src, Matrix *dest)
+{
+    m_init(dest, src->rows, src->cols);
+    for (int i = 0; i < src->rows; i++)
+    {
+        for (int j = 0; j < src->cols; j++)
+        {
+            m_setIndex(dest, i, j, m_get(src, i, j));
+        }
+    }
+    return dest;
+}
+
+/*
+Matrix *softmax(Matrix *src, Matrix *dest)
+{
+    m_init(dest, src->rows, src->cols);
+    int size = src->rows;
+    if(src->cols > src->rows)
+    {
+        size = src->cols;
+    }
+   
+    double sum = 0;
+    for (int i = 0; i < size; i++)
+        sum += Exp(z[i]);
+
+    for (int i = 0; i < size; i++)
+        buff[i] = exp(z[i]) / sum;
+  
+    return dest;
+}*/
+
+/*double* d_softmax(const int size, double* z)
+{
+  double* buff = new double[size];
+  double* act = softmax(size, z);
+  for (int i = 0; i < size; i++) {
+    buff[i] = act[i] * (1. - act[i]);
+  }
+  delete[] act;
+  return buff;
+}*/
