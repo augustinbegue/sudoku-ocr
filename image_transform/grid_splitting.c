@@ -7,6 +7,18 @@
 #define CELL_NUMBER_ROW 9
 #define CELL_SIZE_PIXELS 28
 
+bool boundaries_valid(square *boundaries, int max_size)
+{
+    return boundaries->c1.x >= 0 && boundaries->c1.y >= 0
+           && boundaries->c2.x >= 0 && boundaries->c2.y >= 0
+           && boundaries->c1.x < max_size && boundaries->c1.y < max_size
+           && boundaries->c2.x < max_size && boundaries->c2.y < max_size
+           && boundaries->c3.x >= 0 && boundaries->c3.y >= 0
+           && boundaries->c4.x >= 0 && boundaries->c4.y >= 0
+           && boundaries->c3.x < max_size && boundaries->c3.y < max_size
+           && boundaries->c4.x < max_size && boundaries->c4.y < max_size;
+}
+
 Image **split_grid(Image *input, bool verbose_mode, char *verbose_path)
 {
     image_processing_extract_digits(input, verbose_mode, verbose_path);
@@ -53,7 +65,7 @@ Image **split_grid(Image *input, bool verbose_mode, char *verbose_path)
                 = image_processing_detect_digit_boundaries(large_cell);
 
             Image *cropped;
-            if (boundaries.c1.x < boundaries.c2.x)
+            if (boundaries_valid(&boundaries, original_cell_size))
             {
                 cropped = crop_image(large_cell, &boundaries);
                 free_Image(large_cell);

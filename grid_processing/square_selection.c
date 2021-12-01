@@ -55,10 +55,6 @@ static int get_biggest_side(square *sq)
  */
 void normalize_square(square *selected)
 {
-    printf("    Previous square: (%i, %i), (%i, %i), (%i, %i), (%i, %i).\n",
-        selected->c1.x, selected->c1.y, selected->c2.x, selected->c2.y,
-        selected->c3.x, selected->c3.y, selected->c4.x, selected->c4.y);
-
     point points[4] = {selected->c1, selected->c2, selected->c3, selected->c4};
 
     int delta = get_biggest_side(selected) / 10;
@@ -115,10 +111,6 @@ void normalize_square(square *selected)
     selected->c2 = points[1];
     selected->c3 = points[2];
     selected->c4 = points[3];
-
-    printf("    Normalized square: (%i, %i), (%i, %i), (%i, %i), (%i, %i).\n",
-        selected->c1.x, selected->c1.y, selected->c2.x, selected->c2.y,
-        selected->c3.x, selected->c3.y, selected->c4.x, selected->c4.y);
 }
 
 square *select_square(
