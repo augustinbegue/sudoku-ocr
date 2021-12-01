@@ -531,32 +531,9 @@ void hide_image(GtkWidget *_, gpointer data)
     }
 }
 
-gboolean grid_detection_finished(gpointer data)
+gboolean *grid_splitting_finished(gpointer data)
 {
     MainWindow *main_window = (MainWindow *)data;
-
-    display_image(main_window->pages->page3->image,
-        main_window->images->image_rotated_clean, main_window);
-
-    set_step(main_window->step_indicators, 4);
-
-    Image **cells = split_grid(main_window->images->image_rotated_cropped,
-        VERBOSE_MODE, VERBOSE_PATH);
-
-    for (int i = 0; i < 9; i++)
-    {
-        main_window->grid[i] = malloc(sizeof(int) * 9);
-        for (int j = 0; j < 9; j++)
-        {
-            int c = i * 9 + j;
-            int digit = neural_network_execute(cells[c]);
-            free_Image(cells[c]);
-            free(cells[c]);
-
-            main_window->grid[i][j] = digit;
-        }
-    }
-    free(cells);
 
     for (int i = 0; i < 9; i++)
     {
@@ -583,10 +560,52 @@ gboolean grid_detection_finished(gpointer data)
         main_window->images->image_rotated_cropped, main_window);
     set_page(main_window, "page4");
 
+    set_step(main_window->step_indicators, 4);
+
     // Reset page 3 state
     set_button_to_label(
         main_window->controls->image_rotation_done_button, "Done");
     gtk_widget_show(GTK_WIDGET(main_window->controls->rotation_scale));
+
+    return FALSE;
+}
+
+void *grid_splitting_handler(gpointer data)
+{
+    MainWindow *main_window = (MainWindow *)data;
+
+    Image **cells = split_grid(main_window->images->image_rotated_cropped,
+        VERBOSE_MODE, VERBOSE_PATH);
+
+    for (int i = 0; i < 9; i++)
+    {
+        main_window->grid[i] = malloc(sizeof(int) * 9);
+        for (int j = 0; j < 9; j++)
+        {
+            int c = i * 9 + j;
+            int digit = neural_network_execute(cells[c]);
+            free_Image(cells[c]);
+            free(cells[c]);
+
+            main_window->grid[i][j] = digit;
+        }
+    }
+    free(cells);
+
+    g_idle_add(grid_splitting_finished, data);
+
+    return NULL;
+}
+
+gboolean grid_detection_finished(gpointer data)
+{
+    MainWindow *main_window = (MainWindow *)data;
+
+    display_image(main_window->pages->page3->image,
+        main_window->images->image_rotated_cropped, main_window);
+
+    g_thread_new("grid_splitting_handler", (GThreadFunc)grid_splitting_handler,
+        main_window);
 
     return FALSE;
 }
