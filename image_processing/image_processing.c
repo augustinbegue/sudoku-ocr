@@ -272,7 +272,7 @@ square image_processing_detect_digit_boundaries(Image *input)
         }
 
         // Increasing the range of the search to gradually get the whole digit
-        range += image_size / 50;
+        range++;
     }
 
     square boundaries;
