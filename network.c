@@ -19,7 +19,7 @@ char *concat(const char *s1, const char *s2)
 static const int EPOCHS = 10;
 
 // learning rate
-static double LR = 0.1;
+static double LR = 0.01;
 
 static const int num_training = 3270;
 // static const int NUMBER_OF_TESTS = 2;
@@ -153,7 +153,7 @@ void train()
     {
         printf("Epochs: %d\n", n);
 
-        double accurency = 0;
+        double accuracy = 0;
 
         struct dirent *de; // Pointer for directory entry
 
@@ -210,7 +210,7 @@ void train()
 
                 if (max_mat(&out_o) == max_mat(&_outputs))
                 {
-                    accurency += 1;
+                    accuracy += 1;
                 }
 
                 // Back Propagation
@@ -298,9 +298,9 @@ void train()
             }
         }
         closedir(dr);
-        accurency /= num_training;
+        accuracy /= num_training;
 
-        printf("Accurency: %f\n", accurency);
+        printf("Accuracy: %f\n", accuracy);
     }
 
     // Saving the final weigths and bias
