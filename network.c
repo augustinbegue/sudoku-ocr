@@ -24,7 +24,6 @@ static double LR = 0.1;
 static const int num_training = 3270;
 // static const int NUMBER_OF_TESTS = 2;
 
-
 void trainingInput(Matrix *training_inputs, size_t numTest, char *path)
 {
 
@@ -78,7 +77,7 @@ void train()
     struct dirent *de; // Pointer for directory entry
 
     char *dir = "./assets/training_set/";
-    
+
     DIR *dr = opendir(dir);
 
     if (dr == NULL) // opendir returns NULL if couldn't open directory
@@ -87,7 +86,7 @@ void train()
     }
 
     int count = 0;
-    
+
     while ((de = readdir(dr)) != NULL && count < num_training)
     {
 
@@ -106,8 +105,8 @@ void train()
     }
     closedir(dr);*/
 
-    //printf("\nTraining set initialized\n");
-    //printf("Opened and loaded %d files.\n\n", count);
+    // printf("\nTraining set initialized\n");
+    // printf("Opened and loaded %d files.\n\n", count);
 
     Matrix hidden_weights;
     m_init(&hidden_weights, __num_inputs, __num_hidden);
@@ -149,19 +148,17 @@ void train()
         }
     }
 
-
-
     // Iterate through epochs
     for (int n = 0; n < EPOCHS; n++)
     {
-         printf("Epochs: %d\n",  n);
-        
+        printf("Epochs: %d\n", n);
+
         double accurency = 0;
 
         struct dirent *de; // Pointer for directory entry
 
         char *dir = "./assets/training_set/";
-        
+
         DIR *dr = opendir(dir);
 
         if (dr == NULL) // opendir returns NULL if couldn't open directory
@@ -170,7 +167,7 @@ void train()
         }
 
         int count = 0;
-        
+
         while ((de = readdir(dr)) != NULL && count < num_training)
         {
 
@@ -181,14 +178,13 @@ void train()
                 char *s1 = concat(dir, s);
 
                 Matrix _inputs;
-                m_init(&_inputs, 1 , __num_inputs);
+                m_init(&_inputs, 1, __num_inputs);
 
                 trainingInput(&_inputs, 0, s1);
 
                 Matrix _outputs;
-                m_init(&_outputs, 1 , __num_outputs);
+                m_init(&_outputs, 1, __num_outputs);
                 trainingOutput(&_outputs, 0, (int)(s[0] - '0'));
-
 
                 free(s1);
 
@@ -212,7 +208,8 @@ void train()
                 m_copy(&in_o, &out_o);
                 softmax(&out_o);
 
-                if(max_mat(&out_o) == max_mat(&_outputs)){
+                if (max_mat(&out_o) == max_mat(&_outputs))
+                {
                     accurency += 1;
                 }
 
@@ -298,16 +295,12 @@ void train()
                 m_free(&d_hidden_bias);
                 m_free(&_outputs);
                 m_free(&_inputs);
-
             }
         }
         closedir(dr);
         accurency /= num_training;
-        
-        printf("Accurency: %f\n",  accurency);
-        
 
-
+        printf("Accurency: %f\n", accurency);
     }
 
     // Saving the final weigths and bias
@@ -316,8 +309,8 @@ void train()
 
     printf("\nFinish training.\n");
 
-    //m_free(&training_outputs);
-    //m_free(&training_inputs);
+    // m_free(&training_outputs);
+    // m_free(&training_inputs);
     m_free(&hidden_weights);
     m_free(&hidden_bias);
     m_free(&output_weights);
