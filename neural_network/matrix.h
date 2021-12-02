@@ -63,7 +63,7 @@ Matrix *m_transpose(Matrix *a, Matrix *dest);
 // return a new matrix being the copy of the given in parameter
 Matrix *m_copy(Matrix *src, Matrix *dest);
 
-// don't need those...
+
 double m_get(Matrix *a, int r, int c);
 int m_rows(Matrix *a);
 int m_cols(Matrix *a);
@@ -82,5 +82,9 @@ bool m_equals(Matrix *a, Matrix *b);
 
 Matrix *softmax(Matrix *src);
 Matrix* d_softmax(Matrix* src);
+
+int is_nan(Matrix *src);
+
+double max_mat_value(Matrix *a);
 
 #endif

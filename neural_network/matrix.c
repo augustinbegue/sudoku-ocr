@@ -214,6 +214,24 @@ int max_mat(Matrix *a){
     return max_ind;
 }
 
+double max_mat_value(Matrix *a){
+    double max = m_get(a, 0, 0);
+    
+    for (int i = 0; i < a->rows; i++)
+    {
+        for (int j = 0; j < a->cols; j++)
+        {
+            double val = m_get(a, i, j);
+            if (val > max)
+            {
+                max = val;
+                
+            }
+        }
+    }
+    return max;
+}
+
 Matrix *m_scalar_add(Matrix *a, double x)
 {
     for (int i = 0; i < a->rows; i++)
@@ -386,12 +404,13 @@ bool m_equals(Matrix *a, Matrix *b)
 Matrix *softmax(Matrix *src)
 {
     double sum = 0;
+    double max = max_mat_value(src);
 
     for (int i = 0; i < src->rows; i++)
     {
         for (int j = 0; j < src->cols; j++)
         {
-            sum += exp(m_get(src, i, j));
+            sum += exp(m_get(src, i, j)-max);
         }
     }
 
@@ -399,7 +418,7 @@ Matrix *softmax(Matrix *src)
     {
         for (int j = 0; j < src->cols; j++)
         {
-            double tmp = exp(m_get(src, i, j))/sum;
+            double tmp = exp(m_get(src, i, j)-max)/sum;
             m_setIndex(src ,i, j, tmp);
         }
     }
@@ -430,4 +449,18 @@ Matrix* d_softmax(Matrix* src)
   */
     m_free(&act);
     return src;
+}
+
+int is_nan(Matrix *src){
+    for (int i = 0; i < src->rows; i++)
+    {
+        for (int j = 0; j < src->cols; j++)
+        {
+            double val = m_get(src, i, j);
+            if(val != val){
+                return 1;
+            }
+        }
+    }
+    return 0;
 }
