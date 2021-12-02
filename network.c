@@ -16,10 +16,10 @@ char *concat(const char *s1, const char *s2)
 }
 
 // number of "generation" of AI
-static const int EPOCHS = 10000;
+static const int EPOCHS = 10;
 
 // learning rate
-static const double LR = 0.1;
+static const double LR = 0.01;
 
 static const int num_training = 3270;
 // static const int NUMBER_OF_TESTS = 2;
@@ -170,7 +170,7 @@ void train()
 
 
 // RANDOMIZE WEIGHTS AND BIAS
-    double scale;
+    /*double scale;
     for (i=0;i<10;i++) layers[i][layerSizes[i]]=1.0;
     for (j=1;j<10;j++){
         // XAVIER-HE INITIALIZATION
@@ -180,7 +180,7 @@ void train()
         for (i=0;i<layerSizes[j] * (layerSizes[j-1]+1);i++)
             weights[j][i] = scale * ( (float)rand()/RAND_MAX - 0.5 );
         for (i=0;i<layerSizes[j];i++) // BIASES
-            weights[j][(layerSizes[j-1]+1)*(i+1)-1] = 0.0;
+            weights[j][(layerSizes[j-1]+1)*(i+1)-1] = 0.0;*/
 
     Matrix hidden_weights;
     m_init(&hidden_weights, __num_inputs, __num_hidden);
@@ -246,7 +246,7 @@ void train()
 
         Matrix out_o;
         m_copy(&in_o, &out_o);
-        m_map(&out_o, sigmoid);
+        softmax(&out_o);
 
         // Back Propagation
 
@@ -260,7 +260,7 @@ void train()
 
         Matrix douto_dino;
         m_copy(&out_o, &douto_dino);
-        m_map(&douto_dino, d_sigmoid);
+        d_softmax(&douto_dino);
 
         Matrix derr_dino;
         m_copy(&derr_douto, &derr_dino);

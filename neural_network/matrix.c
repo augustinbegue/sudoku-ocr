@@ -381,46 +381,53 @@ bool m_equals(Matrix *a, Matrix *b)
 
 
 
-Matrix *m_copy(Matrix *src, Matrix *dest)
+
+
+Matrix *softmax(Matrix *src)
 {
-    m_init(dest, src->rows, src->cols);
+    double sum = 0;
+
     for (int i = 0; i < src->rows; i++)
     {
         for (int j = 0; j < src->cols; j++)
         {
-            m_setIndex(dest, i, j, m_get(src, i, j));
+            sum += exp(m_get(src, i, j));
         }
     }
-    return dest;
+
+    for (int i = 0; i < src->rows; i++)
+    {
+        for (int j = 0; j < src->cols; j++)
+        {
+            double tmp = exp(m_get(src, i, j))/sum;
+            m_setIndex(src ,i, j, tmp);
+        }
+    }
+    return src;
 }
 
-/*
-Matrix *softmax(Matrix *src, Matrix *dest)
+Matrix* d_softmax(Matrix* src)
 {
-    m_init(dest, src->rows, src->cols);
-    int size = src->rows;
-    if(src->cols > src->rows)
+    Matrix act;
+    m_copy(src, &act);
+  //double* buff = new double[size];
+    softmax(&act);
+
+    for (int i = 0; i < src->rows; i++)
     {
-        size = src->cols;
+        for (int j = 0; j < src->cols; j++)
+        {
+            double val = m_get(&act, i, j);
+            double tmp = val * (1. - val);
+            m_setIndex(src ,i, j, tmp);
+        }
     }
-   
-    double sum = 0;
-    for (int i = 0; i < size; i++)
-        sum += Exp(z[i]);
-
-    for (int i = 0; i < size; i++)
-        buff[i] = exp(z[i]) / sum;
-  
-    return dest;
-}*/
-
-/*double* d_softmax(const int size, double* z)
-{
-  double* buff = new double[size];
-  double* act = softmax(size, z);
-  for (int i = 0; i < size; i++) {
+  /*for (int i = 0; i < size; i++) {
     buff[i] = act[i] * (1. - act[i]);
   }
   delete[] act;
   return buff;
-}*/
+  */
+    m_free(&act);
+    return src;
+}

@@ -53,7 +53,7 @@ int result_network(
     Matrix result_output;
     m_mult(&result_hidden, ow, &result_output);
     m_add(&result_output, ob);
-    m_map(&result_output, sigmoid);
+    softmax(&result_output);
 
     int res = max_mat(&result_output);
 

@@ -80,4 +80,7 @@ void m_print(Matrix *a);
 void m_full_print(Matrix *a);
 bool m_equals(Matrix *a, Matrix *b);
 
+Matrix *softmax(Matrix *src);
+Matrix* d_softmax(Matrix* src);
+
 #endif
