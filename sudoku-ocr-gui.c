@@ -34,7 +34,6 @@ struct Controls
     GtkButton *confirm_image_button;
     GtkButton *image_rotation_done_button;
     GtkButton *confirm_crop_button;
-    GtkButton *cancel_crop_button;
     GtkButton *correction_done_button;
     GtkToggleButton *hide_grid_button;
     GtkToggleButton *hide_image_button;
@@ -391,6 +390,7 @@ void set_step(StepIndicators *step_indicators, int step_number)
             break;
         case 6:
             gtk_widget_set_opacity(step_indicators->step_6_indicator, 1.0);
+            break;
     }
 }
 
@@ -722,8 +722,7 @@ gboolean *grid_splitting_finished(gpointer data)
     set_step(main_window->step_indicators, 5);
 
     // Reset page 5 state
-    set_button_to_label(main_window->controls->cancel_crop_button, "Cancel");
-    set_button_to_label(main_window->controls->confirm_crop_button, "Done");
+    set_button_to_label(main_window->controls->confirm_crop_button, "Confirm");
     gtk_widget_show(GTK_WIDGET(main_window->controls->rotation_scale));
 
     return FALSE;
@@ -784,7 +783,6 @@ void perspective_correction(GtkWidget *_, gpointer data)
 {
     MainWindow *main_window = (MainWindow *)data;
 
-    set_button_to_load(main_window->controls->cancel_crop_button);
     set_button_to_load(main_window->controls->confirm_crop_button);
 
     g_thread_new("perspective_correction_handler",
@@ -848,26 +846,6 @@ void update_grid_square_pos(
     gtk_widget_queue_draw(GTK_DRAWING_AREA(main_window->pages->page4->image));
 
     return;
-}
-
-void eventbox_crop_press(
-    GtkWidget *self, GdkEventButton event, gpointer user_data)
-{
-    MainWindow *main_window = (MainWindow *)user_data;
-
-    printf("EventBox Crop pressed\n");
-
-    main_window->cropping = TRUE;
-}
-
-void eventbox_crop_release(
-    GtkWidget *self, GdkEventButton event, gpointer user_data)
-{
-    MainWindow *main_window = (MainWindow *)user_data;
-
-    printf("EventBox Crop released\n");
-
-    main_window->cropping = FALSE;
 }
 
 gboolean grid_detection_finished(gpointer data)
@@ -969,8 +947,6 @@ int main()
         = GTK_BUTTON(gtk_builder_get_object(builder, "rotationdonebutton"));
     GtkButton *confirm_crop_button
         = GTK_BUTTON(gtk_builder_get_object(builder, "confirmcropbutton"));
-    GtkButton *cancel_crop_button
-        = GTK_BUTTON(gtk_builder_get_object(builder, "cancelcropbutton"));
     GtkButton *correction_done_button
         = GTK_BUTTON(gtk_builder_get_object(builder, "correctiondonebutton"));
     GtkToggleButton *hide_grid_button
@@ -1040,6 +1016,7 @@ int main()
         .step_3_indicator = step_3_indicator,
         .step_4_indicator = step_4_indicator,
         .step_5_indicator = step_5_indicator,
+        .step_6_indicator = step_6_indicator,
     };
 
     Controls controls = {
@@ -1052,7 +1029,6 @@ int main()
         .rotation_scale = rotation_scale,
         .image_rotation_done_button = rotation_done_button,
         .confirm_crop_button = confirm_crop_button,
-        .cancel_crop_button = cancel_crop_button,
         .correction_done_button = correction_done_button,
         .hide_grid_button = hide_grid_button,
         .hide_image_button = hide_image_button,
@@ -1153,11 +1129,6 @@ int main()
     g_signal_connect(confirm_crop_button, "clicked",
         G_CALLBACK(perspective_correction), &main_window);
 
-    // TODO: Cancel crop
-    // g_signal_connect(
-    //     cancel_crop_button, "clicked", G_CALLBACK(cancel_crop),
-    //     &main_window);
-
     // Rotation done
     g_signal_connect(rotation_done_button, "clicked",
         G_CALLBACK(process_image), &main_window);
@@ -1176,10 +1147,6 @@ int main()
         page5_image, "draw", G_CALLBACK(draw_image_and_grid), &main_window);
 
     // Image cropping
-    g_signal_connect(crop_event_box, "button-press-event",
-        G_CALLBACK(eventbox_crop_press), &main_window);
-    g_signal_connect(crop_event_box, "button-release-event",
-        G_CALLBACK(eventbox_crop_release), &main_window);
     g_signal_connect(G_OBJECT(crop_event_box), "motion-notify-event",
         G_CALLBACK(update_grid_square_pos), &main_window);
 
