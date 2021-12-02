@@ -6,7 +6,7 @@
 
 #define M_PI 3.14159265359
 
-int compare_int(const void *a, const void *b);
+void insertionSort(int arr[], int n);
 
 void _mkdir(const char *dir);
 

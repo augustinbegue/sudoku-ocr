@@ -180,7 +180,7 @@ void filter_normalize(Image *image)
  * @param image
  * @param range
  */
-void filter_median(Image *image, int range)
+void filter_median(Image *image, Image *output, int range)
 {
     int height = image->height;
     int width = image->width;
@@ -194,18 +194,26 @@ void filter_median(Image *image, int range)
         for (int y = 0; y < height; y++)
         {
             int *window = calloc(range * range, sizeof(int));
-            int i = 0;
 
+            int i = 0;
             for (int fx = -midrange, xx = x + fx; fx < midrange; fx++)
             {
                 for (int fy = -midrange, yy = y + fy; fy < midrange; fy++)
                 {
+                    if (xx < 0 || xx >= width || yy < 0 || yy >= height)
+                        continue;
+
                     window[i] = image->pixels[xx][yy].r;
                     i++;
                 }
             }
 
-            qsort(window, range * range, sizeof(int), compare_int);
+            insertionSort(window, i);
+
+            output->pixels[x][y].g = output->pixels[x][y].b
+                = output->pixels[x][y].r = window[i / 2];
+
+            free(window);
         }
     }
 }

@@ -158,27 +158,33 @@ void image_processing_extract_digits(
     // Grayscaling the image
     filter_grayscale(input, 0);
 
-    // Blurring the image
-    double *kernel = get_gaussian_smoothing_kernel(image_size / 100, 1.5);
-    convolution(kernel, image_size / 100, input, input, false);
-    free(kernel);
+    // Median Filter on the image
+    Image *blurred = malloc(sizeof(Image));
+    *blurred = clone_image(input);
+    filter_median(input, blurred, image_size / 100);
 
-    verbose_save(verbose_mode, verbose_path, "9.2-blurred.png", input);
+    verbose_save(verbose_mode, verbose_path, "9.2-blurred.png", blurred);
 
     // Dilation and Erosion
-    morph(input, Dilation, image_size / 250);
-    morph(input, Erosion, image_size / 250);
+    morph(blurred, Dilation, image_size / 250);
+    morph(blurred, Erosion, image_size / 250);
 
     verbose_save(
-        verbose_mode, verbose_path, "9.3-erosion-dilation.png", input);
+        verbose_mode, verbose_path, "9.3-erosion-dilation.png", blurred);
 
     // Adjusting colors
-    filter_contrast(input, 64);
-    filter_gamma(input, 255);
+    filter_contrast(blurred, 64);
+    filter_gamma(blurred, 255);
 
-    filter_threshold(input);
+    filter_threshold(blurred);
 
-    verbose_save(verbose_mode, verbose_path, "9.4-colors-adjusted.png", input);
+    verbose_save(
+        verbose_mode, verbose_path, "9.4-colors-adjusted.png", blurred);
+
+    Image old = *input;
+    *input = *blurred;
+    free_Image(&old);
+    free(blurred);
 }
 
 /**
