@@ -153,8 +153,8 @@ void compute_perspective_matrix(int source[][2], double dest[][2],
 Image *correct_perspective(Image *image, square *selected_square,
     bool verbose_mode, char *verbose_path)
 {
-    if (verbose_mode)
-        printf("   🗺️ Correcting perspective and cropping...\n");
+
+    printf("   🗺️ Correcting perspective and cropping...\n");
 
     int source[4][2] = {{selected_square->c1.x, selected_square->c1.y},
         {selected_square->c2.x, selected_square->c2.y},

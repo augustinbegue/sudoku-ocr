@@ -29,13 +29,11 @@ void image_processing_extract_grid(
      * PASS 1 - Create a mask with the pixels to keep
      */
 
-    if (verbose_mode)
-        printf("[1]♻️ Processing the image.\n");
+    printf("[1]♻️ Processing the image.\n");
     verbose_save(
         verbose_mode, verbose_path, "0.0-processing-step.png", imagept);
 
-    if (verbose_mode)
-        printf("   🖌  Applying grayscale.\n");
+    printf("   🖌  Applying grayscale.\n");
 
     // Grayscale and contrast adjustement
     filter_grayscale(maskpt, 0);
@@ -46,8 +44,7 @@ void image_processing_extract_grid(
 
     verbose_save(verbose_mode, verbose_path, "0.2-mask-gamma.png", maskpt);
 
-    if (verbose_mode)
-        printf("   🖌  Filtering noise.\n");
+    printf("   🖌  Filtering noise.\n");
 
     // Gaussian blur for noise removal
     double *kernel = get_gaussian_smoothing_kernel(adaptive_range, 1.5);
@@ -61,8 +58,7 @@ void image_processing_extract_grid(
     morph(imagept, Dilation, adaptive_range);
     verbose_save(verbose_mode, verbose_path, "1.2-mask-erosion.png", imagept);
 
-    if (verbose_mode)
-        printf("   🔲 Applying a mask threshold.\n");
+    printf("   🔲 Applying a mask threshold.\n");
 
     // Sauvola thresholding
     filter_sauvola(maskpt, maskpt, adaptive_range + adaptive_range, 0.2,
@@ -75,8 +71,8 @@ void image_processing_extract_grid(
      * PASS 2 - Apply the mask to a clean version of the image and reapply
      * processing
      */
-    if (verbose_mode)
-        printf("   📥 Applying the mask on the original image.\n");
+
+    printf("   📥 Applying the mask on the original image.\n");
 
     // Apply the mask onto the clean image
     apply_mask(imagept, maskpt);
@@ -92,8 +88,7 @@ void image_processing_extract_grid(
     verbose_save(
         verbose_mode, verbose_path, "4.1-image-grayscale.png", imagept);
 
-    if (verbose_mode)
-        printf("   🖌  Filtering noise.\n");
+    printf("   🖌  Filtering noise.\n");
 
     // Gaussian blur for noise removal
     convolution(kernel, adaptive_range, imagept, imagept, false);
@@ -104,8 +99,7 @@ void image_processing_extract_grid(
     filter_gamma(maskpt, 255);
     filter_contrast(maskpt, 128);
 
-    if (verbose_mode)
-        printf("   🧮  Normalizing colors.\n");
+    printf("   🧮  Normalizing colors.\n");
 
     verbose_save(
         verbose_mode, verbose_path, "4.3-image-gamma-contrast.png", imagept);
@@ -117,8 +111,7 @@ void image_processing_extract_grid(
     morph(imagept, Dilation, adaptive_range);
     verbose_save(verbose_mode, verbose_path, "4.5-image-erosion.png", imagept);
 
-    if (verbose_mode)
-        printf("   🎨 Average Color: %i\n", (int)imagept->average_color);
+    printf("   🎨 Average Color: %i\n", (int)imagept->average_color);
 
     if ((int)imagept->average_color == 237)
     {
@@ -133,8 +126,7 @@ void image_processing_extract_grid(
         filter_contrast(maskpt, 255);
     }
 
-    if (verbose_mode)
-        printf("   🔲  Binarizing the image.\n");
+    printf("   🔲  Binarizing the image.\n");
 
     // Adaptive threshold to binarise
     filter_threshold(imagept);

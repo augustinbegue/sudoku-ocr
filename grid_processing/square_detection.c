@@ -243,7 +243,6 @@ void *find_squares_thread(void *args)
 list *find_squares(int **edges, int edge_num, Image *image)
 {
     int i = 0;
-    fprintf(stderr, "\33[2K\r   🖨️ Treated Edges Batch: %i", i);
     list *found_squares = l_create();
 
     // Number of threads available from the CPU
@@ -257,6 +256,9 @@ list *find_squares(int **edges, int edge_num, Image *image)
     pthread_t *threads = malloc(sizeof(pthread_t) * n_threads);
     struct find_squares_thread_args **args
         = malloc(sizeof(struct find_squares_thread_args *) * n_threads);
+
+    fprintf(
+        stderr, "\33[2K\r   🖨️ Treating Edges on %i threads", n_threads);
 
     for (int n = 0; n < n_threads; n++)
     {
@@ -282,11 +284,8 @@ list *find_squares(int **edges, int edge_num, Image *image)
     for (int n = 0; n < n_threads; n++)
     {
         pthread_join(threads[n], NULL);
-        fprintf(stderr, "\33[2K\r   🖨️ Treated Edges Batch: %i/%i", n + 1,
-            n_threads);
         free(args[n]);
     }
-
     free(args);
     free(threads);
 

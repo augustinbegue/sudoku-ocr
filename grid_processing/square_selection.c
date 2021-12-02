@@ -116,10 +116,8 @@ void normalize_square(square *selected)
 square *select_square(
     list *squares, Image *image, bool verbose_mode, char *verbose_path)
 {
-    if (verbose_mode)
-    {
-        printf("   🔲 Selecting the grid square\n");
-    }
+
+    printf("   🔲 Selecting the grid square\n");
 
     square *selected = malloc(sizeof(square));
 
