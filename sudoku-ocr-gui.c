@@ -11,6 +11,14 @@
 #define IMAGE_SIZE 500
 #define VERBOSE_MODE 0
 #define VERBOSE_PATH NULL
+#define ACCENT_COLOR    \
+    {                   \
+        13, 137, 224, 1 \
+    }
+#define TRANSPARENT \
+    {               \
+        0, 0, 0, 0  \
+    }
 
 struct StepIndicators
 {
@@ -76,6 +84,8 @@ struct Images
     gint display_size;
     GtkDrawingArea *current_container;
     Image *current_image;
+    gboolean editing_digits;
+    GtkLabel *current_label;
 };
 typedef struct Images Images;
 
@@ -265,22 +275,23 @@ void draw_image_and_grid(
     {
         for (int j = 0; j < 9; j++)
         {
-            GtkLabel *label = GTK_LABEL(gtk_grid_get_child_at(
-                GTK_GRID(main_window->sudoku_labels_grid), i, j));
+            GtkLabel *label = gtk_bin_get_child(GTK_EVENT_BOX(
+                gtk_grid_get_child_at(main_window->sudoku_labels_grid, i, j)));
 
             gtk_widget_set_size_request(GTK_WIDGET(label),
                 main_window->images->display_size / 9,
                 main_window->images->display_size / 9);
 
+            gchar label_text[100];
+            g_snprintf(label_text, 100, "%ix%i", i, j);
+            gtk_widget_set_name(GTK_WIDGET(label), label_text);
+
             if (main_window->grid[i][j] != 0)
             {
-                gchar label_text[100];
-
                 g_snprintf(label_text, 100,
                     "<span font='%d' weight='bold' color='red'>%d</span>",
                     main_window->images->display_size / 18,
                     main_window->grid[i][j]);
-
                 gtk_label_set_markup(label, label_text);
             }
             else
@@ -694,22 +705,6 @@ gboolean *grid_splitting_finished(gpointer data)
 {
     MainWindow *main_window = (MainWindow *)data;
 
-    for (int i = 0; i < 9; i++)
-    {
-        for (int j = 0; j < 9; j++)
-        {
-            GtkLabel *label = GTK_LABEL(gtk_grid_get_child_at(
-                GTK_GRID(main_window->sudoku_labels_grid), i, j));
-
-            gchar label_text[100];
-            g_snprintf(label_text, 100,
-                "<span font='12' weight='bold'>%d</span>",
-                main_window->grid[i][j]);
-
-            gtk_label_set_markup(label, label_text);
-        }
-    }
-
     // Display elements in page 4
     display_image(main_window->pages->page4->image,
         main_window->images->image_rotated_cropped, main_window);
@@ -908,10 +903,63 @@ void process_image(GtkWidget *_, gpointer data)
         main_window);
 }
 
-void window_destroy(GtkWidget *_, gpointer data)
+gboolean keypress_handler(GtkWidget *widget, GdkEventKey *event, gpointer data)
 {
     MainWindow *main_window = (MainWindow *)data;
 
+    if (event->keyval == GDK_KEY_Escape || event->keyval == GDK_KEY_Return)
+    {
+        if (main_window->images->editing_digits)
+        {
+            GdkRGBA col = TRANSPARENT;
+            gtk_widget_override_background_color(
+                main_window->images->current_label, GTK_STATE_FLAG_NORMAL,
+                &col);
+        }
+
+        main_window->images->editing_digits = FALSE;
+    }
+    else if (event->keyval >= GDK_KEY_0 && GDK_KEY_9 >= event->keyval)
+    {
+        if (main_window->images->editing_digits)
+        {
+            gchar *name
+                = gtk_widget_get_name(main_window->images->current_label);
+
+            int i = name[0] - '0';
+            int j = name[2] - '0';
+
+            main_window->grid[i][j] = event->keyval - GDK_KEY_0;
+
+            gtk_widget_queue_draw(
+                GTK_WIDGET(main_window->pages->page5->image));
+        }
+    }
+}
+
+gboolean update_recognised_digits(
+    GtkWidget *event_box, GdkEvent *event, gpointer user_data)
+{
+    MainWindow *main_window = (MainWindow *)user_data;
+
+    if (main_window->images->editing_digits)
+    {
+        GdkRGBA col = TRANSPARENT;
+        gtk_widget_override_background_color(
+            main_window->images->current_label, GTK_STATE_FLAG_NORMAL, &col);
+    }
+
+    GtkLabel *label = gtk_bin_get_child(GTK_EVENT_BOX(event_box));
+
+    GdkRGBA col = ACCENT_COLOR;
+    gtk_widget_override_background_color(label, GTK_STATE_FLAG_NORMAL, &col);
+
+    main_window->images->editing_digits = TRUE;
+    main_window->images->current_label = label;
+}
+
+void window_destroy(GtkWidget *_, gpointer data)
+{
     gtk_main_quit();
 }
 
@@ -1083,6 +1131,8 @@ int main()
         .display_size = 0,
         .current_container = malloc(sizeof(GtkDrawingArea)),
         .current_image = malloc(sizeof(Image)),
+        .current_label = malloc(sizeof(GtkLabel)),
+        .editing_digits = FALSE,
     };
 
     MainWindow main_window = {
@@ -1149,6 +1199,22 @@ int main()
     // Image cropping
     g_signal_connect(G_OBJECT(crop_event_box), "motion-notify-event",
         G_CALLBACK(update_grid_square_pos), &main_window);
+
+    // Recognised Digits Editing
+    g_signal_connect(G_OBJECT(window), "key-press-event",
+        G_CALLBACK(keypress_handler), &main_window);
+    for (int i = 0; i < 9; i++)
+    {
+        for (int j = 0; j < 9; j++)
+        {
+            GtkEventBox *evbox = GTK_EVENT_BOX(
+                gtk_grid_get_child_at(sudoku_labels_grid, i, j));
+
+            // TODO: find a way to transfer coordinates to edit grid directly
+            g_signal_connect(evbox, "button-press-event",
+                G_CALLBACK(update_recognised_digits), &main_window);
+        }
+    }
 
     main_window.grid = calloc(9, sizeof(int *));
     for (int i = 0; i < 9; i++)
