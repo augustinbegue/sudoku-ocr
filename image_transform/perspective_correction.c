@@ -218,6 +218,15 @@ Image *correct_perspective(Image *image, square *selected_square,
         }
     }
 
+    selected_square->c1.x = 0;
+    selected_square->c1.y = 0;
+    selected_square->c2.x = max_edge_length;
+    selected_square->c2.y = 0;
+    selected_square->c3.x = max_edge_length;
+    selected_square->c3.y = max_edge_length;
+    selected_square->c4.x = 0;
+    selected_square->c4.y = max_edge_length;
+
     verbose_save(verbose_mode, verbose_path, "9.1-perspective-corrected.png",
         corrected_image);
 
