@@ -173,3 +173,39 @@ void filter_normalize(Image *image)
 
     free(hist);
 }
+
+/**
+ * @brief Performs a median filter of size range on the given image
+ *
+ * @param image
+ * @param range
+ */
+void filter_median(Image *image, int range)
+{
+    int height = image->height;
+    int width = image->width;
+
+    if (range % 2 == 0)
+        range++;
+    int midrange = range / 2;
+
+    for (int x = 0; x < width; x++)
+    {
+        for (int y = 0; y < height; y++)
+        {
+            int *window = calloc(range * range, sizeof(int));
+            int i = 0;
+
+            for (int fx = -midrange, xx = x + fx; fx < midrange; fx++)
+            {
+                for (int fy = -midrange, yy = y + fy; fy < midrange; fy++)
+                {
+                    window[i] = image->pixels[xx][yy].r;
+                    i++;
+                }
+            }
+
+            qsort(window, range * range, sizeof(int), compare_int);
+        }
+    }
+}
