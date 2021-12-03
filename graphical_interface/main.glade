@@ -197,7 +197,7 @@
                         <property name="xpad">0</property>
                         <property name="ypad">10</property>
                         <property name="label" translatable="yes">&lt;span weight="bold"&gt;Rotate Image&lt;/span&gt;
-</property>
+                        </property>
                         <property name="use-markup">True</property>
                         <property name="justify">center</property>
                       </object>
@@ -213,8 +213,6 @@
                         <property name="height-request">300</property>
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
-                        <property name="margin-left">20</property>
-                        <property name="margin-right">20</property>
                         <property name="margin-start">20</property>
                         <property name="margin-end">20</property>
                         <property name="margin-top">20</property>
@@ -377,8 +375,7 @@
                         <property name="can-focus">False</property>
                         <property name="xpad">0</property>
                         <property name="ypad">10</property>
-                        <property name="label" translatable="yes">&lt;span weight="bold"&gt;Correct Errors&lt;/span&gt;
-Select any wrong digit and edit it.</property>
+                        <property name="label" translatable="yes">&lt;span weight="bold"&gt;Correct Errors&lt;/span&gt; Select any wrong digit and edit it.</property>
                         <property name="use-markup">True</property>
                         <property name="justify">center</property>
                       </object>
@@ -1889,6 +1886,56 @@ Select any wrong digit and edit it.</property>
                 <property name="name">page5</property>
                 <property name="title" translatable="yes">Correct Errors</property>
                 <property name="position">4</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkViewport" id="page6">
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <child>
+                  <object class="GtkBox">
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <property name="orientation">vertical</property>
+                    <child>
+                      <object class="GtkLabel" id="page6label">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="xpad">0</property>
+                        <property name="ypad">10</property>
+                        <property name="label" translatable="yes">&lt;span weight="bold"&gt;Solved Sudoku&lt;/span&gt;</property>
+                        <property name="use-markup">True</property>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkDrawingArea" id="page6image">
+                        <property name="width-request">300</property>
+                        <property name="height-request">300</property>
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="margin-start">20</property>
+                        <property name="margin-end">20</property>
+                        <property name="margin-top">20</property>
+                        <property name="margin-bottom">20</property>
+                      </object>
+                      <packing>
+                        <property name="expand">True</property>
+                        <property name="fill">True</property>
+                        <property name="position">1</property>
+                      </packing>
+                    </child>
+                  </object>
+                </child>
+              </object>
+              <packing>
+                <property name="name">page6</property>
+                <property name="title" translatable="yes">Solved Sudoku</property>
+                <property name="position">5</property>
               </packing>
             </child>
           </object>

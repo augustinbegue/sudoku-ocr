@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "solver.h"
- 
+
 // N is the size of the 2D matrix   N*N
 #define N 9
 
@@ -19,8 +19,8 @@ void loadarray(char *filename, int grid[N][N])
         {
             if (charac == '\n')
             {
-               j = 0;
-               i++; 
+                j = 0;
+                i++;
             }
             else if (charac == '.')
             {
@@ -91,11 +91,11 @@ void print(int arr[N][N])
         i++;
     }
 }
- 
+
 // Function to check if it is allowed to fill a number in the grid
-int isSafe(int grid[N][N], int row,int col, int num)
+int isSafe(int grid[N][N], int row, int col, int num)
 {
-     
+
     // Check if we find the same number in the similar row
     for (int x = 0; x <= 8; x++)
     {
@@ -104,7 +104,7 @@ int isSafe(int grid[N][N], int row,int col, int num)
             return 0;
         }
     }
- 
+
     // Check if we find the same number in the similar column
     for (int x = 0; x <= 8; x++)
     {
@@ -113,11 +113,11 @@ int isSafe(int grid[N][N], int row,int col, int num)
             return 0;
         }
     }
- 
+
     // Check if we find the same number in the 3*3 matrix
     int startRow = row - row % 3;
     int startCol = col - col % 3;
-   
+
     for (int i = 0; i < 3; i++)
     {
         for (int j = 0; j < 3; j++)
@@ -128,10 +128,10 @@ int isSafe(int grid[N][N], int row,int col, int num)
             }
         }
     }
- 
+
     return 1;
 }
- 
+
 // Solver Function
 int solveSuduko(int grid[N][N], int row, int col)
 {
@@ -145,12 +145,12 @@ int solveSuduko(int grid[N][N], int row, int col)
         row++;
         col = 0;
     }
-   
+
     if (grid[row][col] > 0)
     {
         return solveSuduko(grid, row, col + 1);
     }
- 
+
     for (int num = 1; num <= N; num++)
     {
         if (isSafe(grid, row, col, num) == 1)

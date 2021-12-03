@@ -7,6 +7,7 @@
 #include "perspective_correction.h"
 #include "result_network.h"
 #include "rotation.h"
+#include "solver.h"
 
 #define IMAGE_SIZE 500
 #define VERBOSE_MODE 0
@@ -66,24 +67,26 @@ struct Pages
     Page *page3;
     Page *page4;
     Page *page5;
+    Page *page6;
 };
 typedef struct Pages Pages;
 
 struct Images
 {
+    Image *current_image;
     Image *clean;
     Image *mask;
     Image *image;
     Image *image_rotated;
     Image *image_rotated_clean;
     Image *image_rotated_cropped;
+    Image *image_solved;
     gdouble current_rotation;
     gboolean is_rotated;
     gboolean is_loaded;
     square *grid_square;
     gint display_size;
     GtkDrawingArea *current_container;
-    Image *current_image;
     gboolean editing_digits;
     GtkLabel *current_label;
 };
@@ -543,6 +546,8 @@ void previous_page(GtkWidget *widget, gpointer data)
 {
     MainWindow *main_window = (MainWindow *)data;
 
+    // TODO: Fix or Remove
+
     if (g_str_equal(main_window->pages->current_page, "page2"))
     {
         set_page(main_window, "page1");
@@ -585,86 +590,36 @@ void open_image(GtkWidget *widget, gpointer data)
 }
 
 /*
- *  Page 3
+ *  Page 6
  */
 
-void cancel_image_selection(GtkWidget *_, gpointer data)
+void solve_sudoku(GtkWidget *_, gpointer data)
 {
     MainWindow *main_window = (MainWindow *)data;
 
-    set_page(main_window, "page1");
-}
+    printf("Solving Sudoku\n");
 
-gboolean grid_extraction_finished(gpointer data)
-{
-    MainWindow *main_window = (MainWindow *)data;
+    if (solveSuduko(main_window->grid, 0, 0))
+    {
+        printf("Sudoku Solved\n");
 
-    display_image(main_window->pages->page3->image, main_window->images->image,
-        main_window);
+        for (int i = 0; i < 9; i++)
+        {
+            for (int j = 0; j < 9; j++)
+            {
+                printf("%d ", main_window->grid[i][j]);
+            }
+            printf("\n");
+        }
+    }
+    else
+    {
+        printf("Sudoku Not Solved\n");
+    }
 
-    set_button_to_label(main_window->controls->confirm_image_button,
-        "<span weight=\"bold\">Use this image</span>");
-    set_button_to_label(
-        main_window->controls->image_rotation_done_button, "Done");
-    gtk_widget_show(GTK_WIDGET(main_window->controls->rotation_scale));
+    gtk_widget_queue_draw(GTK_WIDGET(main_window->pages->page5->image));
 
-    return FALSE;
-}
-
-void *grid_extraction_handler(gpointer data)
-{
-    MainWindow *main_window = (MainWindow *)data;
-
-    image_processing_extract_grid(main_window->images->mask,
-        main_window->images->image, VERBOSE_MODE, VERBOSE_PATH);
-
-    g_idle_add(grid_extraction_finished, main_window);
-
-    return NULL;
-}
-
-void manual_rotate_image(GtkWidget *widget, gpointer data)
-{
-    MainWindow *main_window = (MainWindow *)data;
-
-    g_thread_new("grid_extraction_handler",
-        (GThreadFunc)grid_extraction_handler, main_window);
-
-    gtk_widget_hide(GTK_WIDGET(main_window->controls->rotation_scale));
-    set_button_to_load(main_window->controls->confirm_image_button);
-    set_button_to_load(main_window->controls->image_rotation_done_button);
-
-    display_image(main_window->pages->page3->image, main_window->images->image,
-        main_window);
-
-    gchar label[100];
-    g_snprintf(label, 100,
-        "<span weight=\"bold\" size=\"large\">Rotating Image</span>");
-    gtk_label_set_markup(main_window->pages->page3->label, label);
-
-    set_step(main_window->step_indicators, 2);
-
-    if (widget != NULL)
-        set_page(main_window, "page3");
-}
-
-void rotation_changed(GtkWidget *_, gpointer user_data)
-{
-    MainWindow *main_window = (MainWindow *)user_data;
-
-    gdouble value = gtk_range_get_value(
-        GTK_RANGE(main_window->controls->rotation_scale));
-
-    *main_window->images->image_rotated
-        = rotate_image(main_window->images->image, value);
-
-    main_window->images->is_rotated = TRUE;
-    main_window->images->current_rotation = value;
-
-    display_image(GTK_DRAWING_AREA(main_window->pages->page3->image),
-        main_window->images->image_rotated, main_window);
-
-    return;
+    // TODO: Change page and display solved image with digits
 }
 
 /*
@@ -783,6 +738,65 @@ void perspective_correction(GtkWidget *_, gpointer data)
     g_thread_new("perspective_correction_handler",
         (GThreadFunc)perspective_correction_handler, main_window);
 }
+
+gboolean keypress_handler(GtkWidget *widget, GdkEventKey *event, gpointer data)
+{
+    MainWindow *main_window = (MainWindow *)data;
+
+    if (event->keyval == GDK_KEY_Escape || event->keyval == GDK_KEY_Return)
+    {
+        if (main_window->images->editing_digits)
+        {
+            GdkRGBA col = TRANSPARENT;
+            gtk_widget_override_background_color(
+                main_window->images->current_label, GTK_STATE_FLAG_NORMAL,
+                &col);
+        }
+
+        main_window->images->editing_digits = FALSE;
+    }
+    else if (event->keyval >= GDK_KEY_0 && GDK_KEY_9 >= event->keyval)
+    {
+        if (main_window->images->editing_digits)
+        {
+            gchar *name
+                = gtk_widget_get_name(main_window->images->current_label);
+
+            int i = name[0] - '0';
+            int j = name[2] - '0';
+
+            main_window->grid[i][j] = event->keyval - GDK_KEY_0;
+
+            gtk_widget_queue_draw(
+                GTK_WIDGET(main_window->pages->page5->image));
+        }
+    }
+}
+
+gboolean update_recognised_digits(
+    GtkWidget *event_box, GdkEvent *event, gpointer user_data)
+{
+    MainWindow *main_window = (MainWindow *)user_data;
+
+    if (main_window->images->editing_digits)
+    {
+        GdkRGBA col = TRANSPARENT;
+        gtk_widget_override_background_color(
+            main_window->images->current_label, GTK_STATE_FLAG_NORMAL, &col);
+    }
+
+    GtkLabel *label = gtk_bin_get_child(GTK_EVENT_BOX(event_box));
+
+    GdkRGBA col = ACCENT_COLOR;
+    gtk_widget_override_background_color(label, GTK_STATE_FLAG_NORMAL, &col);
+
+    main_window->images->editing_digits = TRUE;
+    main_window->images->current_label = label;
+}
+
+/*
+ *  Page 4
+ */
 
 void update_grid_square_pos(
     GtkWidget *widget, GdkEvent *event, gpointer user_data)
@@ -903,59 +917,87 @@ void process_image(GtkWidget *_, gpointer data)
         main_window);
 }
 
-gboolean keypress_handler(GtkWidget *widget, GdkEventKey *event, gpointer data)
+/*
+ *  Page 3
+ */
+
+void cancel_image_selection(GtkWidget *_, gpointer data)
 {
     MainWindow *main_window = (MainWindow *)data;
 
-    if (event->keyval == GDK_KEY_Escape || event->keyval == GDK_KEY_Return)
-    {
-        if (main_window->images->editing_digits)
-        {
-            GdkRGBA col = TRANSPARENT;
-            gtk_widget_override_background_color(
-                main_window->images->current_label, GTK_STATE_FLAG_NORMAL,
-                &col);
-        }
-
-        main_window->images->editing_digits = FALSE;
-    }
-    else if (event->keyval >= GDK_KEY_0 && GDK_KEY_9 >= event->keyval)
-    {
-        if (main_window->images->editing_digits)
-        {
-            gchar *name
-                = gtk_widget_get_name(main_window->images->current_label);
-
-            int i = name[0] - '0';
-            int j = name[2] - '0';
-
-            main_window->grid[i][j] = event->keyval - GDK_KEY_0;
-
-            gtk_widget_queue_draw(
-                GTK_WIDGET(main_window->pages->page5->image));
-        }
-    }
+    set_page(main_window, "page1");
 }
 
-gboolean update_recognised_digits(
-    GtkWidget *event_box, GdkEvent *event, gpointer user_data)
+gboolean grid_extraction_finished(gpointer data)
+{
+    MainWindow *main_window = (MainWindow *)data;
+
+    display_image(main_window->pages->page3->image, main_window->images->image,
+        main_window);
+
+    set_button_to_label(main_window->controls->confirm_image_button,
+        "<span weight=\"bold\">Use this image</span>");
+    set_button_to_label(
+        main_window->controls->image_rotation_done_button, "Done");
+    gtk_widget_show(GTK_WIDGET(main_window->controls->rotation_scale));
+
+    return FALSE;
+}
+
+void *grid_extraction_handler(gpointer data)
+{
+    MainWindow *main_window = (MainWindow *)data;
+
+    image_processing_extract_grid(main_window->images->mask,
+        main_window->images->image, VERBOSE_MODE, VERBOSE_PATH);
+
+    g_idle_add(grid_extraction_finished, main_window);
+
+    return NULL;
+}
+
+void manual_rotate_image(GtkWidget *widget, gpointer data)
+{
+    MainWindow *main_window = (MainWindow *)data;
+
+    g_thread_new("grid_extraction_handler",
+        (GThreadFunc)grid_extraction_handler, main_window);
+
+    gtk_widget_hide(GTK_WIDGET(main_window->controls->rotation_scale));
+    set_button_to_load(main_window->controls->confirm_image_button);
+    set_button_to_load(main_window->controls->image_rotation_done_button);
+
+    display_image(main_window->pages->page3->image, main_window->images->image,
+        main_window);
+
+    gchar label[100];
+    g_snprintf(label, 100,
+        "<span weight=\"bold\" size=\"large\">Rotating Image</span>");
+    gtk_label_set_markup(main_window->pages->page3->label, label);
+
+    set_step(main_window->step_indicators, 2);
+
+    if (widget != NULL)
+        set_page(main_window, "page3");
+}
+
+void rotation_changed(GtkWidget *_, gpointer user_data)
 {
     MainWindow *main_window = (MainWindow *)user_data;
 
-    if (main_window->images->editing_digits)
-    {
-        GdkRGBA col = TRANSPARENT;
-        gtk_widget_override_background_color(
-            main_window->images->current_label, GTK_STATE_FLAG_NORMAL, &col);
-    }
+    gdouble value = gtk_range_get_value(
+        GTK_RANGE(main_window->controls->rotation_scale));
 
-    GtkLabel *label = gtk_bin_get_child(GTK_EVENT_BOX(event_box));
+    *main_window->images->image_rotated
+        = rotate_image(main_window->images->image, value);
 
-    GdkRGBA col = ACCENT_COLOR;
-    gtk_widget_override_background_color(label, GTK_STATE_FLAG_NORMAL, &col);
+    main_window->images->is_rotated = TRUE;
+    main_window->images->current_rotation = value;
 
-    main_window->images->editing_digits = TRUE;
-    main_window->images->current_label = label;
+    display_image(GTK_DRAWING_AREA(main_window->pages->page3->image),
+        main_window->images->image_rotated, main_window);
+
+    return;
 }
 
 void window_destroy(GtkWidget *_, gpointer data)
@@ -1038,6 +1080,8 @@ int main()
         = GTK_VIEWPORT(gtk_builder_get_object(builder, "page4"));
     GtkViewport *page5_container
         = GTK_VIEWPORT(gtk_builder_get_object(builder, "page5"));
+    GtkViewport *page6_container
+        = GTK_VIEWPORT(gtk_builder_get_object(builder, "page6"));
 
     GtkDrawingArea *page2_image
         = GTK_DRAWING_AREA(gtk_builder_get_object(builder, "page2image"));
@@ -1047,6 +1091,8 @@ int main()
         = GTK_DRAWING_AREA(gtk_builder_get_object(builder, "page4image"));
     GtkDrawingArea *page5_image
         = GTK_DRAWING_AREA(gtk_builder_get_object(builder, "page5image"));
+    GtkDrawingArea *page6_image
+        = GTK_DRAWING_AREA(gtk_builder_get_object(builder, "page6image"));
 
     GtkLabel *page2_label
         = GTK_LABEL(gtk_builder_get_object(builder, "page2label"));
@@ -1056,6 +1102,8 @@ int main()
         = GTK_LABEL(gtk_builder_get_object(builder, "page4label"));
     GtkLabel *page5_label
         = GTK_LABEL(gtk_builder_get_object(builder, "page5label"));
+    GtkLabel *page6_label
+        = GTK_LABEL(gtk_builder_get_object(builder, "page6label"));
 
     StepIndicators step_indicators = {
         .current_step = 1,
@@ -1108,6 +1156,11 @@ int main()
         .image = page5_image,
         .label = page5_label,
     };
+    Page page6 = {
+        .container = page6_container,
+        .image = page6_image,
+        .label = page6_label,
+    };
 
     Pages pages = {
         .current_page = "page1",
@@ -1116,6 +1169,7 @@ int main()
         .page3 = &page3,
         .page4 = &page4,
         .page5 = &page5,
+        .page6 = &page6,
     };
 
     Images images = {
@@ -1195,6 +1249,8 @@ int main()
         page4_image, "draw", G_CALLBACK(draw_image_and_square), &main_window);
     g_signal_connect(
         page5_image, "draw", G_CALLBACK(draw_image_and_grid), &main_window);
+    g_signal_connect(
+        page6_image, "draw", G_CALLBACK(draw_image), &main_window);
 
     // Image cropping
     g_signal_connect(G_OBJECT(crop_event_box), "motion-notify-event",
@@ -1215,6 +1271,10 @@ int main()
                 G_CALLBACK(update_recognised_digits), &main_window);
         }
     }
+
+    // Grid Solving
+    g_signal_connect(G_OBJECT(correction_done_button), "clicked",
+        G_CALLBACK(solve_sudoku), &main_window);
 
     main_window.grid = calloc(9, sizeof(int *));
     for (int i = 0; i < 9; i++)
