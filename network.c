@@ -4,7 +4,9 @@
 #include "network.h"
 #include "image.h"
 #include "result_network.h"
-
+// 176 Epochs 40 hidden = 0.803976
+// 236 Epochs 100 hidden acc = 0.896942
+//Accuracy: 0.901835 Epochs: 242acc = 0.901835
 char *concat(const char *s1, const char *s2)
 {
     char *result
@@ -16,7 +18,7 @@ char *concat(const char *s1, const char *s2)
 }
 
 // number of "generation" of AI
-static const int EPOCHS = 10;
+static const int EPOCHS = 502;
 
 // learning rate
 static double LR = 0.01;
@@ -258,7 +260,7 @@ void train()
 
                 // Updating weights and biases
                 m_scalar_mult(&d_output_layer, LR);
-                m_add(&output_weights, &d_output_layer);
+                m_subtract(&output_weights, &d_output_layer);
 
                 Matrix d_output_bias;
                 m_colsum(&derr_dino, &d_output_bias);
