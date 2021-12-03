@@ -7,7 +7,9 @@
 void loadarray(char *filename, int grid[N][N]);
 void writefile(int arr[N][N], char *filename);
 void print(int arr[N][N]);
-int isSafe(int grid[N][N], int row,int col, int num);
-int solveSuduko(int grid[N][N], int row, int col);
+int find_empty_cell(int puzzle[][N], int *row, int *column);
+int valid(int puzzle[][N], int row, int column, int guess);
+int solverSudoku(int puzzle[][N]);
+int **solvedGrid(int grid[][N]);
 
 #endif

@@ -92,76 +92,82 @@ void print(int arr[N][N])
     }
 }
 
-// Function to check if it is allowed to fill a number in the grid
-int isSafe(int grid[N][N], int row, int col, int num)
+// Function to check if an entry is unassigned
+int isUnassigned(int puzzle[][N], int *row, int *col)
 {
-
-    // Check if we find the same number in the similar row
-    for (int x = 0; x <= 8; x++)
+    for (int x = 0; x < 9; x++)
     {
-        if (grid[row][x] == num)
+        for (int y = 0; y < 9; y++)
         {
-            return 0;
-        }
-    }
-
-    // Check if we find the same number in the similar column
-    for (int x = 0; x <= 8; x++)
-    {
-        if (grid[x][col] == num)
-        {
-            return 0;
-        }
-    }
-
-    // Check if we find the same number in the 3*3 matrix
-    int startRow = row - row % 3;
-    int startCol = col - col % 3;
-
-    for (int i = 0; i < 3; i++)
-    {
-        for (int j = 0; j < 3; j++)
-        {
-            if (grid[i + startRow][j + startCol] == num)
+            if (!puzzle[x][y])
             {
-                return 0;
+                *row = x;
+                *col = y;
+                return 1;
             }
         }
     }
+    return 0;
+}
 
+// Function to check if the sudoku is correct
+int isCorrect(int puzzle[][N], int row, int col, int num)
+{
+    int brow = row / 3 * 3;
+    int bcol = col / 3 * 3;
+
+    for (int x = 0; x < 9; ++x)
+    {
+        if (puzzle[row][x] == num)
+        {
+            return 0;
+        }
+        if (puzzle[x][col] == num)
+        {
+            return 0;
+        }
+        if (puzzle[brow + (x % 3)][bcol + (x / 3)] == num)
+        {
+            return 0;
+        }
+    }
     return 1;
 }
 
-// Solver Function
-int solveSuduko(int grid[N][N], int row, int col)
+// Sudoku Solver
+int solverSudoku(int puzzle[][N])
 {
-    if (row == N - 1 && col == N)
+    int row;
+    int col;
+    if (!isUnassigned(puzzle, &row, &col))
     {
         return 1;
     }
 
-    if (col == N)
+    for (int num = 1; num < 10; num++)
     {
-        row++;
-        col = 0;
-    }
-
-    if (grid[row][col] > 0)
-    {
-        return solveSuduko(grid, row, col + 1);
-    }
-
-    for (int num = 1; num <= N; num++)
-    {
-        if (isSafe(grid, row, col, num) == 1)
+        if (isCorrect(puzzle, row, col, num))
         {
-            grid[row][col] = num;
-            if (solveSuduko(grid, row, col + 1) == 1)
+            puzzle[row][col] = num;
+            if (solverSudoku(puzzle))
             {
                 return 1;
             }
+            puzzle[row][col] = 0;
         }
-        grid[row][col] = 0;
     }
     return 0;
+}
+
+/* Function that returns a the solved grid */
+int **solvedGrid(int grid[][N])
+{
+    if (solverSudoku(grid))
+    {
+        return grid;
+    }
+    else
+    {
+        return NULL;
+    }
 }
