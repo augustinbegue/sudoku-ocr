@@ -599,25 +599,33 @@ void solve_sudoku(GtkWidget *_, gpointer data)
 
     printf("Solving Sudoku\n");
 
-    if (solveSuduko(main_window->grid, 0, 0))
-    {
-        printf("Sudoku Solved\n");
+    int grid[9][9];
 
-        for (int i = 0; i < 9; i++)
+    for (int i = 0; i < 9; i++)
+    {
+        for (int j = 0; j < 9; j++)
         {
-            for (int j = 0; j < 9; j++)
-            {
-                printf("%d ", main_window->grid[i][j]);
-            }
-            printf("\n");
+            grid[i][j] = main_window->grid[i][j];
         }
+    }
+
+    int **res = solvedGrid(grid);
+
+    if (res != NULL)
+    {
+        gtk_widget_queue_draw(GTK_WIDGET(main_window->pages->page5->image));
     }
     else
     {
         printf("Sudoku Not Solved\n");
-    }
+        GtkWidget *dialog = gtk_dialog_new_with_buttons(
+            "This grid could not be solved. Please correct the recognised "
+            "digits and try again.",
+            GTK_WINDOW(main_window->window), GTK_DIALOG_MODAL, "OK",
+            GTK_RESPONSE_ACCEPT, NULL);
 
-    gtk_widget_queue_draw(GTK_WIDGET(main_window->pages->page5->image));
+        gtk_dialog_run(GTK_DIALOG(dialog));
+    }
 
     // TODO: Change page and display solved image with digits
 }
