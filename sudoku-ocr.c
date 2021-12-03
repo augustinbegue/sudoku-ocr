@@ -11,7 +11,9 @@ int main()
     init_sdl();
     // void replaceImage(Image * img, char *path, 0, 0);
     Image image
-        = SDL_Surface_to_Image(load_image("../assets/grid/blank-grid.png"));
+        = SDL_Surface_to_Image(load_image("../assets/grids/blank-grid.png"));
 
+    save_image(Image_to_SDL_Surface(&image),
+        "~/OCR/sudoku-ocr/sudoku_solver/test.png");
     return 0;
 }

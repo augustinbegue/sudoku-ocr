@@ -15,6 +15,5 @@ int solverSudoku(int puzzle[][N]);
 int **solvedGrid(int grid[][N]);
 void init_sdl();
 void replaceImage(Image *img, char *path, int width, int height);
-void Surfaceload(int grid[N][N], Image *image)
 
 #endif
