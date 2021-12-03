@@ -4,6 +4,7 @@
 #include "SDL2/SDL.h"
 #include "SDL2/SDL_image.h"
 #include "image.h"
+#include "pixel_operations.h"
 
 // N is the size of the 2D matrix   N*N
 #define N 9
@@ -189,17 +190,53 @@ char *findPath(char *path, int i)
     }
     return 0;
 }
-/*
-// Display the sudoku grid as an image
-Image *Display_solved_sudoku(int grid[N][N], SDL_Surface *img, char *path)
+
+void init_sdl()
 {
-    for (int x = 0; x < img->w; x + img->w / 9)
+    // Init only the video part.
+    // If it fails, die with an error message.
+    if (SDL_Init(SDL_INIT_VIDEO) == -1)
+        errx(1, "Could not initialize SDL: %s.\n", SDL_GetError());
+}
+
+void replaceImage(Image *img, char *path, int width, int height)
+{
+    Image image = SDL_Surface_to_Image(load_image(path));
+    for (int i = 0; i < width; i++)
     {
-        for (int y = 0; y < img->h; y + img->h / 9)
+        for (in j = 0; j < height; j++)
         {
-            // p = findRightPath;
-            SDL_Surface *image = load_image(p);
+            Uint8 color = 0;
+
+            Pixel pix = {color, color, color};
+
+            image.pixels[i][j] = pix;
         }
     }
 }
-*/
+
+void Surfaceload(int grid[N][N], Image *image)
+{
+    int mwidth = image->w;
+    int mheight = image->h;
+    int width = 0;
+    int height = 0;
+    for (int i = 0; i < 9; i++)
+    {
+        for (int j = 0; j < 9; j++)
+        {
+            if (width == mwidth && height == mheight)
+            {
+                width = 0;
+                height = 0;
+            }
+            else
+            {
+                replaceImage(image, "../assets/grids/digit-%d.png", grid[i][j],
+                    width / 9, height / 9);
+                width += mheight / 9;
+                height += mheight / 9;
+            }
+        }
+    }
+}
