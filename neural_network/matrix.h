@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <math.h>
 #define MATRIX_INITIAL_CAPACITY 4
 
 typedef struct
@@ -62,7 +63,7 @@ Matrix *m_transpose(Matrix *a, Matrix *dest);
 // return a new matrix being the copy of the given in parameter
 Matrix *m_copy(Matrix *src, Matrix *dest);
 
-// don't need those...
+
 double m_get(Matrix *a, int r, int c);
 int m_rows(Matrix *a);
 int m_cols(Matrix *a);
@@ -78,5 +79,12 @@ Matrix *m_colsum(Matrix *a, Matrix *dest);
 void m_print(Matrix *a);
 void m_full_print(Matrix *a);
 bool m_equals(Matrix *a, Matrix *b);
+
+Matrix *softmax(Matrix *src);
+Matrix* d_softmax(Matrix* src);
+
+int is_nan(Matrix *src);
+
+double max_mat_value(Matrix *a);
 
 #endif

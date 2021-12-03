@@ -93,7 +93,7 @@ Image *pixbuf_to_image(GdkPixbuf *pixbuf)
 
 SDL_Surface *load_image(char *path)
 {
-    printf("-->📁 Opening %s\n", path);
+    //printf("-->📁 Opening %s\n", path);
 
     SDL_Surface *img;
 

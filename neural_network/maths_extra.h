@@ -23,4 +23,10 @@ double rand_weight();
 // random input for the XOR
 double rand_input_XOR();
 
+double relu(double x);
+
+double d_relu(double x);
+
+
+
 #endif
