@@ -11,5 +11,6 @@ int find_empty_cell(int puzzle[][N], int *row, int *column);
 int valid(int puzzle[][N], int row, int column, int guess);
 int solverSudoku(int puzzle[][N]);
 int **solvedGrid(int grid[][N]);
+// Image *Display_solved_sudoku(int grid[N][N]);
 
 #endif
