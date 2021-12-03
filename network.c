@@ -6,7 +6,7 @@
 #include "result_network.h"
 // 176 Epochs 40 hidden = 0.803976
 // 236 Epochs 100 hidden acc = 0.896942
-//Accuracy: 0.901835 Epochs: 242acc = 0.901835
+// Accuracy: 0.901835 Epochs: 242acc = 0.901835
 char *concat(const char *s1, const char *s2)
 {
     char *result
@@ -18,12 +18,12 @@ char *concat(const char *s1, const char *s2)
 }
 
 // number of "generation" of AI
-static const int EPOCHS = 502;
+static const int EPOCHS = 236;
 
 // learning rate
 static double LR = 0.01;
 
-static const int num_training = 1000;
+static const int num_training = 3240;
 // static const int NUMBER_OF_TESTS = 2;
 
 void trainingInput(Matrix *training_inputs, size_t numTest, char *path)
@@ -172,11 +172,13 @@ void train()
 
         while ((de = readdir(dr)) != NULL && count < num_training)
         {
-
             char *s = de->d_name;
 
             if (s[0] != '.')
             {
+
+                count++;
+
                 char *s1 = concat(dir, s);
 
                 Matrix _inputs;
