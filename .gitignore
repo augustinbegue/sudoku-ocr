@@ -1,9 +1,17 @@
+# Trash files
 .vscode
 *.[do]
+
+# Output files
 *.bmp
 *.csv
+assets/output/*
+assets/training_set/*
+*.result
+save
+
+# Executable files
 sudoku-ocr-gui
 sudoku-ocr
-assets/output/*
-*.result
+network
 

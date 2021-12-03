@@ -418,11 +418,8 @@ static void hysterisis_analysis(int *in, int w, int h, float tLow, float tHigh,
     iMax = h - 1; // max Y value to traverse, ignore bottom border
     jMax = w - 1; // max X value to traverse, ignore right border
 
-    if (verbose_mode)
-    {
-        printf("   👆 High Treshold: %f, High Trigger: %i\n", tHigh, highValue);
-        printf("   👇 Low Treshold: %f, Low Trigger: %i\n", tLow, lowValue);
-    }
+    printf("   👆 High Treshold: %f, High Trigger: %i\n", tHigh, highValue);
+    printf("   👇 Low Treshold: %f, Low Trigger: %i\n", tLow, lowValue);
 
     for (i = 1; i < iMax; ++i)
     {
@@ -446,16 +443,14 @@ Image canny_edge_filtering(
     int w = source->width;
     int h = source->height;
 
-    if (verbose_mode)
-        printf("\n[2]📐 Detecting Edges...\n");
+    printf("\n[2]📐 Detecting Edges...\n");
 
     Image image = clone_image(source);
 
     /*
      * Gaussian Smoothing
      */
-    if (verbose_mode)
-        printf("   🔎 Blurring the image.\n");
+    printf("   🔎 Blurring the image.\n");
 
     int gkernel_size = 11;
     double *gaussian_kernel = get_gaussian_smoothing_kernel(gkernel_size, 100);
@@ -464,8 +459,7 @@ Image canny_edge_filtering(
 
     verbose_save(verbose_mode, verbose_path, "6.0-edges-blur.png", &image);
 
-    if (verbose_mode)
-        printf("   📈 Generating the intensity gradient...\n");
+    printf("   📈 Generating the intensity gradient...\n");
 
     // Cloning images to store the gradients
     int *image_arr = Image_to_Array(&image);
@@ -505,8 +499,7 @@ Image canny_edge_filtering(
     /*
      * Non-maximal suppression
      */
-    if (verbose_mode)
-        printf("   🧨 Non-Maximal suppression...\n");
+    printf("   🧨 Non-Maximal suppression...\n");
 
     non_maximal_suppression(
         magnitude_arr, xgradient_arr, ygradient_arr, w, h, nms_arr);
@@ -516,8 +509,7 @@ Image canny_edge_filtering(
     verbose_save(verbose_mode, verbose_path, "6.3-edges-nms.png", &edge_image);
 
     // Hysterisis Analysis
-    if (verbose_mode)
-        printf("   🕳️ Hysterisis Analysis...\n");
+    printf("   🕳️ Hysterisis Analysis...\n");
 
     hysterisis_analysis(nms_arr, w, h, T_LOW, T_HIGH, edges_arr, verbose_mode);
 

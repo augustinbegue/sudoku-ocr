@@ -18,8 +18,8 @@
  * @param verbose_mode
  * @param verbose_path
  */
-void image_processing_extract_grid(Image *maskpt, Image *imagept,
-    bool verbose_mode, char *verbose_path, bool gtk)
+void image_processing_extract_grid(
+    Image *maskpt, Image *imagept, bool verbose_mode, char *verbose_path)
 {
     int adaptive_range
         = (maskpt->width > maskpt->height ? maskpt->height : maskpt->width)
@@ -29,13 +29,11 @@ void image_processing_extract_grid(Image *maskpt, Image *imagept,
      * PASS 1 - Create a mask with the pixels to keep
      */
 
-    if (verbose_mode)
-        printf("[1]♻️ Processing the image.\n");
+    printf("[1]♻️ Processing the image.\n");
     verbose_save(
         verbose_mode, verbose_path, "0.0-processing-step.png", imagept);
 
-    if (verbose_mode)
-        printf("   🖌  Applying grayscale.\n");
+    printf("   🖌  Applying grayscale.\n");
 
     // Grayscale and contrast adjustement
     filter_grayscale(maskpt, 0);
@@ -46,8 +44,7 @@ void image_processing_extract_grid(Image *maskpt, Image *imagept,
 
     verbose_save(verbose_mode, verbose_path, "0.2-mask-gamma.png", maskpt);
 
-    if (verbose_mode)
-        printf("   🖌  Filtering noise.\n");
+    printf("   🖌  Filtering noise.\n");
 
     // Gaussian blur for noise removal
     double *kernel = get_gaussian_smoothing_kernel(adaptive_range, 1.5);
@@ -61,8 +58,7 @@ void image_processing_extract_grid(Image *maskpt, Image *imagept,
     morph(imagept, Dilation, adaptive_range);
     verbose_save(verbose_mode, verbose_path, "1.2-mask-erosion.png", imagept);
 
-    if (verbose_mode)
-        printf("   🔲 Applying a mask threshold.\n");
+    printf("   🔲 Applying a mask threshold.\n");
 
     // Sauvola thresholding
     filter_sauvola(maskpt, maskpt, adaptive_range + adaptive_range, 0.2,
@@ -75,8 +71,8 @@ void image_processing_extract_grid(Image *maskpt, Image *imagept,
      * PASS 2 - Apply the mask to a clean version of the image and reapply
      * processing
      */
-    if (verbose_mode)
-        printf("   📥 Applying the mask on the original image.\n");
+
+    printf("   📥 Applying the mask on the original image.\n");
 
     // Apply the mask onto the clean image
     apply_mask(imagept, maskpt);
@@ -92,8 +88,7 @@ void image_processing_extract_grid(Image *maskpt, Image *imagept,
     verbose_save(
         verbose_mode, verbose_path, "4.1-image-grayscale.png", imagept);
 
-    if (verbose_mode)
-        printf("   🖌  Filtering noise.\n");
+    printf("   🖌  Filtering noise.\n");
 
     // Gaussian blur for noise removal
     convolution(kernel, adaptive_range, imagept, imagept, false);
@@ -104,8 +99,7 @@ void image_processing_extract_grid(Image *maskpt, Image *imagept,
     filter_gamma(maskpt, 255);
     filter_contrast(maskpt, 128);
 
-    if (verbose_mode)
-        printf("   🧮  Normalizing colors.\n");
+    printf("   🧮  Normalizing colors.\n");
 
     verbose_save(
         verbose_mode, verbose_path, "4.3-image-gamma-contrast.png", imagept);
@@ -117,8 +111,7 @@ void image_processing_extract_grid(Image *maskpt, Image *imagept,
     morph(imagept, Dilation, adaptive_range);
     verbose_save(verbose_mode, verbose_path, "4.5-image-erosion.png", imagept);
 
-    if (verbose_mode)
-        printf("   🎨 Average Color: %i\n", (int)imagept->average_color);
+    printf("   🎨 Average Color: %i\n", (int)imagept->average_color);
 
     if ((int)imagept->average_color == 237)
     {
@@ -133,8 +126,7 @@ void image_processing_extract_grid(Image *maskpt, Image *imagept,
         filter_contrast(maskpt, 255);
     }
 
-    if (verbose_mode)
-        printf("   🔲  Binarizing the image.\n");
+    printf("   🔲  Binarizing the image.\n");
 
     // Adaptive threshold to binarise
     filter_threshold(imagept);
@@ -158,27 +150,33 @@ void image_processing_extract_digits(
     // Grayscaling the image
     filter_grayscale(input, 0);
 
-    // Blurring the image
-    double *kernel = get_gaussian_smoothing_kernel(image_size / 100, 1.5);
-    convolution(kernel, image_size / 100, input, input, false);
-    free(kernel);
+    // Median Filter on the image
+    Image *blurred = malloc(sizeof(Image));
+    *blurred = clone_image(input);
+    filter_median(input, blurred, image_size / 100);
 
-    verbose_save(verbose_mode, verbose_path, "9.2-blurred.png", input);
+    verbose_save(verbose_mode, verbose_path, "9.2-blurred.png", blurred);
 
     // Dilation and Erosion
-    morph(input, Dilation, image_size / 250);
-    morph(input, Erosion, image_size / 250);
+    morph(blurred, Dilation, image_size / 250);
+    morph(blurred, Erosion, image_size / 250);
 
     verbose_save(
-        verbose_mode, verbose_path, "9.3-erosion-dilation.png", input);
+        verbose_mode, verbose_path, "9.3-erosion-dilation.png", blurred);
 
     // Adjusting colors
-    filter_contrast(input, 64);
-    filter_gamma(input, 255);
+    filter_contrast(blurred, 64);
+    filter_gamma(blurred, 255);
 
-    filter_threshold(input);
+    filter_threshold(blurred);
 
-    verbose_save(verbose_mode, verbose_path, "9.4-colors-adjusted.png", input);
+    verbose_save(
+        verbose_mode, verbose_path, "9.4-colors-adjusted.png", blurred);
+
+    Image old = *input;
+    *input = *blurred;
+    free_Image(&old);
+    free(blurred);
 }
 
 /**
@@ -266,7 +264,7 @@ square image_processing_detect_digit_boundaries(Image *input)
         }
 
         // Increasing the range of the search to gradually get the whole digit
-        range += image_size / 50;
+        range++;
     }
 
     square boundaries;

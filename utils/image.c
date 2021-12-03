@@ -93,7 +93,7 @@ Image *pixbuf_to_image(GdkPixbuf *pixbuf)
 
 SDL_Surface *load_image(char *path)
 {
-    printf("-->📁 Opening %s\n", path);
+    //printf("-->📁 Opening %s\n", path);
 
     SDL_Surface *img;
 
@@ -195,9 +195,13 @@ Image *crop_image(Image *input, square *crop)
 
     Image *cropped = create_image(size, size);
     int old_x = start.x;
+    old_x = old_x < 0 ? 0 : old_x;
+
     for (int x = 0; x < size && old_x < input->width; x++, old_x++)
     {
         int old_y = start.y;
+        old_y = old_y < 0 ? 0 : old_y;
+
         for (int y = 0; y < size && old_y < input->height; y++, old_y++)
         {
             Pixel old = input->pixels[old_x][old_y];

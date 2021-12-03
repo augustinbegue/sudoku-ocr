@@ -56,9 +56,8 @@ Image automatic_rotation(int **hough_accumulator, square *found_grid_square,
     if (most_freq_theta < 0)
         most_freq_theta = most_freq_theta + 90;
 
-    if (verbose_mode)
-        printf("   🎣 Most found angle for automatic rotation: %.2f\n",
-            most_freq_theta);
+    printf("   🎣 Most found angle for automatic rotation: %.2f\n",
+        most_freq_theta);
 
     if (most_freq_theta >= 1 && most_freq_theta <= 45)
     {
