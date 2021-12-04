@@ -1,6 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "solver.h"
+#include "SDL2/SDL.h"
+#include "SDL2/SDL_image.h"
+#include "image.h"
+#include "pixel_operations.h"
 
 // N is the size of the 2D matrix   N*N
 #define N 9
@@ -93,13 +97,13 @@ void print(int arr[N][N])
 }
 
 // Function to check if an entry is unassigned
-int isUnassigned(int puzzle[][N], int *row, int *col)
+int isUnassigned(int grid[N][N], int *row, int *col)
 {
     for (int x = 0; x < 9; x++)
     {
         for (int y = 0; y < 9; y++)
         {
-            if (!puzzle[x][y])
+            if (!grid[x][y])
             {
                 *row = x;
                 *col = y;
@@ -111,22 +115,22 @@ int isUnassigned(int puzzle[][N], int *row, int *col)
 }
 
 // Function to check if the sudoku is correct
-int isCorrect(int puzzle[][N], int row, int col, int num)
+int isCorrect(int grid[N][N], int row, int col, int num)
 {
     int brow = row / 3 * 3;
     int bcol = col / 3 * 3;
 
     for (int x = 0; x < 9; ++x)
     {
-        if (puzzle[row][x] == num)
+        if (grid[row][x] == num)
         {
             return 0;
         }
-        if (puzzle[x][col] == num)
+        if (grid[x][col] == num)
         {
             return 0;
         }
-        if (puzzle[brow + (x % 3)][bcol + (x / 3)] == num)
+        if (grid[brow + (x % 3)][bcol + (x / 3)] == num)
         {
             return 0;
         }
@@ -135,32 +139,32 @@ int isCorrect(int puzzle[][N], int row, int col, int num)
 }
 
 // Sudoku Solver
-int solverSudoku(int puzzle[][N])
+int solverSudoku(int grid[N][N])
 {
     int row;
     int col;
-    if (!isUnassigned(puzzle, &row, &col))
+    if (!isUnassigned(grid, &row, &col))
     {
         return 1;
     }
 
     for (int num = 1; num < 10; num++)
     {
-        if (isCorrect(puzzle, row, col, num))
+        if (isCorrect(grid, row, col, num))
         {
-            puzzle[row][col] = num;
-            if (solverSudoku(puzzle))
+            grid[row][col] = num;
+            if (solverSudoku(grid))
             {
                 return 1;
             }
-            puzzle[row][col] = 0;
+            grid[row][col] = 0;
         }
     }
     return 0;
 }
 
 /* Function that returns a the solved grid */
-int **solvedGrid(int grid[][N])
+int **solvedGrid(int grid[N][N])
 {
     if (solverSudoku(grid))
     {
@@ -171,3 +175,72 @@ int **solvedGrid(int grid[][N])
         return NULL;
     }
 }
+
+/* Function to get the file which correspnd to the right input */
+char *findPath(char *path, int i)
+{
+    int j = 0;
+    while (path[i] != '\0')
+    {
+        if (path[j] == (char)i)
+        {
+            return 1;
+        }
+        i++;
+    }
+    return 0;
+}
+
+void init_sdl()
+{
+    // Init only the video part.
+    // If it fails, die with an error message.
+    if (SDL_Init(SDL_INIT_VIDEO) == -1)
+        errx(1, "Could not initialize SDL: %s.\n", SDL_GetError());
+}
+
+void replaceImage(Image *img, char *path, int width, int height, Pixel pix)
+{
+    Image image = SDL_Surface_to_Image(load_image(path));
+    for (int i = 0; i < 90; i++)
+    {
+        for (int j = 0; j < 90; j++)
+        {
+		if ((&image)->pixels[i][j].r == 0)
+		{
+			img->pixels[width + i][height + j] = pix;
+		}
+        }
+    }
+    free_Image(&image);
+}
+
+void displayEmptyGrid(int grid[N][N], int solvedGrid[N][N], Image *img)
+{
+	Pixel pix = {0, 0, 0};
+	int width = img->width / 9;
+	int height = img->height / 9;
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < N; j++)
+		{
+			if (grid[j][i] != solvedGrid[j][i])
+			{
+				pix.r = 13;
+				pix.g = 137;
+				pix.b = 224;
+			}
+			else
+			{
+				pix.r = 0;
+				pix.g = 0;
+				pix.b = 0;
+			}
+			
+			char path[100];
+			sprintf(path, "assets/grids/digit-%i.png", solvedGrid[j][i]);
+			replaceImage(img, path, width * i, height * j, pix);
+		}
+	}
+}
+
