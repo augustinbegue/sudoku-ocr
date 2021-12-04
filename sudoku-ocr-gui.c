@@ -597,15 +597,25 @@ void solve_sudoku(GtkWidget *_, gpointer data)
 {
     MainWindow *main_window = (MainWindow *)data;
 
+    set_step(main_window->step_indicators, 6);
+
     printf("Solving Sudoku\n");
 
     int grid[9][9];
-
     for (int i = 0; i < 9; i++)
     {
         for (int j = 0; j < 9; j++)
         {
             grid[i][j] = main_window->grid[i][j];
+        }
+    }
+
+    int original_grid[9][9];
+    for (int i = 0; i < 9; i++)
+    {
+        for (int j = 0; j < 9; j++)
+        {
+            original_grid[i][j] = grid[i][j];
         }
     }
 
@@ -627,7 +637,14 @@ void solve_sudoku(GtkWidget *_, gpointer data)
         gtk_dialog_run(GTK_DIALOG(dialog));
     }
 
-    // TODO: Change page and display solved image with digits
+    Image empty
+        = SDL_Surface_to_Image(load_image("./assets/grids/blank-grid.png"));
+
+    displayEmptyGrid(original_grid, grid, &empty);
+
+    display_image(main_window->pages->page6->image, &empty, main_window);
+
+    set_page(main_window, "page6");
 }
 
 /*
