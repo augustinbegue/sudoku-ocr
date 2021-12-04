@@ -14,6 +14,8 @@ int valid(int puzzle[][N], int row, int column, int guess);
 int solverSudoku(int puzzle[][N]);
 int **solvedGrid(int grid[][N]);
 void init_sdl();
-void replaceImage(Image *img, char *path, int width, int height);
+void replaceImage(Image *img, char *path, int width, int height, Pixel pix);
+Pixel findPixel(int grid[N][N], int solvedgrid[N][N]);
+void displayEmptyGrid(int grid[N][N], int solvedGrid[N][N], Image *img);
 
 #endif

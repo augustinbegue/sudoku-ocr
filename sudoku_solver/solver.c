@@ -199,18 +199,48 @@ void init_sdl()
         errx(1, "Could not initialize SDL: %s.\n", SDL_GetError());
 }
 
-void replaceImage(Image *img, char *path, int width, int height)
+void replaceImage(Image *img, char *path, int width, int height, Pixel pix)
 {
     Image image = SDL_Surface_to_Image(load_image(path));
-    for (int i = 0; i < width; i++)
+    for (int i = 0; i < 90; i++)
     {
-        for (int j = 0; j < height; j++)
+        for (int j = 0; j < 90; j++)
         {
-            Uint8 color = 0;
-
-            Pixel pix = {color, color, color};
-
-            image.pixels[i][j] = pix;
+		if ((&image)->pixels[i][j].r == 0)
+		{
+			img->pixels[width + i][height + j] = pix;
+		}
         }
     }
+    free_Image(&image);
 }
+
+void displayEmptyGrid(int grid[N][N], int solvedGrid[N][N], Image *img)
+{
+	Pixel pix = {0, 0, 0};
+	int width = img->width / 9;
+	int height = img->height / 9;
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < N; j++)
+		{
+			if (grid[j][i] != solvedGrid[j][i])
+			{
+				pix.r = 13;
+				pix.g = 137;
+				pix.b = 224;
+			}
+			else
+			{
+				pix.r = 0;
+				pix.g = 0;
+				pix.b = 0;
+			}
+			
+			char path[100];
+			sprintf(path, "assets/grids/digit-%i.png", solvedGrid[j][i]);
+			replaceImage(img, path, width * i, height * j, pix);
+		}
+	}
+}
+
