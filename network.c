@@ -10,7 +10,15 @@
 
 //Epochs: 234 Accuracy: 0.880734 100
 
-//Epochs: 246 Accuracy: 0.896636 80 epo
+//Epochs: 246 Accuracy: 0.896636 80 
+
+// 900 -> 84
+
+// 800 -> 83
+
+//1000 -> 80
+
+//850 -> 85
 char *concat(const char *s1, const char *s2)
 {
     char *result
@@ -22,12 +30,12 @@ char *concat(const char *s1, const char *s2)
 }
 
 // number of "generation" of AI
-static const int EPOCHS = 510;
+static const int EPOCHS = 100;
 
 // learning rate
 static double LR = 0.01;
 
-static const int num_training = 3270;
+static const int num_training = 3240;
 
 void trainingInput(Matrix *training_inputs, size_t numTest, char *path)
 {
