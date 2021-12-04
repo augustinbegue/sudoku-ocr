@@ -7,6 +7,10 @@
 // 176 Epochs 40 hidden = 0.803976
 // 236 Epochs 100 hidden acc = 0.896942
 //Accuracy: 0.901835 Epochs: 242acc = 0.901835 120 hidden
+
+//Epochs: 234 Accuracy: 0.880734 100
+
+//Epochs: 246 Accuracy: 0.896636 80 epo
 char *concat(const char *s1, const char *s2)
 {
     char *result
@@ -18,7 +22,7 @@ char *concat(const char *s1, const char *s2)
 }
 
 // number of "generation" of AI
-static const int EPOCHS = 242;
+static const int EPOCHS = 510;
 
 // learning rate
 static double LR = 0.01;
@@ -124,12 +128,12 @@ void train()
 
             snprintf(training[count], 100, "%s", s);
 
-            printf("%s %s\n", s, training[count]);
+            
             count += 1;
         }
     }
     closedir(dr);
-    printf("String @ index 1: %s \n", training[0]);
+    
 
     // printf("\nTraining set initialized\n");
     // printf("Opened and loaded %d files.\n\n", count);
