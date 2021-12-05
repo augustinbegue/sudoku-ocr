@@ -28,24 +28,25 @@ double d_sigmoid(double x)
 
 double relu(double x)
 {
+    /*
     if(x >= 0){
         return 1.0;
     }
     else{
         return 0.01 * x;
-    }
-    //return 0.01 * x;
+    }*/
+    return 0.01 * x;
 }
 
 double d_relu(double x)
 {
-    if(x >= 0){
+    /*if(x >= 0){
         return 1;
     }
     else{
         return 0.01;
-    }
-    //return 0.01;
+    }*/
+    return 0.01;
 }
 
 double rand_weight()

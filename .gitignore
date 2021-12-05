@@ -8,7 +8,7 @@
 assets/output/*
 assets/training_set/*
 *.result
-save
+
 
 # Executable files
 sudoku-ocr-gui
