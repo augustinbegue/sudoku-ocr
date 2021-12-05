@@ -1,7 +1,19 @@
+# Trash files
 .vscode
 *.[do]
+
+# Output files
 *.bmp
 *.csv
-main
 assets/output/*
+assets/training_set/*
 *.result
+neural_network/training_set_generation/save
+
+
+# Executable files
+sudoku-ocr-gui
+sudoku-ocr
+network
+
+neural_network/training_set_generation/training_set/*

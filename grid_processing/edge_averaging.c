@@ -3,7 +3,7 @@
 #include "image.h"
 #include "int_list.h"
 // Amount we divide the biggest side of the image by to get the error factor
-static const int ERR_FACTOR = 100;
+static const int ERR_FACTOR = 300;
 
 /**
  * @brief Reduces the number of lines contained image edges_[xy] by averaging
@@ -19,8 +19,7 @@ static const int ERR_FACTOR = 100;
 int **average_edges(int_list *edges_x, int_list *edges_y, Image *image,
     bool verbose_mode, char *verbose_path, int *new_edge_num)
 {
-    if (verbose_mode)
-        printf("   🗺️ Averaging lines...\n");
+    printf("   🗺️ Averaging lines...\n");
 
     int w = image->width, h = image->height;
     int err_factor = (w > h ? w : h) / ERR_FACTOR;
@@ -123,9 +122,8 @@ int **average_edges(int_list *edges_x, int_list *edges_y, Image *image,
 
     free_2d_arr(edges, size / 2);
 
-    if (verbose_mode)
-        printf("   🤏 Reduced the number of lines from %i to %i\n", size,
-            new_size);
+    printf(
+        "   🤏 Reduced the number of lines from %i to %i\n", size, new_size);
 
     verbose_save(verbose_mode, verbose_path, "7.3-average-lines.png", image);
 

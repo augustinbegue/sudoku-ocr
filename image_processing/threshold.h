@@ -5,6 +5,6 @@
 #include <stdio.h>
 #include "image.h"
 
-Uint8 get_histogram_threshold(int *histogram);
+Uint8 get_histogram_threshold(int *histogram, int start, int end);
 
 #endif

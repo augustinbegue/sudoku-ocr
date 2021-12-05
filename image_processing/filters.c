@@ -1,5 +1,6 @@
 #include <err.h>
 #include <math.h>
+#include <pthread.h>
 #include <stdio.h>
 #include "helpers.h"
 #include "image.h"
@@ -7,8 +8,9 @@
 
 static void _grayscale(Pixel *pixel, int brightness)
 {
-    pixel->r = pixel->g = pixel->b
-        = (0.40 * pixel->r + 0.35 * pixel->g + 0.25 * pixel->b) + brightness;
+    pixel->r = pixel->g = pixel->b = clamp(
+        (0.40 * pixel->r + 0.35 * pixel->g + 0.25 * pixel->b) + brightness, 0,
+        255);
 }
 
 static double _contrast_helper(Uint8 p, int contrast)
@@ -137,9 +139,86 @@ void filter_threshold(Image *image)
 
     int *hist = image_grayscale_histogram(image, 0, width, 0, height);
 
-    Uint8 threshold = get_histogram_threshold(hist);
+    Uint8 threshold = get_histogram_threshold(hist, 0, 256);
 
     image_filter(image, _bw_inverted, threshold);
 
     free(hist);
+}
+
+/**
+ * @brief Normalizes the colors of the image to the range [0, 255]
+ *
+ * @param image image to normalize
+ */
+void filter_normalize(Image *image)
+{
+    int height = image->height;
+    int width = image->width;
+
+    int *hist = image_grayscale_histogram(image, 0, width, 0, height);
+
+    double min = get_histogram_min(hist);
+    double max = get_histogram_max(hist);
+
+    for (int x = 0; x < width; x++)
+    {
+        for (int y = 0; y < height; y++)
+        {
+            Pixel *pix = &image->pixels[x][y];
+            pix->r = (pix->r - min) * 255 / (max - min);
+            pix->g = (pix->g - min) * 255 / (max - min);
+            pix->b = (pix->b - min) * 255 / (max - min);
+        }
+    }
+
+    free(hist);
+}
+
+/**
+ * @brief Performs a median filter of size range on the given image
+ *
+ * @param image
+ * @param range
+ */
+void filter_median(Image *image, Image *output, int range)
+{
+    int height = image->height;
+    int width = image->width;
+
+    if (range % 2 == 0)
+        range++;
+    int midrange = range / 2;
+
+    for (int x = 0; x < width; x++)
+    {
+        for (int y = 0; y < height; y++)
+        {
+            int *window = calloc(range * range, sizeof(int));
+
+            int i = 0;
+            for (int fx = -midrange; fx < midrange; fx++)
+            {
+                int xx = x + fx;
+
+                for (int fy = -midrange; fy < midrange; fy++)
+                {
+                    int yy = y + fy;
+
+                    if (xx < 0 || xx >= width || yy < 0 || yy >= height)
+                        continue;
+
+                    window[i] = image->pixels[xx][yy].r;
+                    i++;
+                }
+            }
+
+            insertionSort(window, i);
+
+            output->pixels[x][y].g = output->pixels[x][y].b
+                = output->pixels[x][y].r = window[i / 2];
+
+            free(window);
+        }
+    }
 }
