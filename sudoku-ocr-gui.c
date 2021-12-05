@@ -87,6 +87,7 @@ struct Images
     gboolean is_displayed;
     gboolean is_grid_detected;
     gboolean is_perspective_corrected;
+    gboolean is_solved;
     square *grid_square;
     gint display_size;
     GtkDrawingArea *current_container;
@@ -108,6 +109,37 @@ struct MainWindow
     int **grid;
 };
 typedef struct MainWindow MainWindow;
+
+void free_used_images(MainWindow *main_window)
+{
+    if (main_window->images->is_loaded)
+    {
+        free_Image(main_window->images->mask);
+        free_Image(main_window->images->image);
+        free_Image(main_window->images->clean);
+    }
+
+    if (main_window->images->is_rotated)
+    {
+        free_Image(main_window->images->image_rotated);
+    }
+
+    if (main_window->images->is_grid_detected)
+    {
+        free_Image(main_window->images->image_rotated_clean);
+    }
+
+    if (main_window->images->is_perspective_corrected)
+    {
+        free_Image(main_window->images->image_rotated_cropped);
+        free(main_window->images->grid_square);
+    }
+
+    if (main_window->images->is_solved)
+    {
+        free_Image(main_window->images->image_solved);
+    }
+}
 
 /*
  * Images Display
@@ -541,24 +573,6 @@ void previous_page(GtkWidget *widget, gpointer data)
     MainWindow *main_window = (MainWindow *)data;
 
     // TODO: Fix or Remove
-
-    // if (g_str_equal(main_window->pages->current_page, "page2"))
-    // {
-    //     set_page(main_window, "page1");
-    //     set_step(main_window->step_indicators, 1);
-    // }
-    // else if (g_str_equal(main_window->pages->current_page, "page4"))
-    // {
-    //     set_step(main_window->step_indicators, 1);
-    //     file_selected(NULL, main_window);
-    //     set_page(main_window, "page2");
-    // }
-    // else if (g_str_equal(main_window->pages->current_page, "page5"))
-    // {
-    //     file_selected(NULL, main_window);
-    //     manual_rotate_image(NULL, main_window);
-    //     set_page(main_window, "page4");
-    // }
 }
 
 void open_image(GtkWidget *widget, gpointer data)
@@ -632,12 +646,19 @@ void solve_sudoku(GtkWidget *_, gpointer data)
         return;
     }
 
-    Image empty
+    if (main_window->images->is_solved)
+    {
+        free_Image(main_window->images->image_solved);
+    }
+
+    *main_window->images->image_solved
         = SDL_Surface_to_Image(load_image("./assets/grids/blank-grid.png"));
+    main_window->images->is_solved = TRUE;
 
-    displayEmptyGrid(original_grid, grid, &empty);
+    displayEmptyGrid(original_grid, grid, main_window->images->image_solved);
 
-    display_image(main_window->pages->page6->image, &empty, main_window);
+    display_image(main_window->pages->page6->image,
+        main_window->images->image_solved, main_window);
 
     set_page(main_window, "page6");
 }
@@ -1032,37 +1053,16 @@ void window_destroy(GtkWidget *_, gpointer data)
 {
     MainWindow *main_window = (MainWindow *)data;
 
-    for (int i = 0; i < 9; i++)
-        free(main_window->grid[i]);
-    free(main_window->grid);
+    free_used_images(main_window);
 
     if (main_window->images->is_displayed)
     {
         free_Image(main_window->images->current_image);
     }
 
-    if (main_window->images->is_loaded)
-    {
-        free_Image(main_window->images->mask);
-        free_Image(main_window->images->image);
-        free_Image(main_window->images->clean);
-    }
-
-    if (main_window->images->is_rotated)
-    {
-        free_Image(main_window->images->image_rotated);
-    }
-
-    if (main_window->images->is_grid_detected)
-    {
-        free_Image(main_window->images->image_rotated_clean);
-    }
-
-    if (main_window->images->is_perspective_corrected)
-    {
-        free_Image(main_window->images->image_rotated_cropped);
-        free(main_window->images->grid_square);
-    }
+    for (int i = 0; i < 9; i++)
+        free(main_window->grid[i]);
+    free(main_window->grid);
 
     free(main_window->images->mask);
     free(main_window->images->image);
@@ -1070,6 +1070,7 @@ void window_destroy(GtkWidget *_, gpointer data)
     free(main_window->images->image_rotated);
     free(main_window->images->image_rotated_clean);
     free(main_window->images->image_rotated_cropped);
+    free(main_window->images->image_solved);
     free(main_window->images->current_image);
     free(main_window->images->current_container);
 
@@ -1249,6 +1250,7 @@ int main()
         .is_displayed = FALSE,
         .is_grid_detected = FALSE,
         .is_perspective_corrected = FALSE,
+        .is_solved = FALSE,
         .current_rotation = 0,
         .mask = malloc(sizeof(Image)),
         .image = malloc(sizeof(Image)),
@@ -1256,6 +1258,7 @@ int main()
         .image_rotated = malloc(sizeof(Image)),
         .image_rotated_clean = malloc(sizeof(Image)),
         .image_rotated_cropped = malloc(sizeof(Image)),
+        .image_solved = malloc(sizeof(Image)),
         .display_size = 0,
         .current_container = malloc(sizeof(GtkDrawingArea)),
         .current_image = malloc(sizeof(Image)),
