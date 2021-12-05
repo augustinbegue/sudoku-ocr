@@ -30,11 +30,11 @@ Uint8 get_histogram_threshold_local_min(int *histogram)
  * @param histogram
  * @return Uint8
  */
-Uint8 get_histogram_threshold_otsu(int *histogram)
+Uint8 get_histogram_threshold_otsu(int *histogram, int start, int end)
 {
     int nbpixel = 0;
 
-    for (int i = 0; i < 256; i++)
+    for (int i = start; i < end; i++)
         nbpixel += histogram[i];
 
     int sum1 = 0, sum2 = 0, w1 = 0, w2 = 0, m1 = 0, m2 = 0;
@@ -42,10 +42,10 @@ Uint8 get_histogram_threshold_otsu(int *histogram)
     Uint8 threshold = 0;
 
     int i;
-    for (i = 0; i < 256; i++)
+    for (i = start; i < end; i++)
         sum1 += i * histogram[i];
 
-    for (i = 0; i < 256; i++)
+    for (i = start; i < end; i++)
     {
         w1 += histogram[i];
 
@@ -80,7 +80,7 @@ Uint8 get_histogram_threshold_otsu(int *histogram)
  * @param histogram histogram from the image
  * @return Uint8
  */
-Uint8 get_histogram_threshold(int *histogram)
+Uint8 get_histogram_threshold(int *histogram, int start, int end)
 {
-    return get_histogram_threshold_otsu(histogram);
+    return get_histogram_threshold_otsu(histogram, start, end);
 }
