@@ -153,13 +153,24 @@ void image_processing_extract_digits(
     // Median Filter on the image
     Image *blurred = malloc(sizeof(Image));
     *blurred = clone_image(input);
-    filter_median(input, blurred, image_size / 100);
+
+    if (image_size > 1000 && image_size < 2000)
+    {
+        filter_median(input, blurred, image_size / 100);
+    }
+    else
+    {
+        filter_median(input, blurred, image_size / 200);
+    }
 
     verbose_save(verbose_mode, verbose_path, "9.2-blurred.png", blurred);
 
     // Dilation and Erosion
-    morph(blurred, Dilation, image_size / 250);
-    morph(blurred, Erosion, image_size / 250);
+    if (image_size > 1000)
+    {
+        morph(blurred, Dilation, image_size / 250);
+        morph(blurred, Erosion, image_size / 250);
+    }
 
     verbose_save(
         verbose_mode, verbose_path, "9.3-erosion-dilation.png", blurred);
@@ -206,22 +217,38 @@ square image_processing_detect_digit_boundaries(Image *input)
 
     // Searching for the most extreme coordinates of the remaining white
     // pixels
-    bool changed = true;
+    bool topchanged = true, bottomchanged = true, leftchanged = true,
+         rightchanged = true;
 
     // Searching in a defined range
     int range = image_size / 8;
 
+    int start_x = center - range;
+    int end_x = center + range;
+    int start_y = center - range;
+    int end_y = center + range;
+
     // While the coordinates change, we continue to search
     // If the coordinates did not change between two iterations, this means
     // that we have detected the whole digit
-    while (changed)
+    while (topchanged || bottomchanged || leftchanged || rightchanged)
     {
-        changed = false;
+        if (topchanged)
+            start_y--;
 
-        int start_x = center - range;
-        int end_x = center + range;
-        int start_y = center - range;
-        int end_y = center + range;
+        if (bottomchanged)
+            end_y++;
+
+        if (leftchanged)
+            start_x--;
+
+        if (rightchanged)
+            end_x++;
+
+        topchanged = false;
+        bottomchanged = false;
+        leftchanged = false;
+        rightchanged = false;
 
         if (start_x < 0)
             start_x = 0;
@@ -242,29 +269,26 @@ square image_processing_detect_digit_boundaries(Image *input)
                     if (x < min_x)
                     {
                         min_x = x;
-                        changed = true;
+                        leftchanged = true;
                     }
                     if (x > max_x)
                     {
                         max_x = x;
-                        changed = true;
+                        rightchanged = true;
                     }
                     if (y < min_y)
                     {
                         min_y = y;
-                        changed = true;
+                        topchanged = true;
                     }
                     if (y > max_y)
                     {
                         max_y = y;
-                        changed = true;
+                        bottomchanged = true;
                     }
                 }
             }
         }
-
-        // Increasing the range of the search to gradually get the whole digit
-        range++;
     }
 
     square boundaries;

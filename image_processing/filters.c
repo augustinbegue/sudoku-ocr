@@ -1,5 +1,6 @@
 #include <err.h>
 #include <math.h>
+#include <pthread.h>
 #include <stdio.h>
 #include "helpers.h"
 #include "image.h"
@@ -196,10 +197,14 @@ void filter_median(Image *image, Image *output, int range)
             int *window = calloc(range * range, sizeof(int));
 
             int i = 0;
-            for (int fx = -midrange, xx = x + fx; fx < midrange; fx++)
+            for (int fx = -midrange; fx < midrange; fx++)
             {
-                for (int fy = -midrange, yy = y + fy; fy < midrange; fy++)
+                int xx = x + fx;
+
+                for (int fy = -midrange; fy < midrange; fy++)
                 {
+                    int yy = y + fy;
+
                     if (xx < 0 || xx >= width || yy < 0 || yy >= height)
                         continue;
 

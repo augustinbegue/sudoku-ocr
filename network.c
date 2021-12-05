@@ -30,12 +30,12 @@ char *concat(const char *s1, const char *s2)
 }
 
 // number of "generation" of AI
-static const int EPOCHS = 1000;
+static const int EPOCHS = 1200;
 
 // learning rate
 static double LR = 0.01;
 
-static const int num_training = 3377;
+static const int num_training = 3380;
 
 void trainingInput(Matrix *training_inputs, size_t numTest, char *path)
 {
@@ -94,11 +94,11 @@ void shuffle(int *array)
 void train()
 {
     // Initializing training sets
-    //Matrix training_inputs;
-    //m_init(&training_inputs, num_training, __num_inputs);
+    // Matrix training_inputs;
+    // m_init(&training_inputs, num_training, __num_inputs);
 
-    //Matrix training_outputs;
-    //m_init(&training_outputs, num_training, __num_outputs);
+    // Matrix training_outputs;
+    // m_init(&training_outputs, num_training, __num_outputs);
 
     int acc[num_training];
 
