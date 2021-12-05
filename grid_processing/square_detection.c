@@ -214,25 +214,82 @@ list *find_line_squares(int **edges, line edge_1, int edge_num, Image *image)
     return squares;
 }
 
-list *find_squares(int **edges, int edge_num, Image *image)
+struct find_squares_thread_args
 {
-    int i = 0;
-    fprintf(stderr, "\33[2K\r   🖨️ Treated Edges: %i", i);
-    list *found_squares = l_create();
+    int start;
+    int n_edges;
+    int edge_num;
+    int **edges;
+    Image *image;
+    list *found_squares;
+};
 
-    for (; i < edge_num; i++)
+void *find_squares_thread(void *args)
+{
+    struct find_squares_thread_args *a = args;
+
+    for (int j = 0; j < a->n_edges; j++)
     {
-        list *found = find_line_squares(
-            edges, edge_to_line(edges[i]), edge_num, image);
+        list *found = find_line_squares(a->edges,
+            edge_to_line(a->edges[a->start + j]), a->edge_num, a->image);
 
-        l_merge(found_squares, found);
+        l_merge(a->found_squares, found);
 
         // only free the container so the merged nodes are not lost
         free(found);
-
-        fprintf(stderr, "\33[2K\r   🖨️ Treated Edges: %i", i);
     }
-    fprintf(stderr, "\33[2K\r   🖨️ Treated Edges: %i\n", i);
+}
+
+list *find_squares(int **edges, int edge_num, Image *image)
+{
+    int i = 0;
+    list *found_squares = l_create();
+
+    // Number of threads available from the CPU
+    int n_threads = sysconf(_SC_NPROCESSORS_ONLN);
+
+    // Number of edges per thread
+    int n_edges_per_thread = edge_num / n_threads;
+    int r_edges_per_thread = edge_num % n_threads;
+
+    // thread ids list
+    pthread_t *threads = malloc(sizeof(pthread_t) * n_threads);
+    struct find_squares_thread_args **args
+        = malloc(sizeof(struct find_squares_thread_args *) * n_threads);
+
+    fprintf(
+        stderr, "\33[2K\r   🖨️ Treating Edges on %i threads", n_threads);
+
+    for (int n = 0; n < n_threads; n++)
+    {
+        int n_edges = n_edges_per_thread;
+        if (n == 0)
+            n_edges += r_edges_per_thread;
+
+        args[n] = malloc(sizeof(struct find_squares_thread_args));
+
+        args[n]->start = i;
+        args[n]->n_edges = n_edges;
+        args[n]->edge_num = edge_num;
+        args[n]->edges = edges;
+        args[n]->image = image;
+        args[n]->found_squares = found_squares;
+
+        pthread_create(
+            &threads[n], NULL, find_squares_thread, (void *)args[n]);
+
+        i += n_edges;
+    }
+
+    for (int n = 0; n < n_threads; n++)
+    {
+        pthread_join(threads[n], NULL);
+        free(args[n]);
+    }
+    free(args);
+    free(threads);
+
+    fprintf(stderr, "\33[2K\r   🖨️ Treated Edges: %i\n", edge_num);
 
     return found_squares;
 }

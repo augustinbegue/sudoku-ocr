@@ -21,4 +21,6 @@ void filter_invert(Image *image, double value);
 
 void filter_normalize(Image *image);
 
+void filter_median(Image *image, Image *output, int range);
+
 #endif

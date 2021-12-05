@@ -12,8 +12,8 @@ static void find_edges(int **accumulator, int diag, int rho_num, int theta_num,
     double *rhos, double *thetas, int_list *edges_x, int_list *edges_y,
     Image *out, int w, int h, bool verbose_mode)
 {
-    if (verbose_mode)
-        printf("   📍 Fiding edges...\n");
+
+    printf("   📍 Fiding edges...\n");
 
     // 1. Fiding the maximum
     double max = 0;
@@ -31,14 +31,12 @@ static void find_edges(int **accumulator, int diag, int rho_num, int theta_num,
         }
     }
 
-    if (verbose_mode)
-        printf("   👆 Maximum: %f\n", max);
+    printf("   👆 Maximum: %f\n", max);
 
     // 2. Computing threshold
     int line_threshold = max * (LINES_THRESHOLD_PERCENTAGE / 100.0);
 
-    if (verbose_mode)
-        printf("   👈 Threshold: %i\n", line_threshold);
+    printf("   👈 Threshold: %i\n", line_threshold);
 
     // 3. Fiding coordinates of the edges in the accumulator using the
     // threshold
@@ -108,8 +106,7 @@ static void find_edges(int **accumulator, int diag, int rho_num, int theta_num,
 
             free(coordinates);
 
-            if (verbose_mode)
-                fprintf(stderr, "\33[2K\r   📊 Edges: %i", edges);
+            fprintf(stderr, "\33[2K\r   📊 Edges: %i", edges);
 
             if (g_c == 255)
             {
@@ -129,18 +126,16 @@ static void find_edges(int **accumulator, int diag, int rho_num, int theta_num,
         }
     }
 
-    if (verbose_mode)
-        fprintf(stderr, "\n");
+    fprintf(stderr, "\n");
 }
 
 int **hough_transform(Image *in, Image *clean, int_list *edges_x,
     int_list *edges_y, bool verbose_mode, char *verbose_path)
 {
-    if (verbose_mode)
-        printf("   🧭 Hough Transform...\n");
 
-    if (verbose_mode)
-        printf("   🧮 Computing Edges...\n");
+    printf("   🧭 Hough Transform...\n");
+
+    printf("   🧮 Computing Edges...\n");
 
     double w = in->width, h = in->height;
     // int w2 = w / 2, h2 = h / 2;
@@ -176,8 +171,7 @@ int **hough_transform(Image *in, Image *clean, int_list *edges_x,
             accumulator[r][t] = 0;
     }
 
-    if (verbose_mode)
-        fprintf(stderr, "\33[2K\r   🖨️ Done: %i %%", 0);
+    fprintf(stderr, "\33[2K\r   🖨️ Done: %i %%", 0);
 
     int done = 0;
     float total = w * h;
@@ -205,8 +199,7 @@ int **hough_transform(Image *in, Image *clean, int_list *edges_x,
         }
     }
 
-    if (verbose_mode)
-        fprintf(stderr, "\33[2K\r");
+    fprintf(stderr, "\33[2K\r");
 
     // Converting the accumulator into an image
     Image polar = Array2D_to_Image(accumulator, rho_num + 1, theta_num + 1);
