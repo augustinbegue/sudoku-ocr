@@ -6,7 +6,19 @@
 #include "result_network.h"
 // 176 Epochs 40 hidden = 0.803976
 // 236 Epochs 100 hidden acc = 0.896942
-// Accuracy: 0.901835 Epochs: 242acc = 0.901835
+// Accuracy: 0.901835 Epochs: 242acc = 0.901835 120 hidden
+
+// Epochs: 234 Accuracy: 0.880734 100
+
+// Epochs: 246 Accuracy: 0.896636 80
+
+// 900 -> 84
+
+// 800 -> 83
+
+// 1000 -> 80
+
+// 850 -> 85
 char *concat(const char *s1, const char *s2)
 {
     char *result
@@ -18,13 +30,12 @@ char *concat(const char *s1, const char *s2)
 }
 
 // number of "generation" of AI
-static const int EPOCHS = 236;
+static const int EPOCHS = 7;
 
 // learning rate
 static double LR = 0.01;
 
-static const int num_training = 3240;
-// static const int NUMBER_OF_TESTS = 2;
+static const int num_training = 3090;
 
 void trainingInput(Matrix *training_inputs, size_t numTest, char *path)
 {
@@ -67,14 +78,34 @@ void trainingOutput(Matrix *training_outputs, size_t testNumber, int expected)
     m_setIndex(training_outputs, testNumber, expected, 1.0);
 }
 
+void shuffle(int *array)
+{
+    size_t n = (size_t)(num_training);
+    size_t i;
+    for (i = 0; i < n - 1; i++)
+    {
+        size_t j = i + rand() / (RAND_MAX / (n - i) + 1);
+        int t = array[j];
+        array[j] = array[i];
+        array[i] = t;
+    }
+}
+
 void train()
 {
-    /*// Initializing training sets
+    // Initializing training sets
     Matrix training_inputs;
     m_init(&training_inputs, num_training, __num_inputs);
 
     Matrix training_outputs;
     m_init(&training_outputs, num_training, __num_outputs);
+
+    int acc[num_training];
+
+    for (int i = 0; i < num_training; i++)
+    {
+        acc[i] = i;
+    }
 
     struct dirent *de; // Pointer for directory entry
 
@@ -88,7 +119,7 @@ void train()
     }
 
     int count = 0;
-
+    char *training[num_training];
     while ((de = readdir(dr)) != NULL && count < num_training)
     {
 
@@ -96,16 +127,14 @@ void train()
 
         if (s[0] != '.')
         {
-            char *s1 = concat(dir, s);
+            training[count] = malloc(100);
 
-            trainingInput(&training_inputs, count, s1);
-            trainingOutput(&training_outputs, count, (int)(s[0] - '0'));
+            snprintf(training[count], 100, "%s", s);
 
             count += 1;
-            free(s1);
         }
     }
-    closedir(dr);*/
+    closedir(dr);
 
     // printf("\nTraining set initialized\n");
     // printf("Opened and loaded %d files.\n\n", count);
@@ -154,32 +183,34 @@ void train()
     for (int n = 0; n < EPOCHS; n++)
     {
         printf("Epochs: %d\n", n);
-
+        shuffle(acc);
         double accuracy = 0;
+        /*
+                struct dirent *de; // Pointer for directory entry
 
-        struct dirent *de; // Pointer for directory entry
+                char *dir = "./assets/training_set/";
 
-        char *dir = "./assets/training_set/";
+                DIR *dr = opendir(dir);
 
-        DIR *dr = opendir(dir);
+                if (dr == NULL) // opendir returns NULL if couldn't open
+           directory
+                {
+                    printf("Could not open directory: %s", dir);
+                }*/
 
-        if (dr == NULL) // opendir returns NULL if couldn't open directory
+        int count__ = 0;
+
+        while (count__ < num_training)
         {
-            printf("Could not open directory: %s", dir);
-        }
+            int count_ = acc[count__];
 
-        int count = 0;
+            char src[40];
+            strcpy(src, training[count_]);
+            count__++;
 
-        while ((de = readdir(dr)) != NULL && count < num_training)
-        {
-            char *s = de->d_name;
-
-            if (s[0] != '.')
+            if (src[0] != '.')
             {
-
-                count++;
-
-                char *s1 = concat(dir, s);
+                char *s1 = concat(dir, src);
 
                 Matrix _inputs;
                 m_init(&_inputs, 1, __num_inputs);
@@ -188,7 +219,7 @@ void train()
 
                 Matrix _outputs;
                 m_init(&_outputs, 1, __num_outputs);
-                trainingOutput(&_outputs, 0, (int)(s[0] - '0'));
+                trainingOutput(&_outputs, 0, (int)(src[0] - '0'));
 
                 free(s1);
 
@@ -301,7 +332,7 @@ void train()
                 m_free(&_inputs);
             }
         }
-        closedir(dr);
+        // closedir(dr);
         accuracy /= num_training;
 
         printf("Accuracy: %f\n", accuracy);
@@ -319,6 +350,10 @@ void train()
     m_free(&hidden_bias);
     m_free(&output_weights);
     m_free(&output_bias);
+    for (int i = 0; i < num_training; i++)
+    {
+        free(training[i]);
+    }
 }
 
 int main(int argc, char *argv[])
@@ -353,9 +388,7 @@ int main(int argc, char *argv[])
         int res = neural_network_execute(&image);
 
         free_Image(&image);
-
-        printf("%d\n", res);
-        return 0;
+        return res;
     }
     else
     {

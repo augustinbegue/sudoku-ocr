@@ -59,7 +59,7 @@ int result_network(
 
     // m_full_print(&input);
     // m_full_print(&result_hidden);
-    m_full_print(&result_output);
+    // m_full_print(&result_output);
 
     // free all memory
     m_free(&input);
