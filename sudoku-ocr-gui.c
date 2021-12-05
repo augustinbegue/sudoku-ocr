@@ -628,13 +628,14 @@ void solve_sudoku(GtkWidget *_, gpointer data)
     else
     {
         printf("Sudoku Not Solved\n");
-        GtkWidget *dialog = gtk_dialog_new_with_buttons(
-            "This grid could not be solved. Please correct the recognised "
-            "digits and try again.",
-            GTK_WINDOW(main_window->window), GTK_DIALOG_MODAL, "OK",
-            GTK_RESPONSE_ACCEPT, NULL);
+        GtkWidget *dialog
+            = gtk_message_dialog_new(GTK_WINDOW(main_window->window),
+                GTK_DIALOG_MODAL, GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE,
+                "This grid could not be solved. Please correct the recognised "
+                "digits and try again.");
 
         gtk_dialog_run(GTK_DIALOG(dialog));
+        return;
     }
 
     Image empty

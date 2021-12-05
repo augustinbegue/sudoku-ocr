@@ -30,12 +30,12 @@ char *concat(const char *s1, const char *s2)
 }
 
 // number of "generation" of AI
-static const int EPOCHS = 7;
+static const int EPOCHS = 100;
 
 // learning rate
 static double LR = 0.01;
 
-static const int num_training = 3090;
+static const int num_training = 3030;
 
 void trainingInput(Matrix *training_inputs, size_t numTest, char *path)
 {
