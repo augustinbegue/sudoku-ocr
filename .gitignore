@@ -8,6 +8,7 @@
 assets/output/*
 assets/training_set/*
 *.result
+neural_network/training_set_generation/save
 
 
 # Executable files
