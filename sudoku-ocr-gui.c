@@ -643,11 +643,6 @@ void solve_sudoku(GtkWidget *_, gpointer data)
         return;
     }
 
-    if (main_window->images->is_solved)
-    {
-        free_Image(main_window->images->image_solved);
-    }
-
     *main_window->images->image_solved
         = SDL_Surface_to_Image(load_image("./assets/grids/blank-grid.png"));
     main_window->images->is_solved = TRUE;
