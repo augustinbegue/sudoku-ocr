@@ -26,6 +26,7 @@ sudoku-ocr: sudoku-ocr.o $(OBJ)
 # unecessary for other projects
 check:
 	./testall.sh
+	./testnetwork.sh
 
 # unecessary for other projects
 clean-output:

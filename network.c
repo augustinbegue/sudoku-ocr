@@ -30,7 +30,7 @@ char *concat(const char *s1, const char *s2)
 }
 
 // number of "generation" of AI
-static const int EPOCHS = 100;
+static const int EPOCHS = 7;
 
 // learning rate
 static double LR = 0.01;
@@ -388,9 +388,7 @@ int main(int argc, char *argv[])
         int res = neural_network_execute(&image);
 
         free_Image(&image);
-
-        printf("%d\n", res);
-        return 0;
+        return res;
     }
     else
     {
