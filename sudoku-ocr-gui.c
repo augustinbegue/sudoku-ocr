@@ -84,6 +84,9 @@ struct Images
     gdouble current_rotation;
     gboolean is_rotated;
     gboolean is_loaded;
+    gboolean is_displayed;
+    gboolean is_grid_detected;
+    gboolean is_perspective_corrected;
     square *grid_square;
     gint display_size;
     GtkDrawingArea *current_container;
@@ -352,11 +355,12 @@ void draw_image(GtkDrawingArea *drawing_area, cairo_t *cr, gpointer data)
 void display_image(
     GtkDrawingArea *image_container, Image *image, MainWindow *main_window)
 {
-    main_window->images->current_container = image_container;
+    *main_window->images->current_container = *image_container;
 
-    if (main_window->images->display_size != 0)
+    if (main_window->images->is_displayed)
         free_Image(main_window->images->current_image);
     main_window->images->display_size = IMAGE_SIZE;
+    main_window->images->is_displayed = TRUE;
 
     *main_window->images->current_image = clone_image(image);
 
@@ -455,29 +459,12 @@ void save_current_image(GtkWidget *_, gpointer data)
 {
     MainWindow *main_window = (MainWindow *)data;
 
-    Image *image;
-    switch (main_window->step_indicators->current_step)
+    if (main_window->step_indicators->current_step == 1)
     {
-        case 1:
-            return;
-        case 2:
-            if (main_window->images->is_rotated)
-                image = main_window->images->image_rotated;
-            else
-                image = main_window->images->image;
-            break;
-        case 3:
-            image = main_window->images->image_rotated;
-            break;
-        case 4:
-            image = main_window->images->image_rotated_cropped;
-            break;
-        case 5:
-            image = main_window->images->image_rotated_cropped;
-            break;
-        default:
-            return;
+        return;
     }
+
+    Image *image = main_window->images->current_image;
 
     GtkWidget *dialog;
     GtkFileChooser *chooser;
@@ -521,6 +508,13 @@ void file_selected(GtkWidget *widget, gpointer data)
     GFile *file = gtk_file_chooser_get_file(file_chooser);
     char *path = g_file_get_path(file);
 
+    if (main_window->images->is_loaded)
+    {
+        free_Image(main_window->images->image);
+        free_Image(main_window->images->mask);
+        free_Image(main_window->images->clean);
+    }
+
     *main_window->images->image = SDL_Surface_to_Image(load_image(path));
     *main_window->images->mask = SDL_Surface_to_Image(load_image(path));
     *main_window->images->clean = SDL_Surface_to_Image(load_image(path));
@@ -548,23 +542,23 @@ void previous_page(GtkWidget *widget, gpointer data)
 
     // TODO: Fix or Remove
 
-    if (g_str_equal(main_window->pages->current_page, "page2"))
-    {
-        set_page(main_window, "page1");
-        set_step(main_window->step_indicators, 1);
-    }
-    else if (g_str_equal(main_window->pages->current_page, "page4"))
-    {
-        set_step(main_window->step_indicators, 1);
-        file_selected(NULL, main_window);
-        set_page(main_window, "page2");
-    }
-    else if (g_str_equal(main_window->pages->current_page, "page5"))
-    {
-        file_selected(NULL, main_window);
-        manual_rotate_image(NULL, main_window);
-        set_page(main_window, "page4");
-    }
+    // if (g_str_equal(main_window->pages->current_page, "page2"))
+    // {
+    //     set_page(main_window, "page1");
+    //     set_step(main_window->step_indicators, 1);
+    // }
+    // else if (g_str_equal(main_window->pages->current_page, "page4"))
+    // {
+    //     set_step(main_window->step_indicators, 1);
+    //     file_selected(NULL, main_window);
+    //     set_page(main_window, "page2");
+    // }
+    // else if (g_str_equal(main_window->pages->current_page, "page5"))
+    // {
+    //     file_selected(NULL, main_window);
+    //     manual_rotate_image(NULL, main_window);
+    //     set_page(main_window, "page4");
+    // }
 }
 
 void open_image(GtkWidget *widget, gpointer data)
@@ -752,6 +746,8 @@ void *perspective_correction_handler(gpointer data)
         = correct_perspective(main_window->images->image_rotated_clean,
             main_window->images->grid_square, VERBOSE_MODE, VERBOSE_PATH);
 
+    main_window->images->is_perspective_corrected = TRUE;
+
     g_idle_add(perspective_correction_finished, data);
 }
 
@@ -887,14 +883,14 @@ gboolean grid_detection_finished(gpointer data)
 {
     MainWindow *main_window = (MainWindow *)data;
 
+    main_window->images->is_grid_detected = TRUE;
+
     display_image(main_window->pages->page4->image,
         main_window->images->image_rotated_clean, main_window);
 
     set_step(main_window->step_indicators, 4);
 
     set_page(main_window, "page4");
-
-    // TODO: Correct square
 
     return FALSE;
 }
@@ -904,6 +900,7 @@ void *grid_detection_handler(gpointer data)
     MainWindow *main_window = (MainWindow *)data;
 
     double rotation = 0;
+
     main_window->images->grid_square
         = grid_processing_detect_grid(main_window->images->image_rotated,
             &rotation, VERBOSE_MODE, VERBOSE_PATH);
@@ -928,6 +925,8 @@ void process_image(GtkWidget *_, gpointer data)
     if (!main_window->images->is_rotated)
         *main_window->images->image_rotated
             = clone_image(main_window->images->image);
+    // set this to true so that image_rotated is freed
+    main_window->images->is_rotated = TRUE;
 
     // Display elements in page 4
     gchar label[100];
@@ -1014,6 +1013,9 @@ void rotation_changed(GtkWidget *_, gpointer user_data)
     gdouble value = gtk_range_get_value(
         GTK_RANGE(main_window->controls->rotation_scale));
 
+    if (main_window->images->is_rotated)
+        free_Image(main_window->images->image_rotated);
+
     *main_window->images->image_rotated
         = rotate_image(main_window->images->image, value);
 
@@ -1028,6 +1030,49 @@ void rotation_changed(GtkWidget *_, gpointer user_data)
 
 void window_destroy(GtkWidget *_, gpointer data)
 {
+    MainWindow *main_window = (MainWindow *)data;
+
+    for (int i = 0; i < 9; i++)
+        free(main_window->grid[i]);
+    free(main_window->grid);
+
+    if (main_window->images->is_displayed)
+    {
+        free_Image(main_window->images->current_image);
+    }
+
+    if (main_window->images->is_loaded)
+    {
+        free_Image(main_window->images->mask);
+        free_Image(main_window->images->image);
+        free_Image(main_window->images->clean);
+    }
+
+    if (main_window->images->is_rotated)
+    {
+        free_Image(main_window->images->image_rotated);
+    }
+
+    if (main_window->images->is_grid_detected)
+    {
+        free_Image(main_window->images->image_rotated_clean);
+    }
+
+    if (main_window->images->is_perspective_corrected)
+    {
+        free_Image(main_window->images->image_rotated_cropped);
+        free(main_window->images->grid_square);
+    }
+
+    free(main_window->images->mask);
+    free(main_window->images->image);
+    free(main_window->images->clean);
+    free(main_window->images->image_rotated);
+    free(main_window->images->image_rotated_clean);
+    free(main_window->images->image_rotated_cropped);
+    free(main_window->images->current_image);
+    free(main_window->images->current_container);
+
     gtk_main_quit();
 }
 
@@ -1201,6 +1246,9 @@ int main()
     Images images = {
         .is_rotated = FALSE,
         .is_loaded = FALSE,
+        .is_displayed = FALSE,
+        .is_grid_detected = FALSE,
+        .is_perspective_corrected = FALSE,
         .current_rotation = 0,
         .mask = malloc(sizeof(Image)),
         .image = malloc(sizeof(Image)),
@@ -1211,7 +1259,7 @@ int main()
         .display_size = 0,
         .current_container = malloc(sizeof(GtkDrawingArea)),
         .current_image = malloc(sizeof(Image)),
-        .current_label = malloc(sizeof(GtkLabel)),
+        .current_label = NULL,
         .editing_digits = FALSE,
     };
 
@@ -1292,7 +1340,8 @@ int main()
             GtkEventBox *evbox = GTK_EVENT_BOX(
                 gtk_grid_get_child_at(sudoku_labels_grid, i, j));
 
-            // TODO: find a way to transfer coordinates to edit grid directly
+            // TODO: find a way to transfer coordinates to edit grid
+            // directly
             g_signal_connect(evbox, "button-press-event",
                 G_CALLBACK(update_recognised_digits), &main_window);
         }
